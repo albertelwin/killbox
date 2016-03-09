@@ -2,10 +2,20 @@
 	"folders":
 	[
 		{
-			"path": "Assets\\Scripts"
+			"path": "Assets\\Scripts",
+			"file_exclude_patterns":
+			[
+				"*.dll",
+				"*.meta"
+			]
 		},
 		{
-			"path": "Assets\\Editor"
+			"path": "Assets\\Editor",
+			"file_exclude_patterns":
+			[
+				"*.dll",
+				"*.meta"
+			]
 		}
 	]
 }

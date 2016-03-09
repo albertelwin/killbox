@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: c1bb8f7b6ba585a48bc1ad83d5f183ee
+timeCreated: 1445522376
+licenseType: Pro
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences:
+  - color_grading_shader: {fileID: 4800000, guid: 438ddd58d82c84d9eb1fdc56111702e1,
+      type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

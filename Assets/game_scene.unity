@@ -1409,7 +1409,6 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 26959947}
-  - 23: {fileID: 26959948}
   m_Layer: 0
   m_Name: ControlPoint
   m_TagString: Untagged
@@ -1429,32 +1428,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 830037889}
   m_RootOrder: 2
---- !u!23 &26959948
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 26959946}
-  m_Enabled: 0
-  m_CastShadows: 0
-  m_ReceiveShadows: 0
-  m_Materials:
-  - {fileID: 0}
-  m_SubsetIndices: 
-  m_StaticBatchRoot: {fileID: 0}
-  m_UseLightProbes: 0
-  m_ReflectionProbeUsage: 0
-  m_ProbeAnchor: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: .5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingOrder: 0
 --- !u!1 &34387252
 GameObject:
   m_ObjectHideFlags: 0
@@ -3606,7 +3579,6 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 187312420}
-  - 23: {fileID: 187312421}
   m_Layer: 0
   m_Name: ControlPoint
   m_TagString: Untagged
@@ -3626,32 +3598,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 830037889}
   m_RootOrder: 5
---- !u!23 &187312421
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 187312419}
-  m_Enabled: 0
-  m_CastShadows: 0
-  m_ReceiveShadows: 0
-  m_Materials:
-  - {fileID: 0}
-  m_SubsetIndices: 
-  m_StaticBatchRoot: {fileID: 0}
-  m_UseLightProbes: 0
-  m_ReflectionProbeUsage: 0
-  m_ProbeAnchor: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: .5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingOrder: 0
 --- !u!1001 &190150198
 Prefab:
   m_ObjectHideFlags: 0
@@ -7286,7 +7232,6 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 308628703}
-  - 23: {fileID: 308628704}
   m_Layer: 0
   m_Name: ControlPoint
   m_TagString: Untagged
@@ -7306,32 +7251,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 375400087}
   m_RootOrder: 2
---- !u!23 &308628704
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 308628702}
-  m_Enabled: 0
-  m_CastShadows: 0
-  m_ReceiveShadows: 0
-  m_Materials:
-  - {fileID: 0}
-  m_SubsetIndices: 
-  m_StaticBatchRoot: {fileID: 0}
-  m_UseLightProbes: 0
-  m_ReflectionProbeUsage: 0
-  m_ProbeAnchor: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: .5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingOrder: 0
 --- !u!1 &311354493
 GameObject:
   m_ObjectHideFlags: 0
@@ -7415,7 +7334,6 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 324145422}
-  - 23: {fileID: 324145423}
   m_Layer: 0
   m_Name: ControlPoint
   m_TagString: Untagged
@@ -7435,32 +7353,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 830037889}
   m_RootOrder: 6
---- !u!23 &324145423
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 324145421}
-  m_Enabled: 0
-  m_CastShadows: 0
-  m_ReceiveShadows: 0
-  m_Materials:
-  - {fileID: 0}
-  m_SubsetIndices: 
-  m_StaticBatchRoot: {fileID: 0}
-  m_UseLightProbes: 0
-  m_ReflectionProbeUsage: 0
-  m_ProbeAnchor: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: .5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingOrder: 0
 --- !u!1 &326462654
 GameObject:
   m_ObjectHideFlags: 0
@@ -8096,7 +7988,6 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 367495183}
-  - 23: {fileID: 367495184}
   m_Layer: 0
   m_Name: ControlPoint
   m_TagString: Untagged
@@ -8116,32 +8007,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 830037889}
   m_RootOrder: 12
---- !u!23 &367495184
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 367495182}
-  m_Enabled: 0
-  m_CastShadows: 0
-  m_ReceiveShadows: 0
-  m_Materials:
-  - {fileID: 0}
-  m_SubsetIndices: 
-  m_StaticBatchRoot: {fileID: 0}
-  m_UseLightProbes: 0
-  m_ReflectionProbeUsage: 0
-  m_ProbeAnchor: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: .5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingOrder: 0
 --- !u!1001 &371157701
 Prefab:
   m_ObjectHideFlags: 0
@@ -9729,7 +9594,6 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 402498304}
-  - 23: {fileID: 402498305}
   m_Layer: 0
   m_Name: ControlPoint
   m_TagString: Untagged
@@ -9749,32 +9613,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 830037889}
   m_RootOrder: 11
---- !u!23 &402498305
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 402498303}
-  m_Enabled: 0
-  m_CastShadows: 0
-  m_ReceiveShadows: 0
-  m_Materials:
-  - {fileID: 0}
-  m_SubsetIndices: 
-  m_StaticBatchRoot: {fileID: 0}
-  m_UseLightProbes: 0
-  m_ReflectionProbeUsage: 0
-  m_ProbeAnchor: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: .5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingOrder: 0
 --- !u!1 &406083379
 GameObject:
   m_ObjectHideFlags: 0
@@ -15425,7 +15263,6 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 598202106}
-  - 23: {fileID: 598202107}
   m_Layer: 0
   m_Name: ControlPoint
   m_TagString: Untagged
@@ -15445,32 +15282,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 375400087}
   m_RootOrder: 0
---- !u!23 &598202107
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 598202105}
-  m_Enabled: 0
-  m_CastShadows: 0
-  m_ReceiveShadows: 0
-  m_Materials:
-  - {fileID: 0}
-  m_SubsetIndices: 
-  m_StaticBatchRoot: {fileID: 0}
-  m_UseLightProbes: 0
-  m_ReflectionProbeUsage: 0
-  m_ProbeAnchor: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: .5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingOrder: 0
 --- !u!1 &598210276
 GameObject:
   m_ObjectHideFlags: 0
@@ -16887,7 +16698,6 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 631377518}
-  - 23: {fileID: 631377519}
   m_Layer: 0
   m_Name: ControlPoint
   m_TagString: Untagged
@@ -16907,32 +16717,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 830037889}
   m_RootOrder: 3
---- !u!23 &631377519
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 631377517}
-  m_Enabled: 0
-  m_CastShadows: 0
-  m_ReceiveShadows: 0
-  m_Materials:
-  - {fileID: 0}
-  m_SubsetIndices: 
-  m_StaticBatchRoot: {fileID: 0}
-  m_UseLightProbes: 0
-  m_ReflectionProbeUsage: 0
-  m_ProbeAnchor: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: .5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingOrder: 0
 --- !u!1 &632363247
 GameObject:
   m_ObjectHideFlags: 0
@@ -18214,7 +17998,6 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 637629086}
-  - 23: {fileID: 637629087}
   m_Layer: 0
   m_Name: ControlPoint
   m_TagString: Untagged
@@ -18234,32 +18017,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 830037889}
   m_RootOrder: 1
---- !u!23 &637629087
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 637629085}
-  m_Enabled: 0
-  m_CastShadows: 0
-  m_ReceiveShadows: 0
-  m_Materials:
-  - {fileID: 0}
-  m_SubsetIndices: 
-  m_StaticBatchRoot: {fileID: 0}
-  m_UseLightProbes: 0
-  m_ReflectionProbeUsage: 0
-  m_ProbeAnchor: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: .5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingOrder: 0
 --- !u!1 &638647851
 GameObject:
   m_ObjectHideFlags: 0
@@ -19490,7 +19247,6 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 654031303}
-  - 23: {fileID: 654031304}
   m_Layer: 0
   m_Name: ControlPoint
   m_TagString: Untagged
@@ -19510,32 +19266,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 830037889}
   m_RootOrder: 17
---- !u!23 &654031304
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 654031302}
-  m_Enabled: 0
-  m_CastShadows: 0
-  m_ReceiveShadows: 0
-  m_Materials:
-  - {fileID: 0}
-  m_SubsetIndices: 
-  m_StaticBatchRoot: {fileID: 0}
-  m_UseLightProbes: 0
-  m_ReflectionProbeUsage: 0
-  m_ProbeAnchor: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: .5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingOrder: 0
 --- !u!1 &655564938
 GameObject:
   m_ObjectHideFlags: 0
@@ -23455,7 +23185,6 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 829589969}
-  - 23: {fileID: 829589970}
   m_Layer: 0
   m_Name: ControlPoint
   m_TagString: Untagged
@@ -23475,32 +23204,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 801492638}
   m_RootOrder: 6
---- !u!23 &829589970
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 829589968}
-  m_Enabled: 0
-  m_CastShadows: 0
-  m_ReceiveShadows: 0
-  m_Materials:
-  - {fileID: 0}
-  m_SubsetIndices: 
-  m_StaticBatchRoot: {fileID: 0}
-  m_UseLightProbes: 0
-  m_ReflectionProbeUsage: 0
-  m_ProbeAnchor: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: .5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingOrder: 0
 --- !u!1 &830037888
 GameObject:
   m_ObjectHideFlags: 0
@@ -24187,7 +23890,6 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 864899212}
-  - 23: {fileID: 864899213}
   m_Layer: 0
   m_Name: ControlPoint
   m_TagString: Untagged
@@ -24207,32 +23909,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 801492638}
   m_RootOrder: 3
---- !u!23 &864899213
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 864899211}
-  m_Enabled: 0
-  m_CastShadows: 0
-  m_ReceiveShadows: 0
-  m_Materials:
-  - {fileID: 0}
-  m_SubsetIndices: 
-  m_StaticBatchRoot: {fileID: 0}
-  m_UseLightProbes: 0
-  m_ReflectionProbeUsage: 0
-  m_ProbeAnchor: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: .5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingOrder: 0
 --- !u!1 &876584046
 GameObject:
   m_ObjectHideFlags: 0
@@ -24625,7 +24301,6 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 916608997}
-  - 23: {fileID: 916608998}
   m_Layer: 0
   m_Name: ControlPoint
   m_TagString: Untagged
@@ -24645,32 +24320,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 830037889}
   m_RootOrder: 7
---- !u!23 &916608998
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 916608996}
-  m_Enabled: 0
-  m_CastShadows: 0
-  m_ReceiveShadows: 0
-  m_Materials:
-  - {fileID: 0}
-  m_SubsetIndices: 
-  m_StaticBatchRoot: {fileID: 0}
-  m_UseLightProbes: 0
-  m_ReflectionProbeUsage: 0
-  m_ProbeAnchor: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: .5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingOrder: 0
 --- !u!1001 &921395508
 Prefab:
   m_ObjectHideFlags: 0
@@ -24911,7 +24560,6 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 925415317}
-  - 23: {fileID: 925415318}
   m_Layer: 0
   m_Name: ControlPoint
   m_TagString: Untagged
@@ -24931,32 +24579,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 830037889}
   m_RootOrder: 19
---- !u!23 &925415318
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 925415316}
-  m_Enabled: 0
-  m_CastShadows: 0
-  m_ReceiveShadows: 0
-  m_Materials:
-  - {fileID: 0}
-  m_SubsetIndices: 
-  m_StaticBatchRoot: {fileID: 0}
-  m_UseLightProbes: 0
-  m_ReflectionProbeUsage: 0
-  m_ProbeAnchor: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: .5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingOrder: 0
 --- !u!1001 &928989436
 Prefab:
   m_ObjectHideFlags: 0
@@ -25032,7 +24654,6 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 940954638}
-  - 23: {fileID: 940954639}
   m_Layer: 0
   m_Name: ControlPoint
   m_TagString: Untagged
@@ -25052,32 +24673,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 830037889}
   m_RootOrder: 0
---- !u!23 &940954639
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 940954637}
-  m_Enabled: 0
-  m_CastShadows: 0
-  m_ReceiveShadows: 0
-  m_Materials:
-  - {fileID: 0}
-  m_SubsetIndices: 
-  m_StaticBatchRoot: {fileID: 0}
-  m_UseLightProbes: 0
-  m_ReflectionProbeUsage: 0
-  m_ProbeAnchor: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: .5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingOrder: 0
 --- !u!1 &950376619
 GameObject:
   m_ObjectHideFlags: 0
@@ -25633,7 +25228,6 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 971776458}
-  - 23: {fileID: 971776459}
   m_Layer: 0
   m_Name: ControlPoint
   m_TagString: Untagged
@@ -25653,32 +25247,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 830037889}
   m_RootOrder: 10
---- !u!23 &971776459
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 971776457}
-  m_Enabled: 0
-  m_CastShadows: 0
-  m_ReceiveShadows: 0
-  m_Materials:
-  - {fileID: 0}
-  m_SubsetIndices: 
-  m_StaticBatchRoot: {fileID: 0}
-  m_UseLightProbes: 0
-  m_ReflectionProbeUsage: 0
-  m_ProbeAnchor: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: .5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingOrder: 0
 --- !u!1 &975961773
 GameObject:
   m_ObjectHideFlags: 0
@@ -26960,7 +26528,6 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 987515297}
-  - 23: {fileID: 987515298}
   m_Layer: 0
   m_Name: ControlPoint
   m_TagString: Untagged
@@ -26980,32 +26547,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 830037889}
   m_RootOrder: 4
---- !u!23 &987515298
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 987515296}
-  m_Enabled: 0
-  m_CastShadows: 0
-  m_ReceiveShadows: 0
-  m_Materials:
-  - {fileID: 0}
-  m_SubsetIndices: 
-  m_StaticBatchRoot: {fileID: 0}
-  m_UseLightProbes: 0
-  m_ReflectionProbeUsage: 0
-  m_ProbeAnchor: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: .5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingOrder: 0
 --- !u!1 &989671738
 GameObject:
   m_ObjectHideFlags: 0
@@ -28616,7 +28157,6 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 1015793708}
-  - 23: {fileID: 1015793709}
   m_Layer: 0
   m_Name: ControlPoint
   m_TagString: Untagged
@@ -28636,32 +28176,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 801492638}
   m_RootOrder: 2
---- !u!23 &1015793709
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1015793707}
-  m_Enabled: 0
-  m_CastShadows: 0
-  m_ReceiveShadows: 0
-  m_Materials:
-  - {fileID: 0}
-  m_SubsetIndices: 
-  m_StaticBatchRoot: {fileID: 0}
-  m_UseLightProbes: 0
-  m_ReflectionProbeUsage: 0
-  m_ProbeAnchor: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: .5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingOrder: 0
 --- !u!1 &1026015394
 GameObject:
   m_ObjectHideFlags: 0
@@ -29952,7 +29466,6 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 1032081120}
-  - 23: {fileID: 1032081121}
   m_Layer: 0
   m_Name: ControlPoint
   m_TagString: Untagged
@@ -29972,32 +29485,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 830037889}
   m_RootOrder: 15
---- !u!23 &1032081121
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1032081119}
-  m_Enabled: 0
-  m_CastShadows: 0
-  m_ReceiveShadows: 0
-  m_Materials:
-  - {fileID: 0}
-  m_SubsetIndices: 
-  m_StaticBatchRoot: {fileID: 0}
-  m_UseLightProbes: 0
-  m_ReflectionProbeUsage: 0
-  m_ProbeAnchor: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: .5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingOrder: 0
 --- !u!1 &1034282506
 GameObject:
   m_ObjectHideFlags: 0
@@ -30644,7 +30131,6 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 1070838987}
-  - 23: {fileID: 1070838988}
   m_Layer: 0
   m_Name: ControlPoint
   m_TagString: Untagged
@@ -30664,32 +30150,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 801492638}
   m_RootOrder: 0
---- !u!23 &1070838988
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1070838986}
-  m_Enabled: 0
-  m_CastShadows: 0
-  m_ReceiveShadows: 0
-  m_Materials:
-  - {fileID: 0}
-  m_SubsetIndices: 
-  m_StaticBatchRoot: {fileID: 0}
-  m_UseLightProbes: 0
-  m_ReflectionProbeUsage: 0
-  m_ProbeAnchor: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: .5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingOrder: 0
 --- !u!1 &1078672382
 GameObject:
   m_ObjectHideFlags: 0
@@ -33287,7 +32747,6 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 1217700281}
-  - 23: {fileID: 1217700282}
   m_Layer: 0
   m_Name: ControlPoint
   m_TagString: Untagged
@@ -33307,32 +32766,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 801492638}
   m_RootOrder: 8
---- !u!23 &1217700282
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1217700280}
-  m_Enabled: 0
-  m_CastShadows: 0
-  m_ReceiveShadows: 0
-  m_Materials:
-  - {fileID: 0}
-  m_SubsetIndices: 
-  m_StaticBatchRoot: {fileID: 0}
-  m_UseLightProbes: 0
-  m_ReflectionProbeUsage: 0
-  m_ProbeAnchor: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: .5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingOrder: 0
 --- !u!1 &1225461452
 GameObject:
   m_ObjectHideFlags: 0
@@ -33790,7 +33223,6 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 1267379004}
-  - 23: {fileID: 1267379005}
   m_Layer: 0
   m_Name: ControlPoint
   m_TagString: Untagged
@@ -33810,32 +33242,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 830037889}
   m_RootOrder: 14
---- !u!23 &1267379005
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1267379003}
-  m_Enabled: 0
-  m_CastShadows: 0
-  m_ReceiveShadows: 0
-  m_Materials:
-  - {fileID: 0}
-  m_SubsetIndices: 
-  m_StaticBatchRoot: {fileID: 0}
-  m_UseLightProbes: 0
-  m_ReflectionProbeUsage: 0
-  m_ProbeAnchor: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: .5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingOrder: 0
 --- !u!1001 &1272027217
 Prefab:
   m_ObjectHideFlags: 0
@@ -34097,7 +33503,6 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 1306329363}
-  - 23: {fileID: 1306329364}
   m_Layer: 0
   m_Name: ControlPoint
   m_TagString: Untagged
@@ -34117,32 +33522,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 830037889}
   m_RootOrder: 9
---- !u!23 &1306329364
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1306329362}
-  m_Enabled: 0
-  m_CastShadows: 0
-  m_ReceiveShadows: 0
-  m_Materials:
-  - {fileID: 0}
-  m_SubsetIndices: 
-  m_StaticBatchRoot: {fileID: 0}
-  m_UseLightProbes: 0
-  m_ReflectionProbeUsage: 0
-  m_ProbeAnchor: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: .5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingOrder: 0
 --- !u!4 &1312752307
 Transform:
   m_ObjectHideFlags: 0
@@ -34600,7 +33979,6 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 1354478271}
-  - 23: {fileID: 1354478272}
   m_Layer: 0
   m_Name: ControlPoint
   m_TagString: Untagged
@@ -34620,32 +33998,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 801492638}
   m_RootOrder: 5
---- !u!23 &1354478272
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1354478270}
-  m_Enabled: 0
-  m_CastShadows: 0
-  m_ReceiveShadows: 0
-  m_Materials:
-  - {fileID: 0}
-  m_SubsetIndices: 
-  m_StaticBatchRoot: {fileID: 0}
-  m_UseLightProbes: 0
-  m_ReflectionProbeUsage: 0
-  m_ProbeAnchor: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: .5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingOrder: 0
 --- !u!1 &1355885714
 GameObject:
   m_ObjectHideFlags: 0
@@ -35081,7 +34433,6 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 1406847249}
-  - 23: {fileID: 1406847250}
   m_Layer: 0
   m_Name: ControlPoint
   m_TagString: Untagged
@@ -35101,32 +34452,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 801492638}
   m_RootOrder: 10
---- !u!23 &1406847250
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1406847248}
-  m_Enabled: 0
-  m_CastShadows: 0
-  m_ReceiveShadows: 0
-  m_Materials:
-  - {fileID: 0}
-  m_SubsetIndices: 
-  m_StaticBatchRoot: {fileID: 0}
-  m_UseLightProbes: 0
-  m_ReflectionProbeUsage: 0
-  m_ProbeAnchor: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: .5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingOrder: 0
 --- !u!1 &1416214554
 GameObject:
   m_ObjectHideFlags: 0
@@ -40431,7 +39756,6 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 1585032740}
-  - 23: {fileID: 1585032741}
   m_Layer: 0
   m_Name: ControlPoint
   m_TagString: Untagged
@@ -40451,32 +39775,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 801492638}
   m_RootOrder: 1
---- !u!23 &1585032741
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1585032739}
-  m_Enabled: 0
-  m_CastShadows: 0
-  m_ReceiveShadows: 0
-  m_Materials:
-  - {fileID: 0}
-  m_SubsetIndices: 
-  m_StaticBatchRoot: {fileID: 0}
-  m_UseLightProbes: 0
-  m_ReflectionProbeUsage: 0
-  m_ProbeAnchor: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: .5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingOrder: 0
 --- !u!4 &1585431932
 Transform:
   m_ObjectHideFlags: 0
@@ -42105,7 +41403,6 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 1625626543}
-  - 23: {fileID: 1625626544}
   m_Layer: 0
   m_Name: ControlPoint
   m_TagString: Untagged
@@ -42125,32 +41422,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 830037889}
   m_RootOrder: 16
---- !u!23 &1625626544
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1625626542}
-  m_Enabled: 0
-  m_CastShadows: 0
-  m_ReceiveShadows: 0
-  m_Materials:
-  - {fileID: 0}
-  m_SubsetIndices: 
-  m_StaticBatchRoot: {fileID: 0}
-  m_UseLightProbes: 0
-  m_ReflectionProbeUsage: 0
-  m_ProbeAnchor: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: .5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingOrder: 0
 --- !u!1 &1631000251
 GameObject:
   m_ObjectHideFlags: 0
@@ -47355,7 +46626,6 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 1747099262}
-  - 23: {fileID: 1747099263}
   m_Layer: 0
   m_Name: ControlPoint
   m_TagString: Untagged
@@ -47375,32 +46645,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 801492638}
   m_RootOrder: 4
---- !u!23 &1747099263
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1747099261}
-  m_Enabled: 0
-  m_CastShadows: 0
-  m_ReceiveShadows: 0
-  m_Materials:
-  - {fileID: 0}
-  m_SubsetIndices: 
-  m_StaticBatchRoot: {fileID: 0}
-  m_UseLightProbes: 0
-  m_ReflectionProbeUsage: 0
-  m_ProbeAnchor: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: .5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingOrder: 0
 --- !u!1 &1748863293
 GameObject:
   m_ObjectHideFlags: 0
@@ -47595,7 +46839,6 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 1759089956}
-  - 23: {fileID: 1759089957}
   m_Layer: 0
   m_Name: ControlPoint
   m_TagString: Untagged
@@ -47615,32 +46858,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 375400087}
   m_RootOrder: 1
---- !u!23 &1759089957
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1759089955}
-  m_Enabled: 0
-  m_CastShadows: 0
-  m_ReceiveShadows: 0
-  m_Materials:
-  - {fileID: 0}
-  m_SubsetIndices: 
-  m_StaticBatchRoot: {fileID: 0}
-  m_UseLightProbes: 0
-  m_ReflectionProbeUsage: 0
-  m_ProbeAnchor: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: .5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingOrder: 0
 --- !u!4 &1762028345 stripped
 Transform:
   m_PrefabParentObject: {fileID: 450062, guid: a844648b2ca59a94eaa52f55d2a9fafe, type: 2}
@@ -48737,7 +47954,6 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 1823671079}
-  - 23: {fileID: 1823671080}
   m_Layer: 0
   m_Name: ControlPoint
   m_TagString: Untagged
@@ -48757,32 +47973,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 830037889}
   m_RootOrder: 13
---- !u!23 &1823671080
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1823671078}
-  m_Enabled: 0
-  m_CastShadows: 0
-  m_ReceiveShadows: 0
-  m_Materials:
-  - {fileID: 0}
-  m_SubsetIndices: 
-  m_StaticBatchRoot: {fileID: 0}
-  m_UseLightProbes: 0
-  m_ReflectionProbeUsage: 0
-  m_ProbeAnchor: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: .5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingOrder: 0
 --- !u!1 &1826731334
 GameObject:
   m_ObjectHideFlags: 0
@@ -49869,7 +49059,6 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 1906202894}
-  - 23: {fileID: 1906202895}
   m_Layer: 0
   m_Name: ControlPoint
   m_TagString: Untagged
@@ -49889,32 +49078,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 375400087}
   m_RootOrder: 3
---- !u!23 &1906202895
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1906202893}
-  m_Enabled: 0
-  m_CastShadows: 0
-  m_ReceiveShadows: 0
-  m_Materials:
-  - {fileID: 0}
-  m_SubsetIndices: 
-  m_StaticBatchRoot: {fileID: 0}
-  m_UseLightProbes: 0
-  m_ReflectionProbeUsage: 0
-  m_ProbeAnchor: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: .5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingOrder: 0
 --- !u!1 &1914721046
 GameObject:
   m_ObjectHideFlags: 0
@@ -52243,7 +51406,6 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 1980461496}
-  - 23: {fileID: 1980461497}
   m_Layer: 0
   m_Name: ControlPoint
   m_TagString: Untagged
@@ -52263,32 +51425,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 830037889}
   m_RootOrder: 8
---- !u!23 &1980461497
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1980461495}
-  m_Enabled: 0
-  m_CastShadows: 0
-  m_ReceiveShadows: 0
-  m_Materials:
-  - {fileID: 0}
-  m_SubsetIndices: 
-  m_StaticBatchRoot: {fileID: 0}
-  m_UseLightProbes: 0
-  m_ReflectionProbeUsage: 0
-  m_ProbeAnchor: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: .5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingOrder: 0
 --- !u!1 &1982518081
 GameObject:
   m_ObjectHideFlags: 0
@@ -56191,7 +55327,6 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 2075737581}
-  - 23: {fileID: 2075737582}
   m_Layer: 0
   m_Name: ControlPoint
   m_TagString: Untagged
@@ -56211,32 +55346,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 801492638}
   m_RootOrder: 9
---- !u!23 &2075737582
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 2075737580}
-  m_Enabled: 0
-  m_CastShadows: 0
-  m_ReceiveShadows: 0
-  m_Materials:
-  - {fileID: 0}
-  m_SubsetIndices: 
-  m_StaticBatchRoot: {fileID: 0}
-  m_UseLightProbes: 0
-  m_ReflectionProbeUsage: 0
-  m_ProbeAnchor: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: .5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingOrder: 0
 --- !u!1 &2078009684
 GameObject:
   m_ObjectHideFlags: 0
@@ -57757,7 +56866,6 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 2117003715}
-  - 23: {fileID: 2117003716}
   m_Layer: 0
   m_Name: ControlPoint
   m_TagString: Untagged
@@ -57777,32 +56885,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 801492638}
   m_RootOrder: 7
---- !u!23 &2117003716
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 2117003714}
-  m_Enabled: 0
-  m_CastShadows: 0
-  m_ReceiveShadows: 0
-  m_Materials:
-  - {fileID: 0}
-  m_SubsetIndices: 
-  m_StaticBatchRoot: {fileID: 0}
-  m_UseLightProbes: 0
-  m_ReflectionProbeUsage: 0
-  m_ProbeAnchor: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: .5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingOrder: 0
 --- !u!1 &2125623033
 GameObject:
   m_ObjectHideFlags: 0
@@ -57811,7 +56893,6 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 2125623034}
-  - 23: {fileID: 2125623035}
   m_Layer: 0
   m_Name: ControlPoint
   m_TagString: Untagged
@@ -57831,32 +56912,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 830037889}
   m_RootOrder: 18
---- !u!23 &2125623035
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 2125623033}
-  m_Enabled: 0
-  m_CastShadows: 0
-  m_ReceiveShadows: 0
-  m_Materials:
-  - {fileID: 0}
-  m_SubsetIndices: 
-  m_StaticBatchRoot: {fileID: 0}
-  m_UseLightProbes: 0
-  m_ReflectionProbeUsage: 0
-  m_ProbeAnchor: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: .5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingOrder: 0
 --- !u!1 &2129071957
 GameObject:
   m_ObjectHideFlags: 0

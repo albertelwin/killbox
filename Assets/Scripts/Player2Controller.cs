@@ -618,9 +618,6 @@ public class Player2Controller : MonoBehaviour {
 				transform_ref.rotation = transform_ref_.rotation;
 				mesh.rotation = transform_ref.rotation;
 
-#if !UNITY_EDITOR && UNITY_ANDROID
-				has_jumped = true;
-#else
 				if(can_jump) {
 					// if(game_manager.get_key_down(KeyCode.Space) || game_manager.get_key_down(KeyCode.JoystickButton1)) {
 					if(game_manager.get_key_down(KeyCode.Space)) {
@@ -628,7 +625,6 @@ public class Player2Controller : MonoBehaviour {
 						has_jumped = true;
 					}					
 				}
-#endif
 			}
 		}
 
@@ -645,8 +641,6 @@ public class Player2Controller : MonoBehaviour {
 				acceleration += Vector3.forward; 
 			}
 
-#if !UNITY_EDITOR && UNITY_ANDROID
-#else		
 			if(game_manager.get_key(KeyCode.S)) {
 				acceleration -= Vector3.forward;
 			}
@@ -658,7 +652,6 @@ public class Player2Controller : MonoBehaviour {
 			if(game_manager.get_key(KeyCode.D)) {
 				acceleration += Vector3.right;
 			}
-#endif
 
 			acceleration = acceleration.normalized;
 

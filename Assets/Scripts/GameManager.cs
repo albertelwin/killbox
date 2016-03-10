@@ -1,3 +1,15 @@
+
+/* TODO ✓
+
+[ ] Improve motion path editor -> http://va.lent.in/unity-make-your-lists-functional-with-reorderablelist/
+[ ] Load scene async
+[ ] Console word wrapping
+[ ] Camera clipping
+[ ] Fix intrusive firewall pop-up
+[ ] Dump password/kills/etc. to Google Drive
+
+*/
+
 using UnityEngine;
 using UnityEngine.Analytics;
 using System.Collections;
@@ -105,9 +117,7 @@ public class GameManager : MonoBehaviour {
 	public static PlayerType persistent_player_type = PlayerType.NONE;
 	public static ScenarioType persistent_scenario_type = ScenarioType.NONE;
 
-	// public static float drone_height = 80.0f;
 	public static float drone_height = 160.0f;
-	// public static float drone_radius = 30.0f;
 	public static float drone_radius = 60.0f;
 
 	[System.NonSerialized] public PlayerType player_type = PlayerType.NONE;
@@ -222,16 +232,10 @@ public class GameManager : MonoBehaviour {
 	}
 
 	public bool get_key(KeyCode key_code) {     
-#if !UNITY_EDITOR && UNITY_ANDROID
-		key_code = KeyCode.Mouse0;
-#endif
 		return paused ? false : Input.GetKey(key_code);
 	}
 
 	public bool get_key_down(KeyCode key_code) {
-#if !UNITY_EDITOR && UNITY_ANDROID
-		key_code = KeyCode.Mouse0;
-#endif
 		return paused ? false : Input.GetKeyDown(key_code);
 	}
 
@@ -283,45 +287,6 @@ public class GameManager : MonoBehaviour {
 			end_screen.hint.color = Util.white_no_alpha;
 			end_screen.passage0.color = Util.white_no_alpha;
 			end_screen.passage1.color = Util.white_no_alpha;
-
-			//NOTE: Player2 dots!!
-			// Renderer dot_quad = create_dot_quad();
-			// Renderer dot_cache_quad = create_dot_quad();
-
-			// int grid_size = 50;
-			// int dot_count = grid_size * grid_size;
-
-			// float dot_size = 0.01f;
-			// float half_dot_size = dot_size * 0.5f;
-			// float dot_display_time = 8.0f / (float)dot_count;
-			// Debug.Log(dot_display_time.ToString());
-
-			// float time_since_last_wait = 0.0f;
-			// float frame_time = 1.0f / 60.0f;
-
-			// for(int y = 0; y < grid_size; y++) {
-			//  float x_ = grid_size;
-			//  float y_ = (float)y;
-
-			//  dot_cache_quad.transform.localScale = new Vector3(x_, y, 1.0f) * dot_size;
-			//  dot_cache_quad.transform.localPosition = new Vector3(0.0f, 0.25f - y_ * half_dot_size, 0.0f);
-			//  dot_cache_quad.material.mainTextureScale = new Vector3(x_, y_);
-
-			//  for(int x = 0; x < grid_size; x++) {
-			//      float x1 = (float)(x + 1);
-			//      float y1 = (float)(y + 1);
-
-			//      dot_quad.transform.localScale = new Vector3(x1, 1.0f, 1.0f) * dot_size;
-			//      dot_quad.transform.localPosition = new Vector3(-0.25f + x1 * half_dot_size, 0.25f - (y1 * dot_size - half_dot_size), 0.0f);
-			//      dot_quad.material.mainTextureScale = new Vector2(x1, 1);
-
-			//      time_since_last_wait += dot_display_time;
-			//      if(time_since_last_wait > frame_time) {
-			//          time_since_last_wait -= frame_time;
-			//          yield return Util.wait_for_frame;
-			//      }
-			//  }
-			// }
 
 			yield return Util.wait_for_2000ms;
 
@@ -1195,13 +1160,6 @@ public class GameManager : MonoBehaviour {
 		if(created_player) {
 			total_playing_time += Time.deltaTime;
 		}
-
-		// for(int btn_index = 0; btn_index < 20; btn_index++) {
-		//  KeyCode key_code = (KeyCode)((int)KeyCode.JoystickButton0 + btn_index);
-		//  if(Input.GetKeyDown(key_code)) {
-		//      Debug.Log(key_code.ToString() + ", " + Time.time);
-		//  }
-		// }
 
 		if(Input.GetKey(KeyCode.LeftShift) && Input.GetKey(KeyCode.Escape)) {
 			game_over(true);

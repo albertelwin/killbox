@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿
+using UnityEngine;
 using System.Collections;
 
 //NOTE: Disables RPC warning, temp!!
@@ -997,7 +998,6 @@ public class Player1Controller : MonoBehaviour {
 			float screen_width = (float)Screen.width;
 			float screen_height = (float)Screen.height;
 			float screen_aspect_ratio_x = screen_width / screen_height;
-			// float screen_aspect_ratio_y = screen_height / screen_width;
 
 			float adjusted_aspect_ratio_y = aspect_ratio_y * screen_aspect_ratio_x;
 

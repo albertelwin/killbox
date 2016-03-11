@@ -12,9 +12,9 @@ class MotionPathControllerEditor : Editor {
 
 		MotionPathController controller = (MotionPathController)target;
 
-		// if(GUILayout.Button("Add Control Point")) {
-		// 	Transform control_point = (new GameObject("Control Point")).transform;
-		// 	control_point.parent = controller.transform;
-		// }
+		if(GUILayout.Button("Add Control Point")) {
+			Transform control_point = (new GameObject("Control Point")).transform;
+			control_point.parent = controller.transform;
+		}
 	}
 }

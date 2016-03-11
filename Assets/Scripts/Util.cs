@@ -26,6 +26,14 @@ public static class Util {
 	public static YieldInstruction wait_for_1000ms = new WaitForSeconds(1.0f);
 	public static YieldInstruction wait_for_2000ms = new WaitForSeconds(2.0f);
 
+	public static Vector3 new_vec3(float x, float y, float z) {
+		return new Vector3(x, y, z);
+	}
+
+	public static Vector3 new_vec3(Vector2 xy, float z) {
+		return new Vector3(xy.x, xy.y, z);
+	}
+
 	public static Color new_color(Color rgb, float a) {
 		return new Color(rgb.r, rgb.g, rgb.b, a);
 	}

@@ -34,6 +34,10 @@ public static class Util {
 		return new Vector3(xy.x, xy.y, z);
 	}
 
+	public static Vector3 set_x(Vector3 yz, float x) {
+		return new Vector3(x, yz.y, yz.z);
+	}
+
 	public static Color new_color(Color rgb, float a) {
 		return new Color(rgb.r, rgb.g, rgb.b, a);
 	}
@@ -49,6 +53,23 @@ public static class Util {
 
 		string str = r.ToString("X2") + g.ToString("X2") + b.ToString("X2");
 		return str;
+	}
+
+	public static Transform new_transform(Transform parent, string name, Vector3 pos, Vector3 scale, Quaternion rotation) {
+		Transform transform = (new GameObject(name)).transform;
+		transform.parent = parent;
+		transform.localPosition = pos;
+		transform.localScale = scale;
+		transform.localRotation = rotation;
+		return transform;
+	}
+
+	public static Transform new_transform(Transform parent, string name) {
+		return new_transform(parent, name, Vector3.zero, Vector3.one, Quaternion.identity);
+	}
+
+	public static Transform new_transform(Transform parent, string name, Vector3 pos) {
+		return new_transform(parent, name, pos, Vector3.one, Quaternion.identity);
 	}
 
 	public static AudioSource new_audio_source(Transform parent, string name) {

@@ -4,15 +4,26 @@ using System.Collections;
 
 //NOTE: Disables RPC warning, temp!!
 #pragma warning disable 0618
+#pragma warning disable 0162
 
 public class Player1Console {
+	public enum ItemType {
+		TEXT_MESH,
+		// WIDGET,
+	};
+
+	public class Item {
+		public Transform transform;
+		public float height;
+
+		public ItemType type;
+		public TextMesh text_mesh;
+	}
+
 	public enum CmdType {
 		COMMIT_STR,
 		PRINT_STR,
 		INPUT_STR,
-
-		SET_COLOR,
-		END_BLOCK,
 
 		WAIT,
 		WAIT_KEY,
@@ -104,9 +115,13 @@ public class Player1Console {
 	public Renderer renderer;
 	public bool enabled;
 
-	public string permanent_text_buffer;
 	public string working_text_buffer;
-	public TextMesh text_mesh;
+
+	public Transform text_mesh_prefab;
+
+	public Item[] item_queue;
+	public int item_count;
+	public int item_head_index;
 
 	public float cursor_time;
 	public float last_cursor_time;
@@ -116,8 +131,6 @@ public class Player1Console {
 	public Cmd[] command_buffer;
 
 	public int current_cmd_index;
-
-	public string current_color;
 
 	public bool logged_user_details;
 	public Cmd username_input_str_cmd;
@@ -248,11 +261,6 @@ public class Player1Console {
 		return cmd;
 	}
 
-	public static void push_set_color_cmd(Player1Console inst, Color color) {
-		Cmd cmd = push_cmd(inst, CmdType.SET_COLOR);
-		cmd.str = Util.color_to_hex_str(color);
-	}
-
 	public static void push_wait_cmd(Player1Console inst, float time, bool cursor_on = false) {
 		Cmd cmd = push_cmd(inst, CmdType.WAIT);
 		cmd.cursor_on = cursor_on;
@@ -274,8 +282,6 @@ public class Player1Console {
 		push_wait_cmd(inst, duration, true);
 		push_commit_str_cmd(inst, str).play_audio = true;
 		push_wait_cmd(inst, duration, true);
-
-		push_cmd(inst, CmdType.END_BLOCK);
 	}
 
 	public static void push_tutorial_key_cmd(Player1Console inst, string str, Player1Controller.ControlType control_type, float duration, int index) {
@@ -311,6 +317,78 @@ public class Player1Console {
 		push_print_str_cmd(inst, " DEATHS CONFIRMED\n\n");
 	}
 
+	public static Item get_item(Player1Console inst, int it) {
+		int index = (inst.item_head_index + it) % inst.item_queue.Length;
+
+		Item item = inst.item_queue[index];
+		Assert.is_true(item != null, index.ToString());
+		return item;
+	}
+
+	public static Item get_tail_item(Player1Console inst) {
+		Assert.is_true(inst.item_count > 0);
+		return get_item(inst, inst.item_count - 1);
+	}
+
+	public static Item pop_front_item(Player1Console inst) {
+		Assert.is_true(inst.item_count > 0);
+
+		Item item = inst.item_queue[inst.item_head_index];
+		inst.item_queue[inst.item_head_index] = null;
+
+		inst.item_count--;
+		inst.item_head_index++;
+		if(inst.item_head_index >= inst.item_queue.Length) {
+			inst.item_head_index = 0;
+		}
+
+		return item;
+	}
+
+	public static void push_back_item(Player1Console inst, Item item) {
+		Assert.is_true(inst.item_count < inst.item_queue.Length);
+
+		float bounds_height = 1.0f;
+		for(int i = 0; i < inst.item_count; i++) {
+			Transform transform = get_item(inst, i).transform;
+			transform.localPosition += Vector3.up * item.height;
+
+			if(transform.localPosition.y >= bounds_height) {
+				Assert.is_true(i == 0);
+				GameObject.Destroy(transform.gameObject);
+				pop_front_item(inst);
+				i--;
+			}
+		}
+
+		int index = (inst.item_head_index + inst.item_count++) % inst.item_queue.Length;
+		inst.item_queue[index] = item;
+	}
+
+	public static Item push_text_mesh(Player1Console inst, string str) {
+		Transform transform = (Transform)Object.Instantiate(inst.text_mesh_prefab, inst.transform.position, Quaternion.identity);
+		transform.name = "TextMesh";
+		transform.parent = inst.transform;
+		transform.localScale = Vector3.one;
+		transform.localPosition = Vector3.zero;
+		transform.localRotation = Quaternion.identity;
+
+		TextMesh text_mesh = transform.GetComponent<TextMesh>();
+		text_mesh.text = str;
+		text_mesh.richText = true;
+
+		Renderer renderer = transform.GetComponent<Renderer>();
+		float height = renderer.bounds.size.y;
+
+		Item item = new Item();
+		item.transform = transform;
+		item.height = height;
+		item.type = ItemType.TEXT_MESH;
+		item.text_mesh = text_mesh;
+		push_back_item(inst, item);
+		return item;
+	}
+
 	public static Player1Console new_inst(Transform transform) {
 		Player1Console inst = new Player1Console();
 
@@ -319,9 +397,15 @@ public class Player1Console {
 		inst.enabled = true;
 
 		inst.working_text_buffer = "";
-		inst.text_mesh = transform.GetComponent<TextMesh>();
-		inst.text_mesh.richText = true;
-		inst.text_mesh.text = inst.working_text_buffer;
+
+		inst.text_mesh_prefab = ((GameObject)Resources.Load("TextMeshPrefab")).transform;
+
+		inst.item_queue = new Item[64];
+		inst.item_count = 0;
+		inst.item_head_index = 0;
+
+		push_text_mesh(inst, "Hello, world!");
+
 		inst.cursor_time = 0.0f;
 		inst.last_cursor_time = -0.5f;
 
@@ -330,7 +414,6 @@ public class Player1Console {
 		inst.command_buffer = new Cmd[inst.command_buffer_capacity];
 
 		inst.current_cmd_index = 0;
-		inst.current_color = Util.color_to_hex_str(Util.white);
 
 		inst.logged_user_details = false;
 
@@ -355,21 +438,14 @@ public class Player1Console {
 
 		// push_print_str_cmd(inst, "\n\n");
 
-		// push_set_color_cmd(inst, Util.red);
 		// push_print_str_cmd(inst, "RED ");
-		// push_set_color_cmd(inst, Util.green);
 		// push_print_str_cmd(inst, "GREEN ");
-		// push_set_color_cmd(inst, Util.blue);
 		// push_print_str_cmd(inst, "BLUE\n");
 
-		// push_set_color_cmd(inst, Util.new_color(255, 255, 0));
 		// push_print_str_cmd(inst, "YELLOW ");
-		// push_set_color_cmd(inst, Util.new_color(0, 255, 255));
 		// push_print_str_cmd(inst, "CYAN ");
-		// push_set_color_cmd(inst, Util.new_color(255, 0, 255));
 		// push_print_str_cmd(inst, "MAGENTA\n");
 
-		// push_set_color_cmd(inst, Util.white);
 		// push_print_str_cmd(inst, "\n\n");
 
 		// push_cmd(inst, CmdType.SWITCH_ON_DISPLAY);
@@ -420,7 +496,8 @@ public class Player1Console {
 
 		push_cmd(inst, CmdType.SWITCH_ON_DISPLAY);
 
-		if(Settings.USE_TRANSITIONS) {
+		// if(Settings.USE_TRANSITIONS) {
+		if(true) {
 			push_print_str_cmd(inst, "RUNNING SYSTEMS CHECK...\n");
 			push_delay_cmd(inst);
 			push_print_str_cmd(inst, "\n\n");
@@ -489,11 +566,15 @@ public class Player1Console {
 		return inst;
 	}
 
+	public static bool is_new_line(char char_) {
+		return char_ == '\n' || char_ == '\r';
+	}
+
 	public static bool is_cursor_on(float cursor_time) {
 		return ((int)(cursor_time * 2.0f)) % 2 == 0;
 	}
 
-	public static void step_process(Player1Console inst, Player1Controller player1) {
+	public static void update(Player1Console inst, Player1Controller player1) {
 		if(!inst.logged_user_details) {
 			if(inst.username_input_str_cmd.done && inst.password_input_str_cmd.done) {
 				string details_str = "username: " + inst.username_input_str_cmd.str + ", password: " + inst.password_input_str_cmd.str + "\n";
@@ -508,10 +589,10 @@ public class Player1Console {
 		if(inst.enabled) {
 			GameManager game_manager = player1.game_manager;
 
-			float step_time_left = Time.deltaTime;
+			float time_left = Time.deltaTime;
 			inst.cursor_time += Time.deltaTime;
 
-			while(step_time_left > 0.0f && inst.current_cmd_index < inst.command_buffer_length) {
+			while(time_left > 0.0f && inst.current_cmd_index < inst.command_buffer_length) {
 				Cmd cmd = inst.command_buffer[inst.current_cmd_index];
 
 				switch(cmd.type) {
@@ -527,7 +608,7 @@ public class Player1Console {
 					}
 
 					case CmdType.PRINT_STR: {
-						cmd.time += step_time_left;
+						cmd.time += time_left;
 						int chars_left = cmd.str.Length - cmd.str_it;
 						int chars_to_print = Mathf.Min((int)(cmd.time / CHARS_PER_SEC), chars_left);
 						cmd.time -= chars_to_print * CHARS_PER_SEC;
@@ -541,7 +622,7 @@ public class Player1Console {
 						}
 
 						if(cmd.str_it >= cmd.str.Length) {
-							step_time_left = cmd.time;
+							time_left = cmd.time;
 							cmd.done = true;
 						}
 
@@ -565,11 +646,12 @@ public class Player1Console {
 									}
 								}
 								else {
-									if(input_char == '\n' || input_char == '\r') {
+									if(is_new_line(input_char)) {
 										if(str.Length > 0) {
 											inst.working_text_buffer += "\n";
 
 											cmd.done = true;
+											break;
 											// Debug.Log(str);
 										}
 									}
@@ -597,28 +679,10 @@ public class Player1Console {
 						break;
 					}
 
-					case CmdType.SET_COLOR: {
-						inst.permanent_text_buffer += "<color=#" + inst.current_color + ">" + inst.working_text_buffer + "</color>";
-						inst.working_text_buffer = "";
-
-						inst.current_color = cmd.str;
-
-						cmd.done = true;
-						break;
-					}
-
-					case CmdType.END_BLOCK: {
-						inst.permanent_text_buffer += inst.working_text_buffer;
-						inst.working_text_buffer = "";
-
-						cmd.done = true;
-						break;
-					}
-
 					case CmdType.WAIT: {
-						cmd.time += step_time_left;
+						cmd.time += time_left;
 						if(cmd.time >= cmd.duration) {
-							step_time_left = cmd.time - cmd.duration;
+							time_left = cmd.time - cmd.duration;
 							cmd.done = true;
 						}
 
@@ -677,7 +741,7 @@ public class Player1Console {
 							int char_count = 15;
 							float char_duration = cmd.duration / (float)char_count;
 
-							cmd.time += step_time_left;
+							cmd.time += time_left;
 							int chars_left = char_count - cmd.str_it;
 							int chars_to_print = Mathf.Min((int)(cmd.time / char_duration), chars_left);
 							cmd.time -= chars_to_print * char_duration;
@@ -690,7 +754,7 @@ public class Player1Console {
 							}
 
 							if(cmd.str_it >= char_count) {
-								step_time_left = cmd.time - chars_left * cmd.duration;
+								time_left = cmd.time - chars_left * cmd.duration;
 								cmd.done = true;
 
 								for(int i = 0; i < player1.controls.Length; i++) {
@@ -731,9 +795,9 @@ public class Player1Console {
 					}
 
 					case CmdType.LAUNCH_MISSILE: {
-						cmd.time += step_time_left;
+						cmd.time += time_left;
 						if(cmd.time >= cmd.duration) {
-							step_time_left = cmd.time - cmd.duration;
+							time_left = cmd.time - cmd.duration;
 							cmd.done = true;
 						}
 						else {
@@ -755,9 +819,9 @@ public class Player1Console {
 					}
 
 					case CmdType.CONFIRM_DEATHS: {
-						cmd.time += step_time_left;
+						cmd.time += time_left;
 						if(cmd.time >= cmd.duration) {
-							step_time_left = cmd.time - cmd.duration;
+							time_left = cmd.time - cmd.duration;
 							cmd.done = true;
 						}
 						else {
@@ -800,18 +864,27 @@ public class Player1Console {
 				}
 				else {
 					//NOTE: If a cmd isn't done it must have consumed all of the step time!!
-					step_time_left = 0.0f;
+					time_left = 0.0f;
 				}
 
-				if(Settings.USE_HIGHLIGHT_COMMAND) {
-					inst.text_mesh.text = "<color=#777777>" + inst.permanent_text_buffer + "</color>" + inst.working_text_buffer;
+				Item tail_item = get_tail_item(inst);
+				
+				string working_buffer = inst.working_text_buffer;
+				for(int i = 0; i < working_buffer.Length; i++) {
+					char char_ = working_buffer[i];
+					if(is_new_line(char_)) {
+						tail_item.text_mesh.text = working_buffer.Substring(0, i);
+						tail_item = push_text_mesh(inst, "");
+
+						working_buffer = working_buffer.Substring(i + 1);
+					}
 				}
-				else {
-					inst.text_mesh.text = inst.permanent_text_buffer + "<color=#" + inst.current_color + ">" + inst.working_text_buffer + "</color>";
-				}
+
+				inst.working_text_buffer = working_buffer;
+				tail_item.text_mesh.text = inst.working_text_buffer;
 
 				if(is_cursor_on(inst.cursor_time)) {
-					inst.text_mesh.text += CURSOR_STR;
+					tail_item.text_mesh.text += CURSOR_STR;
 
 					if(!is_cursor_on(inst.last_cursor_time)) {
 						Audio.play(game_manager.audio, Audio.Clip.CONSOLE_CURSOR_FLASH);
@@ -897,7 +970,7 @@ public class Player1Controller : MonoBehaviour {
 	[System.NonSerialized] public bool infrared_mode;
 	[System.NonSerialized] public TextMesh[] ui_text_meshes;
 
-	Camera ui_camera = null;
+	[System.NonSerialized] public Camera ui_camera = null;
 	Transform console_transform = null;
 	Vector3 console_local_position = Vector3.zero;
 	Vector3 console_local_scale = Vector3.one;
@@ -949,6 +1022,10 @@ public class Player1Controller : MonoBehaviour {
 			Destroy(player.missile_controller.gameObject);
 		}
 
+		if(player.ui_camera.transform.parent == null) {
+			Destroy(player.ui_camera.gameObject);
+		}
+
 		Network.Destroy(player.gameObject);
 	}
 
@@ -987,6 +1064,9 @@ public class Player1Controller : MonoBehaviour {
 		missile_controller.player1 = this;
 
 		ui_camera = main_camera.transform.Find("UiCamera").GetComponent<Camera>();
+		ui_camera.transform.parent = null;
+		ui_camera.transform.position = Vector3.zero;
+		ui_camera.transform.rotation = Quaternion.identity;
 		console_transform = ui_camera.transform.Find("Console");
 		console_local_position = console_transform.localPosition;
 		console_local_scale = console_transform.localScale;
@@ -1117,7 +1197,7 @@ public class Player1Controller : MonoBehaviour {
 	}
 	
 	void Update() {
-		Player1Console.step_process(console_, this);
+		Player1Console.update(console_, this);
 
 		bool camera_moved = false;
 		float camera_delta = Time.deltaTime * MathExt.TAU * Mathf.Rad2Deg * 0.02f;

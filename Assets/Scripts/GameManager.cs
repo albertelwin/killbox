@@ -1,15 +1,11 @@
 
 /* TODO ✓
 
-[ ] Multiple text meshes
-[ ] Console widgets
-
 [ ] Improve motion path editor -> http://va.lent.in/unity-make-your-lists-functional-with-reorderablelist/
-[ ] Load scene async
-[ ] Console word wrapping
 [ ] Camera clipping
 [ ] Fix intrusive firewall pop-up
 [ ] Dump password/kills/etc. to Google Drive
+[ ] Load scene async
 
 */
 

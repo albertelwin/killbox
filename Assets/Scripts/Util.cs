@@ -38,6 +38,10 @@ public static class Util {
 		return new Vector3(x, yz.y, yz.z);
 	}
 
+	public static Vector2 xy(this Vector3 vec) {
+		return new Vector2(vec.x, vec.y);
+	}
+
 	public static Color new_color(Color rgb, float a) {
 		return new Color(rgb.r, rgb.g, rgb.b, a);
 	}

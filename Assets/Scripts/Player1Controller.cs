@@ -9,7 +9,7 @@ using System.Collections;
 public class Player1Console {
 	public enum ItemType {
 		TEXT_MESH,
-		// WIDGET,
+		LOADING_BAR,
 	};
 
 	public class Item {
@@ -17,7 +17,12 @@ public class Player1Console {
 		public float height;
 
 		public ItemType type;
+
+		//NOTE: TEXT_MESH
 		public TextMesh text_mesh;
+
+		//NOTE: LOAGING_BAR
+		public Transform bar;
 	}
 
 	public enum CmdType {
@@ -71,6 +76,8 @@ public class Player1Console {
 
 		public bool use_alt_next_cmd;
 		public int next_cmd_index;
+
+		public Item item;
 	}
 
 	public class KeyValue {
@@ -119,6 +126,9 @@ public class Player1Console {
 
 	public Transform text_mesh_prefab;
 
+	public static float LOADING_BAR_WIDTH = 0.4f;
+	public static float LOADING_BAR_HEIGHT = 0.04f;
+
 	public Item[] item_queue;
 	public int item_count;
 	public int item_head_index;
@@ -131,6 +141,7 @@ public class Player1Console {
 	public Cmd[] command_buffer;
 
 	public int current_cmd_index;
+	public bool first_pass;
 
 	public bool logged_user_details;
 	public Cmd username_input_str_cmd;
@@ -389,6 +400,56 @@ public class Player1Console {
 		return item;
 	}
 
+	public static Transform new_quad(Transform parent, Vector3 pos, Vector3 scale, Material material) {
+		Transform transform = GameObject.CreatePrimitive(PrimitiveType.Quad).transform;
+		transform.gameObject.layer = LayerMask.NameToLayer("UI");
+		transform.parent = parent;
+		transform.localPosition = pos;
+		transform.localScale = scale;
+		transform.localRotation = Quaternion.identity;
+
+		Renderer renderer = transform.GetComponent<Renderer>();
+		renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+		renderer.receiveShadows = false;
+		renderer.useLightProbes = false;
+		renderer.reflectionProbeUsage = UnityEngine.Rendering.ReflectionProbeUsage.Off;
+		renderer.material = material;
+
+		return transform;
+	}
+
+	public static Item push_loading_bar(Player1Console inst) {
+		Transform transform = Util.new_transform(inst.transform, "LoadingBar");
+
+		Material material = (Material)Resources.Load("hud_mat");
+
+		Transform offset = Util.new_transform(transform, "Offset", new Vector3(LOADING_BAR_WIDTH * 0.5f, LOADING_BAR_HEIGHT * 0.5f, 0.0f));
+		Transform bar = new_quad(offset, Vector3.zero, new Vector3(0.0f, LOADING_BAR_HEIGHT, 1.0f), material);
+
+		float thickness = 0.002f;
+		new_quad(offset, new Vector3((-LOADING_BAR_WIDTH + thickness) * 0.5f, 0.0f, 0.0f), new Vector3(thickness, LOADING_BAR_HEIGHT, 0.0f), material);
+		new_quad(offset, new Vector3((LOADING_BAR_WIDTH - thickness) * 0.5f, 0.0f, 0.0f), new Vector3(thickness, LOADING_BAR_HEIGHT, 0.0f), material);
+		new_quad(offset, new Vector3(0.0f, (LOADING_BAR_HEIGHT - thickness) * 0.5f, 0.0f), new Vector3(LOADING_BAR_WIDTH, thickness, 0.0f), material);
+		new_quad(offset, new Vector3(0.0f, (-LOADING_BAR_HEIGHT + thickness) * 0.5f, 0.0f), new Vector3(LOADING_BAR_WIDTH, thickness, 0.0f), material);
+
+		Item item = new Item();
+		item.transform = transform;
+		item.height = LOADING_BAR_HEIGHT;
+		item.type = ItemType.LOADING_BAR;
+		item.bar = bar;
+		push_back_item(inst, item);
+		return item;
+	}
+
+	public static void set_loading_bar_progress(Item item, float progress) {
+		Assert.is_true(item != null);
+		Assert.is_true(item.type == ItemType.LOADING_BAR);
+
+		Transform bar = item.bar;
+		bar.localScale = new Vector3(Mathf.Clamp01(progress) * LOADING_BAR_WIDTH, LOADING_BAR_HEIGHT, 1.0f);
+		bar.localPosition = new Vector3((-LOADING_BAR_WIDTH + bar.localScale.x) * 0.5f, 0.0f, 0.0f);
+	}
+
 	public static Player1Console new_inst(Transform transform) {
 		Player1Console inst = new Player1Console();
 
@@ -404,7 +465,7 @@ public class Player1Console {
 		inst.item_count = 0;
 		inst.item_head_index = 0;
 
-		push_text_mesh(inst, "Hello, world!");
+		push_text_mesh(inst, inst.working_text_buffer);
 
 		inst.cursor_time = 0.0f;
 		inst.last_cursor_time = -0.5f;
@@ -414,10 +475,11 @@ public class Player1Console {
 		inst.command_buffer = new Cmd[inst.command_buffer_capacity];
 
 		inst.current_cmd_index = 0;
+		inst.first_pass = true;
 
 		inst.logged_user_details = false;
 
-		push_commit_str_cmd(inst, "<quad material=1 width=0.001 height=0.001/>\n");
+		// push_commit_str_cmd(inst, "<quad material=1 width=0.001 height=0.001/>\n");
 
 		// int sprite_sheet_size_pixels = 390;
 
@@ -436,22 +498,13 @@ public class Player1Console {
 		// 	push_print_str_cmd(inst, "\n");
 		// }
 
-		// push_print_str_cmd(inst, "\n\n");
-
-		// push_print_str_cmd(inst, "RED ");
-		// push_print_str_cmd(inst, "GREEN ");
-		// push_print_str_cmd(inst, "BLUE\n");
-
-		// push_print_str_cmd(inst, "YELLOW ");
-		// push_print_str_cmd(inst, "CYAN ");
-		// push_print_str_cmd(inst, "MAGENTA\n");
-
-		// push_print_str_cmd(inst, "\n\n");
-
 		// push_cmd(inst, CmdType.SWITCH_ON_DISPLAY);
 		// push_cmd(inst, CmdType.LOG_IN);
 		// push_cmd(inst, CmdType.ENABLE_CONTROLS);
 		// push_cmd(inst, CmdType.ACQUIRE_TARGET);
+		// push_wait_cmd(inst, Mathf.Infinity);
+
+		// push_print_str_cmd(inst, "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce luctus, lectus ultrices vulputate scelerisque, enim ante mollis libero, at lobortis nisi massa id orci. Quisque ac diam nisl. In hac habitasse platea dictumst. Etiam ligula neque, euismod id ornare sit amet, posuere et ante\n");
 		// push_wait_cmd(inst, Mathf.Infinity);
 
 		if(Settings.USE_TRANSITIONS) {
@@ -489,7 +542,7 @@ public class Player1Console {
 		push_wait_key_cmd(inst, KeyCode.U);
 		push_print_str_cmd(inst, "\nSEARCHING...\n");
 		push_delay_cmd(inst);
-		push_print_str_cmd(inst, "\nUAV LOCATED OVER WAZIRISTAN,\nPAKISTAN\n");
+		push_print_str_cmd(inst, "\nUAV LOCATED OVER WAZIRISTAN, PAKISTAN\n");
 		push_print_str_cmd(inst, "\nCONNECTING VIA REMOTE SYSTEM...\n");
 		push_delay_cmd(inst);
 		push_print_str_cmd(inst, "\nCONNECTED TO UAV PREDATOR DRONE\n\n");
@@ -502,12 +555,12 @@ public class Player1Console {
 			push_delay_cmd(inst);
 			push_print_str_cmd(inst, "\n\n");
 
-			push_tutorial_key_cmd(inst, "HOLD \"A\" TO LOOK LEFT\n\n", Player1Controller.ControlType.LOOK_LEFT, 1.8f, 0);
-			push_tutorial_key_cmd(inst, "HOLD \"D\" TO LOOK RIGHT\n\n", Player1Controller.ControlType.LOOK_RIGHT, 1.8f, 1);
-			push_tutorial_key_cmd(inst, "HOLD \"W\" TO LOOK UP\n\n", Player1Controller.ControlType.LOOK_UP, 1.8f, 2);
-			push_tutorial_key_cmd(inst, "HOLD \"S\" TO LOOK DOWN\n\n", Player1Controller.ControlType.LOOK_DOWN, 1.8f, 3);
-			push_tutorial_key_cmd(inst, "HOLD \"Q\" TO ZOOM IN\n\n", Player1Controller.ControlType.ZOOM_IN, 1.2f, 4);
-			push_tutorial_key_cmd(inst, "HOLD \"E\" TO ZOOM OUT\n\n", Player1Controller.ControlType.ZOOM_OUT, 1.2f, 5);
+			push_tutorial_key_cmd(inst, "HOLD \"A\" TO LOOK LEFT\n", Player1Controller.ControlType.LOOK_LEFT, 1.8f, 0);
+			push_tutorial_key_cmd(inst, "HOLD \"D\" TO LOOK RIGHT\n", Player1Controller.ControlType.LOOK_RIGHT, 1.8f, 1);
+			push_tutorial_key_cmd(inst, "HOLD \"W\" TO LOOK UP\n", Player1Controller.ControlType.LOOK_UP, 1.8f, 2);
+			push_tutorial_key_cmd(inst, "HOLD \"S\" TO LOOK DOWN\n", Player1Controller.ControlType.LOOK_DOWN, 1.8f, 3);
+			push_tutorial_key_cmd(inst, "HOLD \"Q\" TO ZOOM IN\n", Player1Controller.ControlType.ZOOM_IN, 1.2f, 4);
+			push_tutorial_key_cmd(inst, "HOLD \"E\" TO ZOOM OUT\n", Player1Controller.ControlType.ZOOM_OUT, 1.2f, 5);
 
 			push_cmd(inst, CmdType.ENABLE_CONTROLS);
 			push_print_str_cmd(inst, "ALL SYSTEMS OPERATIONAL\n\n");
@@ -531,11 +584,11 @@ public class Player1Console {
 		push_print_str_cmd(inst, "\nTARGET LOCKED\n\n");
 		push_cmd(inst, CmdType.LOCK_TARGET);
 
-		push_print_str_cmd(inst, "PRESS \"M\" TO LAUNCH PRIMARY\nMISSILE\n");
+		push_print_str_cmd(inst, "PRESS \"M\" TO LAUNCH PRIMARY MISSILE\n");
 		push_wait_key_cmd(inst, KeyCode.M);
 		push_fire_missile_cmd(inst, 0);
 
-		push_print_str_cmd(inst, "PRESS \"M\" TO LAUNCH SECONDARY\nMISSILE\n");
+		push_print_str_cmd(inst, "PRESS \"M\" TO LAUNCH SECONDARY MISSILE\n");
 		{
 			Cmd cmd = push_cmd(inst, CmdType.LAUNCH_MISSILE);
 			cmd.key = KeyCode.M;
@@ -553,7 +606,7 @@ public class Player1Console {
 		}
 		else {
 			push_wait_cmd(inst, 5.0f);
-			push_print_str_cmd(inst, "\nENTER NUMBER OF TARGETS\nNEUTRALISED: ");
+			push_print_str_cmd(inst, "\nENTER NUMBER OF TARGETS NEUTRALISED: ");
 			push_confirm_deaths_cmd(inst);
 			push_wait_cmd(inst, 5.0f);
 		}
@@ -736,25 +789,24 @@ public class Player1Console {
 						Player1Controller.Control control = player1.controls[(int)cmd.control_type];
 						control.enabled = true;
 
-						if(game_manager.get_key(control.key)) {
-							string char_ = "\u25A0";
-							int char_count = 15;
-							float char_duration = cmd.duration / (float)char_count;
-
-							cmd.time += time_left;
-							int chars_left = char_count - cmd.str_it;
-							int chars_to_print = Mathf.Min((int)(cmd.time / char_duration), chars_left);
-							cmd.time -= chars_to_print * char_duration;
-
-							for(int i = 0; i < chars_to_print; i++) {
-								inst.working_text_buffer += char_;
-								cmd.str_it++;
-
-								Audio.play(game_manager.audio, Audio.Clip.CONSOLE_TYPING);
+						if(cmd.item == null) {
+							//TODO: Actually parse the working buffer and push as many text meshes as needed!!
+							Item tail = get_tail_item(inst);
+							if(tail.type == ItemType.TEXT_MESH) {
+								tail.text_mesh.text = "";
 							}
 
-							if(cmd.str_it >= char_count) {
-								time_left = cmd.time - chars_left * cmd.duration;
+							cmd.item = push_loading_bar(inst);
+							push_text_mesh(inst, "");
+						}
+
+						if(game_manager.get_key(control.key)) {
+							cmd.time += time_left;
+
+							set_loading_bar_progress(cmd.item, cmd.time / cmd.duration);
+
+							if(cmd.time >= cmd.duration) {
+								time_left = cmd.time - cmd.duration;
 								cmd.done = true;
 
 								for(int i = 0; i < player1.controls.Length; i++) {
@@ -823,6 +875,8 @@ public class Player1Console {
 						if(cmd.time >= cmd.duration) {
 							time_left = cmd.time - cmd.duration;
 							cmd.done = true;
+
+							inst.working_text_buffer += "\n";
 						}
 						else {
 							//TODO: Support multiple digit numbers!!
@@ -861,10 +915,13 @@ public class Player1Console {
 					else {
 						inst.current_cmd_index++;
 					}
+
+					inst.first_pass = true;
 				}
 				else {
 					//NOTE: If a cmd isn't done it must have consumed all of the step time!!
 					time_left = 0.0f;
+					inst.first_pass = false;
 				}
 
 				Item tail_item = get_tail_item(inst);
@@ -872,11 +929,35 @@ public class Player1Console {
 				string working_buffer = inst.working_text_buffer;
 				for(int i = 0; i < working_buffer.Length; i++) {
 					char char_ = working_buffer[i];
+
 					if(is_new_line(char_)) {
 						tail_item.text_mesh.text = working_buffer.Substring(0, i);
 						tail_item = push_text_mesh(inst, "");
 
 						working_buffer = working_buffer.Substring(i + 1);
+					}
+					else {
+						tail_item.text_mesh.text = working_buffer.Substring(0, i);
+
+						Renderer renderer = tail_item.text_mesh.GetComponent<Renderer>();
+						float width = renderer.bounds.size.x;
+
+						if(width >= 0.5f) {
+							int word_start_index = 0;
+							for(int j = i - 1; j >= 0; j--) {
+								if(working_buffer[j] == ' ') {
+									word_start_index = j;
+									break;
+								}
+							}
+
+							if(word_start_index != 0) {
+								tail_item.text_mesh.text = working_buffer.Substring(0, word_start_index);
+								tail_item = push_text_mesh(inst, "");
+
+								working_buffer = working_buffer.Substring(word_start_index + 1);
+							}
+						}
 					}
 				}
 

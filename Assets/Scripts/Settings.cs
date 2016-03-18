@@ -12,7 +12,7 @@ public static class Settings {
 	public static bool FORCE_OFFLINE_MODE = false;
 
 	public static bool USE_MUSIC = true;
-	public static bool USE_SPLASH = false;
+	public static bool USE_SPLASH = true;
 	public static bool USE_TRANSITIONS = true;
 	public static bool USE_DEATH_VIEW = true;
 	public static bool USE_DEATH_CONFIRM = true;

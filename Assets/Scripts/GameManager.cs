@@ -1200,6 +1200,11 @@ public class GameManager : MonoBehaviour {
 			}
 		}
 
+#if UNITY_EDITOR
+		Cursor.lockState = CursorLockMode.None;
+		Cursor.visible = true;
+#endif
+
 		if(paused) {
 			Ray mouse_ray = pause_camera.ScreenPointToRay(Input.mousePosition);
 

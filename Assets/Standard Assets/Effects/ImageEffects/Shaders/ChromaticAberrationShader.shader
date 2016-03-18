@@ -45,7 +45,8 @@ Shader "Hidden/ChromaticAberration" {
 		
 		coords = (coords - 0.5) * 2.0;		
 		half coordDot = dot (coords,coords);
-		
+		coordDot = 1.0;
+
 		half2 uvG = uv - _MainTex_TexelSize.xy * _ChromaticAberration * coords * coordDot;
 		half4 color = tex2D (_MainTex, uv);
 		#if SHADER_API_D3D9

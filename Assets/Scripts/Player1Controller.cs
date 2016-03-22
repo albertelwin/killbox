@@ -6,6 +6,26 @@ using System.Collections;
 #pragma warning disable 0618
 #pragma warning disable 0162
 
+public static class Player1Util {
+	public static Transform new_quad(Transform parent, string layer, Vector3 pos, Vector3 scale, Material material) {
+		Transform transform = GameObject.CreatePrimitive(PrimitiveType.Quad).transform;
+		transform.gameObject.layer = LayerMask.NameToLayer(layer);
+		transform.parent = parent;
+		transform.localPosition = pos;
+		transform.localScale = scale;
+		transform.localRotation = Quaternion.identity;
+
+		Renderer renderer = transform.GetComponent<Renderer>();
+		renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+		renderer.receiveShadows = false;
+		renderer.useLightProbes = false;
+		renderer.reflectionProbeUsage = UnityEngine.Rendering.ReflectionProbeUsage.Off;
+		renderer.material = material;
+
+		return transform;
+	}
+}
+
 public class Player1Console {
 	public enum ItemType {
 		TEXT_MESH,
@@ -400,37 +420,19 @@ public class Player1Console {
 		return item;
 	}
 
-	public static Transform new_quad(Transform parent, Vector3 pos, Vector3 scale, Material material) {
-		Transform transform = GameObject.CreatePrimitive(PrimitiveType.Quad).transform;
-		transform.gameObject.layer = LayerMask.NameToLayer("UI");
-		transform.parent = parent;
-		transform.localPosition = pos;
-		transform.localScale = scale;
-		transform.localRotation = Quaternion.identity;
-
-		Renderer renderer = transform.GetComponent<Renderer>();
-		renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-		renderer.receiveShadows = false;
-		renderer.useLightProbes = false;
-		renderer.reflectionProbeUsage = UnityEngine.Rendering.ReflectionProbeUsage.Off;
-		renderer.material = material;
-
-		return transform;
-	}
-
 	public static Item push_loading_bar(Player1Console inst) {
 		Transform transform = Util.new_transform(inst.transform, "LoadingBar");
 
 		Material material = (Material)Resources.Load("hud_mat");
 
 		Transform offset = Util.new_transform(transform, "Offset", new Vector3(LOADING_BAR_WIDTH * 0.5f, LOADING_BAR_HEIGHT * 0.5f, 0.0f));
-		Transform bar = new_quad(offset, Vector3.zero, new Vector3(0.0f, LOADING_BAR_HEIGHT, 1.0f), material);
+		Transform bar = Player1Util.new_quad(offset, "UI", Vector3.zero, new Vector3(0.0f, LOADING_BAR_HEIGHT, 1.0f), material);
 
 		float thickness = 0.002f;
-		new_quad(offset, new Vector3((-LOADING_BAR_WIDTH + thickness) * 0.5f, 0.0f, 0.0f), new Vector3(thickness, LOADING_BAR_HEIGHT, 0.0f), material);
-		new_quad(offset, new Vector3((LOADING_BAR_WIDTH - thickness) * 0.5f, 0.0f, 0.0f), new Vector3(thickness, LOADING_BAR_HEIGHT, 0.0f), material);
-		new_quad(offset, new Vector3(0.0f, (LOADING_BAR_HEIGHT - thickness) * 0.5f, 0.0f), new Vector3(LOADING_BAR_WIDTH, thickness, 0.0f), material);
-		new_quad(offset, new Vector3(0.0f, (-LOADING_BAR_HEIGHT + thickness) * 0.5f, 0.0f), new Vector3(LOADING_BAR_WIDTH, thickness, 0.0f), material);
+		Player1Util.new_quad(offset, "UI", new Vector3((-LOADING_BAR_WIDTH + thickness) * 0.5f, 0.0f, 0.0f), new Vector3(thickness, LOADING_BAR_HEIGHT, 0.0f), material);
+		Player1Util.new_quad(offset, "UI", new Vector3((LOADING_BAR_WIDTH - thickness) * 0.5f, 0.0f, 0.0f), new Vector3(thickness, LOADING_BAR_HEIGHT, 0.0f), material);
+		Player1Util.new_quad(offset, "UI", new Vector3(0.0f, (LOADING_BAR_HEIGHT - thickness) * 0.5f, 0.0f), new Vector3(LOADING_BAR_WIDTH, thickness, 0.0f), material);
+		Player1Util.new_quad(offset, "UI", new Vector3(0.0f, (-LOADING_BAR_HEIGHT + thickness) * 0.5f, 0.0f), new Vector3(LOADING_BAR_WIDTH, thickness, 0.0f), material);
 
 		Item item = new Item();
 		item.transform = transform;
@@ -502,6 +504,7 @@ public class Player1Console {
 		// push_cmd(inst, CmdType.LOG_IN);
 		// push_cmd(inst, CmdType.ENABLE_CONTROLS);
 		// push_cmd(inst, CmdType.ACQUIRE_TARGET);
+
 		// push_wait_cmd(inst, Mathf.Infinity);
 
 		// push_print_str_cmd(inst, "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce luctus, lectus ultrices vulputate scelerisque, enim ante mollis libero, at lobortis nisi massa id orci. Quisque ac diam nisl. In hac habitasse platea dictumst. Etiam ligula neque, euismod id ornare sit amet, posuere et ante\n");
@@ -1009,7 +1012,74 @@ public class Player1Controller : MonoBehaviour {
 			control.enabled = enabled;
 			return control;
 		}
-	} 
+	}
+
+	public class Meter {
+		public Transform transform;
+		public Transform line;
+		public Transform[] bounds;
+		public Transform[] markers;
+
+		public static float LINE_THICKNESS = 0.002f;
+		public static float METER_LENGTH = 0.5f;
+		// public static float MARKER_SPACING = METER_LENGTH / 6.0f;
+
+		public float marker_spacing;
+
+		public static Meter new_inst(Transform parent, Vector3 pos, Quaternion rotation, float medium_length, float small_length, int resolution) {
+			Meter meter = new Meter();
+
+			Material hud_material = (Material)Resources.Load("hud_mat");
+
+			float medium_x = -(LINE_THICKNESS * 0.5f + medium_length * 0.5f);
+			Vector3 medium_scale = new Vector3(medium_length, LINE_THICKNESS, 1.0f);
+
+			float small_x = -(LINE_THICKNESS * 0.5f + small_length * 0.5f);
+			Vector3 small_scale = new Vector3(small_length, LINE_THICKNESS, 1.0f);
+
+
+			meter.transform = Util.new_transform(parent, "Meter", pos, Vector3.one, rotation);
+
+			meter.line = Player1Util.new_quad(meter.transform, "HUD", Vector3.zero, new Vector3(LINE_THICKNESS, 0.5f + LINE_THICKNESS, 1.0f), hud_material);
+
+			meter.bounds = new Transform[2];
+			meter.bounds[0] = Player1Util.new_quad(meter.transform, "HUD", new Vector3(medium_x, METER_LENGTH * 0.5f, 0.0f), medium_scale, hud_material);
+			meter.bounds[1] = Player1Util.new_quad(meter.transform, "HUD", new Vector3(medium_x, -METER_LENGTH * 0.5f, 0.0f), medium_scale, hud_material);
+
+			int marker_count = 3 * resolution;
+			meter.marker_spacing = METER_LENGTH / (float)marker_count;
+
+			meter.markers = new Transform[marker_count];
+			for(int i = 0; i < meter.markers.Length; i++) {
+				float x = small_x;
+				Vector3 scale = small_scale;
+				if(i % 3 == 0) {
+					x = medium_x;
+					scale = medium_scale;
+				}
+
+				meter.markers[i] = Player1Util.new_quad(meter.transform, "HUD", new Vector3(x, METER_LENGTH * 0.5f - meter.marker_spacing * i, 0.0f), scale, hud_material);
+			}
+
+			return meter;
+		}
+
+		public static void set_pos(Meter meter, float offset) {
+			for(int i = 0; i < meter.markers.Length; i++) {
+				Transform marker = meter.markers[i];
+
+				float y = (METER_LENGTH * 0.5f - meter.marker_spacing * i) + offset;
+
+				float dir = y > 0.0f ? 1.0f : -1.0f;
+				int adjustment = (int)((y + (METER_LENGTH * 0.5f * dir)) / METER_LENGTH);
+				y -= METER_LENGTH * adjustment;
+
+				Vector3 pos = marker.localPosition;
+				pos.y = y;
+				marker.localPosition = pos;
+			}
+		}
+	}
 
 	[System.NonSerialized] public GameManager game_manager = null;
 
@@ -1047,6 +1117,9 @@ public class Player1Controller : MonoBehaviour {
 	[System.NonSerialized] public Renderer marker_renderer;
 	UiIndicator[] ui_indicators;
 	float ui_indicator_alpha;
+
+	[System.NonSerialized] public Meter meter_x;
+	[System.NonSerialized] public Meter meter_y;
 
 	[System.NonSerialized] public bool infrared_mode;
 	[System.NonSerialized] public TextMesh[] ui_text_meshes;
@@ -1140,6 +1213,10 @@ public class Player1Controller : MonoBehaviour {
 
 			ui_indicators[i] = indicator;
 		}
+
+		Transform hud_transform = hud_camera.transform.Find("Hud");
+		meter_x = Meter.new_inst(hud_transform, new Vector3(0.0f, 0.425f, 0.0f), Quaternion.Euler(0.0f, 0.0f, -90.0f), 0.04f, 0.02f, 3);
+		meter_y = Meter.new_inst(hud_transform, new Vector3(-0.525f, 0.0f, 0.0f), Quaternion.identity, 0.025f, 0.015f, 2);
 
 		missile_controller = main_camera.transform.Find("Missile").GetComponent<MissileController>();
 		missile_controller.player1 = this;
@@ -1409,7 +1486,10 @@ public class Player1Controller : MonoBehaviour {
 
 		if(marker_renderer.gameObject.activeSelf != marker_active) {
 			marker_renderer.gameObject.SetActive(marker_active);
-		}			
+		}
+
+		Meter.set_pos(meter_x, camera_ref.transform.localEulerAngles.y * Mathf.Deg2Rad * -2.0f);
+		Meter.set_pos(meter_y, main_camera.transform.localEulerAngles.x * Mathf.Deg2Rad * 2.0f);
 	}
 
 	public IEnumerator fire_missile() {

@@ -1,8 +1,12 @@
 
 /* TODO ✓
 
+[ ] Dynamic pilot audio
+[ ] Dynamic pilot UI elements
+
 [ ] Improve motion path editor -> http://va.lent.in/unity-make-your-lists-functional-with-reorderablelist/
 [ ] Camera clipping
+
 [ ] Fix intrusive firewall pop-up
 [ ] Dump password/kills/etc. to Google Drive
 [ ] Load scene async

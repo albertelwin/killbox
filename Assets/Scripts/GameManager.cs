@@ -1,8 +1,9 @@
 
 /* TODO ✓
 
+[ ] Optimise pilot view (clear -> render camera feeds -> render ui)
 [ ] Dynamic pilot audio
-[ ] Dynamic pilot UI elements
+[ ] Proper keyboard input for death count
 
 [ ] Improve motion path editor -> http://va.lent.in/unity-make-your-lists-functional-with-reorderablelist/
 [ ] Camera clipping

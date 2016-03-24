@@ -1410,7 +1410,7 @@ GameObject:
   m_Component:
   - 4: {fileID: 26959947}
   m_Layer: 0
-  m_Name: ControlPoint
+  m_Name: Node
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3580,7 +3580,7 @@ GameObject:
   m_Component:
   - 4: {fileID: 187312420}
   m_Layer: 0
-  m_Name: ControlPoint
+  m_Name: Node
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7308,7 +7308,7 @@ GameObject:
   m_Component:
   - 4: {fileID: 324145422}
   m_Layer: 0
-  m_Name: ControlPoint
+  m_Name: Node
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7962,7 +7962,7 @@ GameObject:
   m_Component:
   - 4: {fileID: 367495183}
   m_Layer: 0
-  m_Name: ControlPoint
+  m_Name: Node
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -9525,7 +9525,7 @@ GameObject:
   m_Component:
   - 4: {fileID: 402498304}
   m_Layer: 0
-  m_Name: ControlPoint
+  m_Name: Node
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -12375,7 +12375,7 @@ GameObject:
   m_Component:
   - 4: {fileID: 504494202}
   m_Layer: 0
-  m_Name: ControlPoint
+  m_Name: Node
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -14373,7 +14373,7 @@ GameObject:
   m_Component:
   - 4: {fileID: 547286445}
   m_Layer: 0
-  m_Name: ControlPoint
+  m_Name: Node
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -16656,7 +16656,7 @@ GameObject:
   m_Component:
   - 4: {fileID: 631377518}
   m_Layer: 0
-  m_Name: ControlPoint
+  m_Name: Node
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -17956,7 +17956,7 @@ GameObject:
   m_Component:
   - 4: {fileID: 637629086}
   m_Layer: 0
-  m_Name: ControlPoint
+  m_Name: Node
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -19205,7 +19205,7 @@ GameObject:
   m_Component:
   - 4: {fileID: 654031303}
   m_Layer: 0
-  m_Name: ControlPoint
+  m_Name: Node
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -23143,7 +23143,7 @@ GameObject:
   m_Component:
   - 4: {fileID: 829589969}
   m_Layer: 0
-  m_Name: ControlPoint
+  m_Name: Node
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -23848,7 +23848,7 @@ GameObject:
   m_Component:
   - 4: {fileID: 864899212}
   m_Layer: 0
-  m_Name: ControlPoint
+  m_Name: Node
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -24259,7 +24259,7 @@ GameObject:
   m_Component:
   - 4: {fileID: 916608997}
   m_Layer: 0
-  m_Name: ControlPoint
+  m_Name: Node
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -24588,7 +24588,7 @@ GameObject:
   m_Component:
   - 4: {fileID: 925415317}
   m_Layer: 0
-  m_Name: ControlPoint
+  m_Name: Node
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -24682,7 +24682,7 @@ GameObject:
   m_Component:
   - 4: {fileID: 940954638}
   m_Layer: 0
-  m_Name: ControlPoint
+  m_Name: Node
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -25256,7 +25256,7 @@ GameObject:
   m_Component:
   - 4: {fileID: 971776458}
   m_Layer: 0
-  m_Name: ControlPoint
+  m_Name: Node
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -26556,7 +26556,7 @@ GameObject:
   m_Component:
   - 4: {fileID: 987515297}
   m_Layer: 0
-  m_Name: ControlPoint
+  m_Name: Node
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -28185,7 +28185,7 @@ GameObject:
   m_Component:
   - 4: {fileID: 1010560538}
   m_Layer: 0
-  m_Name: ControlPoint
+  m_Name: Node
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -28212,7 +28212,7 @@ GameObject:
   m_Component:
   - 4: {fileID: 1015793708}
   m_Layer: 0
-  m_Name: ControlPoint
+  m_Name: Node
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -29521,7 +29521,7 @@ GameObject:
   m_Component:
   - 4: {fileID: 1032081120}
   m_Layer: 0
-  m_Name: ControlPoint
+  m_Name: Node
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -30186,7 +30186,7 @@ GameObject:
   m_Component:
   - 4: {fileID: 1070838987}
   m_Layer: 0
-  m_Name: ControlPoint
+  m_Name: Node
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -32802,7 +32802,7 @@ GameObject:
   m_Component:
   - 4: {fileID: 1217700281}
   m_Layer: 0
-  m_Name: ControlPoint
+  m_Name: Node
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -33278,7 +33278,7 @@ GameObject:
   m_Component:
   - 4: {fileID: 1267379004}
   m_Layer: 0
-  m_Name: ControlPoint
+  m_Name: Node
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -33558,7 +33558,7 @@ GameObject:
   m_Component:
   - 4: {fileID: 1306329363}
   m_Layer: 0
-  m_Name: ControlPoint
+  m_Name: Node
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -34034,7 +34034,7 @@ GameObject:
   m_Component:
   - 4: {fileID: 1354478271}
   m_Layer: 0
-  m_Name: ControlPoint
+  m_Name: Node
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -34488,7 +34488,7 @@ GameObject:
   m_Component:
   - 4: {fileID: 1406847249}
   m_Layer: 0
-  m_Name: ControlPoint
+  m_Name: Node
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -39865,7 +39865,7 @@ GameObject:
   m_Component:
   - 4: {fileID: 1585032740}
   m_Layer: 0
-  m_Name: ControlPoint
+  m_Name: Node
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -41512,7 +41512,7 @@ GameObject:
   m_Component:
   - 4: {fileID: 1625626543}
   m_Layer: 0
-  m_Name: ControlPoint
+  m_Name: Node
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -46681,7 +46681,7 @@ GameObject:
   m_Component:
   - 4: {fileID: 1747099262}
   m_Layer: 0
-  m_Name: ControlPoint
+  m_Name: Node
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -47982,7 +47982,7 @@ GameObject:
   m_Component:
   - 4: {fileID: 1823671079}
   m_Layer: 0
-  m_Name: ControlPoint
+  m_Name: Node
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -51407,7 +51407,7 @@ GameObject:
   m_Component:
   - 4: {fileID: 1980461496}
   m_Layer: 0
-  m_Name: ControlPoint
+  m_Name: Node
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -55372,7 +55372,7 @@ GameObject:
   m_Component:
   - 4: {fileID: 2075737581}
   m_Layer: 0
-  m_Name: ControlPoint
+  m_Name: Node
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -56818,7 +56818,7 @@ GameObject:
   m_Component:
   - 4: {fileID: 2109314693}
   m_Layer: 0
-  m_Name: ControlPoint
+  m_Name: Node
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -56938,7 +56938,7 @@ GameObject:
   m_Component:
   - 4: {fileID: 2117003715}
   m_Layer: 0
-  m_Name: ControlPoint
+  m_Name: Node
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -56965,7 +56965,7 @@ GameObject:
   m_Component:
   - 4: {fileID: 2125623034}
   m_Layer: 0
-  m_Name: ControlPoint
+  m_Name: Node
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

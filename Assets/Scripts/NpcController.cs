@@ -102,7 +102,7 @@ public class NpcController : MonoBehaviour {
 
 		motion_direction = MotionDirection.FORWARD;
 		if(motion_path != null) {
-			motion_path.control_index = 0;
+			motion_path.node_index = 0;
 		}
 
 		//TODO: Tweak these!!
@@ -118,13 +118,13 @@ public class NpcController : MonoBehaviour {
 
 	void Update() {
 		if(nav_agent.enabled && !game_manager.first_missile_hit) {
-			if(motion_path != null && motion_path.control_count > 0) {
+			if(motion_path != null && motion_path.node_count > 0) {
 				//TODO: Calculate this from velocity/distance/etc.!!
 				// float min_dist = 1.0f;
 				float min_dist = Mathf.Max(nav_agent.speed / 7.0f, 1.0f);
 				if(nav_agent.remainingDistance < min_dist) {
-					Vector3 control_point = motion_direction == MotionDirection.FORWARD ? MotionPathController.get_next_control_point(motion_path) : MotionPathController.get_prev_control_point(motion_path);
-					nav_agent.SetDestination(control_point);
+					Vector3 node = motion_direction == MotionDirection.FORWARD ? MotionPathController.get_next_node(motion_path) : MotionPathController.get_prev_node(motion_path);
+					nav_agent.SetDestination(node);
 					nav_agent.speed = walk_speed;
 					nav_agent.acceleration = walk_accel;
 				}

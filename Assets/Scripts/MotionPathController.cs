@@ -5,36 +5,31 @@ using UnityEditor;
 using System.Collections;
 
 public class MotionPathController : MonoBehaviour {
-	[System.NonSerialized] public int node_count;
-	[System.NonSerialized] public int node_index;
+	public float global_speed = 1.0f;
 
 #if UNITY_EDITOR
+	//TODO: There must be a better way to do this!!
 	public static Transform hover_node;
 #endif
 
-	//TODO: Bad API!!
-	public static Vector3 get_next_node(MotionPathController motion_path) {
-		Transform child = motion_path.transform.GetChild(motion_path.node_index++);
-		if(motion_path.node_index >= motion_path.node_count) {
-			motion_path.node_index = 0;
-		}
-
-		return child.position;
+	public static int get_node_count(MotionPathController path) {
+		return path.transform.childCount;
 	}
 
-	//TODO: Bad API!!
-	public static Vector3 get_prev_node(MotionPathController motion_path) {
-		Transform child = motion_path.transform.GetChild(motion_path.node_index--);
-		if(motion_path.node_index <= 0) {
-			motion_path.node_index = motion_path.node_count - 1;
-		}
-
-		return child.position;
+	public static int get_node_index(MotionPathController path, MotionPathNode node) {
+		Assert.is_true(node != null);
+		return node.transform.GetSiblingIndex();
 	}
 
-	void Start() {		
-		node_count = transform.childCount;
-		node_index = 0;
+	public static MotionPathNode get_node(MotionPathController path, int index) {
+		Assert.is_true(index < get_node_count(path));
+		MotionPathNode node = path.transform.GetChild(index).GetComponent<MotionPathNode>();
+		Assert.is_true(node != null);
+		return node;
+	}
+
+	void Start() {
+		Assert.is_true(get_node_count(this) > 0);
 	}
 
 #if UNITY_EDITOR

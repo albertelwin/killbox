@@ -18,13 +18,10 @@ public class NpcController : MonoBehaviour {
 
 	[System.NonSerialized] public NavMeshAgent nav_agent;
 	public MotionPathController motion_path;
-
-	public enum MotionDirection {
-		FORWARD,
-		BACKWARD,
-	}
-
-	[System.NonSerialized] public MotionDirection motion_direction;
+	[System.NonSerialized] public int next_node_index;
+	[System.NonSerialized] public MotionPathNode motion_node;
+	[System.NonSerialized] public MotionPathNode prev_motion_node;
+	[System.NonSerialized] public Vector3 motion_path_target;
 
 	Vector3 initial_pos;
 
@@ -32,6 +29,7 @@ public class NpcController : MonoBehaviour {
 	[System.NonSerialized] public float walk_accel;
 	[System.NonSerialized] public float run_speed;
 	[System.NonSerialized] public float run_accel;
+	
 
 	[System.NonSerialized] public bool in_player_radius;
 	[System.NonSerialized] public int color_index;
@@ -87,6 +85,10 @@ public class NpcController : MonoBehaviour {
 		nav_agent.Warp(initial_pos);
 		nav_agent.SetDestination(initial_pos);
 
+		next_node_index = 0;
+		motion_node = null;
+		prev_motion_node = null;
+
 		if(fracture != null) {
 			Environment.remove_fracture(fracture);
 		}
@@ -98,11 +100,6 @@ public class NpcController : MonoBehaviour {
 			anim.Play();
 
 			renderer_.enabled = false;
-		}
-
-		motion_direction = MotionDirection.FORWARD;
-		if(motion_path != null) {
-			motion_path.node_index = 0;
 		}
 
 		//TODO: Tweak these!!
@@ -117,44 +114,72 @@ public class NpcController : MonoBehaviour {
 	}
 
 	void Update() {
-		if(nav_agent.enabled && !game_manager.first_missile_hit) {
-			if(motion_path != null && motion_path.node_count > 0) {
-				//TODO: Calculate this from velocity/distance/etc.!!
-				// float min_dist = 1.0f;
-				float min_dist = Mathf.Max(nav_agent.speed / 7.0f, 1.0f);
-				if(nav_agent.remainingDistance < min_dist) {
-					Vector3 node = motion_direction == MotionDirection.FORWARD ? MotionPathController.get_next_node(motion_path) : MotionPathController.get_prev_node(motion_path);
-					nav_agent.SetDestination(node);
-					nav_agent.speed = walk_speed;
-					nav_agent.acceleration = walk_accel;
+		if(nav_agent.enabled && motion_path && !game_manager.first_missile_hit) {
+			if(!motion_node) {
+				if(next_node_index >= MotionPathController.get_node_count(motion_path)) {
+					next_node_index = 0;
 				}
 
-				if(game_manager.player2_inst != null) {
-					Transform player2 = game_manager.player2_inst.transform;
+				motion_node = MotionPathController.get_node(motion_path, next_node_index);
+			}
 
-					float dist_to_player = Vector3.Distance(transform.position, player2.position);
-					if(dist_to_player <= 2.5f) {
-						if(!in_player_radius) {
-							color_index++;
-							if(color_index >= game_manager.npc_color_pool.Length) {
-								color_index = 0;
-							}
+			Assert.is_true(motion_node != null);
 
-							renderer_.material.color = game_manager.npc_color_pool[color_index];
-							if(anim_renderer != null) {
-								anim_renderer.material.color = renderer_.material.color;
-							}
-						}
+			//TODO: Calculate this from velocity/distance/etc.!!
+			float min_dist = Mathf.Max(nav_agent.speed * 0.5f, 1.0f);
+			if(nav_agent.remainingDistance <= min_dist) {
+				prev_motion_node = motion_node;
 
-						in_player_radius = true;
-						nav_agent.speed = run_speed;
-						nav_agent.acceleration = run_accel;
-					}
-					else {
-						in_player_radius = false;
-					}
+				next_node_index = MotionPathController.get_node_index(motion_path, motion_node) + 1;
+				if(next_node_index >= MotionPathController.get_node_count(motion_path)) {
+					next_node_index = 0;
+				}
+
+				motion_node = MotionPathController.get_node(motion_path, next_node_index++);
+				
+				if(next_node_index >= MotionPathController.get_node_count(motion_path)) {
+					next_node_index = 0;
 				}
 			}
+
+			float speed_modifier = motion_path.global_speed;
+			if(prev_motion_node && prev_motion_node.override_speed) {
+				speed_modifier = prev_motion_node.speed;
+			}
+
+			if(motion_path_target != motion_node.transform.position) {
+				motion_path_target = motion_node.transform.position;
+				nav_agent.SetDestination(motion_node.transform.position);
+			}
+
+			nav_agent.speed = walk_speed * speed_modifier;
+			nav_agent.acceleration = walk_accel;
+
+			// if(game_manager.player2_inst != null) {
+			// 	Transform player2 = game_manager.player2_inst.transform;
+
+			// 	float dist_to_player = Vector3.Distance(transform.position, player2.position);
+			// 	if(dist_to_player <= 2.5f) {
+			// 		if(!in_player_radius) {
+			// 			color_index++;
+			// 			if(color_index >= game_manager.npc_color_pool.Length) {
+			// 				color_index = 0;
+			// 			}
+
+			// 			renderer_.material.color = game_manager.npc_color_pool[color_index];
+			// 			if(anim_renderer != null) {
+			// 				anim_renderer.material.color = renderer_.material.color;
+			// 			}
+			// 		}
+
+			// 		in_player_radius = true;
+			// 		nav_agent.speed = run_speed;
+			// 		nav_agent.acceleration = run_accel;
+			// 	}
+			// 	else {
+			// 		in_player_radius = false;
+			// 	}
+			// }
 		}
 
 		//TODO: Collapse this!!

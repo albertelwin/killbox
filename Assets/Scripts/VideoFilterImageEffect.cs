@@ -4,7 +4,7 @@ using System.Collections;
 [ExecuteInEditMode]
 public class VideoFilterImageEffect : UnityStandardAssets.ImageEffects.ImageEffectBase {
 	//TODO: Should this be a float??
-	[Range(1, 8)] public int scale = 2;
+	[Range(1.0f, 8.0f)] public float scale = 2.0f;
 
 	//NOTE: Medium -> soft
 	[Range(-16.0f, -8.0f)] public float scanline_hardness = -8.0f;

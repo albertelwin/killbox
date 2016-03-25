@@ -1,20 +1,27 @@
 
 using UnityEditor;
+using UnityEditorInternal;
 using UnityEngine;
 
 #pragma warning disable 0219
 
 public static class MotionPathUtil {
 	public static MotionPathController get_selected_motion_path() {
-		MotionPathController controller = null;
+		MotionPathController path = null;
 		if(Selection.activeTransform) {
-			controller = Selection.activeTransform.GetComponent<MotionPathController>();
-			if(!controller && Selection.activeTransform.parent) {
-				controller = Selection.activeTransform.parent.GetComponent<MotionPathController>();
+			path = Selection.activeTransform.GetComponent<MotionPathController>();
+			if(!path && Selection.activeTransform.parent) {
+				path = Selection.activeTransform.parent.GetComponent<MotionPathController>();
 			}
 		}
 
-		return controller;
+		return path;
+	}
+
+	public static MotionPathNode add_node(MotionPathController path, Vector3 pos) {
+		Transform transform = Util.new_transform(path.transform, "Node", pos);
+		MotionPathNode node = transform.gameObject.AddComponent<MotionPathNode>();
+		return node;
 	}
 }
 
@@ -56,10 +63,8 @@ public class MotionPathEditor {
 					if(evt.commandName == "SoftDelete") {
 						if(!next_active_transform && Selection.activeTransform && Selection.activeTransform.parent) {
 							Transform node = Selection.activeTransform;
-							MotionPathController controller = node.parent.GetComponent<MotionPathController>();
-							if(controller && node.parent.childCount > 1) {
-								// Debug.Log(string.Format("[{0}]: {1}", node.GetSiblingIndex(), node.name));
-
+							MotionPathController path = node.parent.GetComponent<MotionPathController>();
+							if(path && node.parent.childCount > 1) {
 								int prev_index = node.GetSiblingIndex() - 1;
 								if(prev_index < 0) {
 									prev_index = node.parent.childCount - 1;
@@ -84,8 +89,8 @@ public class MotionPathEditor {
 		Event evt = Event.current;
 		process_event(evt);
 
-		MotionPathController controller = MotionPathUtil.get_selected_motion_path();
-		if(controller) {
+		MotionPathController path = MotionPathUtil.get_selected_motion_path();
+		if(path) {
 			Transform hover_node = null;
 			
 			Ray mouse_ray = Camera.current.ScreenPointToRay(new Vector3(evt.mousePosition.x, -evt.mousePosition.y + Camera.current.pixelHeight));
@@ -94,8 +99,8 @@ public class MotionPathEditor {
 			Vector3 min = new Vector3(-0.25f, 0.0f,-0.25f);
 			Vector3 max = new Vector3( 0.25f, 0.5f, 0.25f);
 
-			for(int i = 0; i < controller.transform.childCount; i++) {
-				Transform node = controller.transform.GetChild(i);
+			for(int i = 0; i < path.transform.childCount; i++) {
+				Transform node = path.transform.GetChild(i);
 
 				//TODO: Need to raycast the scene and all of the nodes to make sure this is the closest intersection!!
 				if(MathExt.ray_box_intersect(node.position + min, node.position + max, mouse_ray)) {
@@ -106,7 +111,7 @@ public class MotionPathEditor {
 
 			if(MotionPathController.hover_node != hover_node) {
 				MotionPathController.hover_node = hover_node;
-				EditorUtility.SetDirty(controller);
+				EditorUtility.SetDirty(path);
 			}
 
 			if(MotionPathController.hover_node) {
@@ -125,11 +130,15 @@ public class MotionPathEditor {
 }
 
 [CustomEditor(typeof(MotionPathController))]
-class MotionPathInspector : Editor {
+public class MotionPathControllerInspector : Editor {
+	public SerializedObject serializer;
+
+	public SerializedProperty global_speed;
+
 	[MenuItem("Killbox/Motion Path")]
-	static void create_motion_path() {
+	public static void create_motion_path() {
 		GameObject game_object = new GameObject("Motion Path");
-		game_object.AddComponent<MotionPathController>();
+		MotionPathController path = game_object.AddComponent<MotionPathController>();
 
 		int intial_node_count = 6;
 		for(int i = 0; i < intial_node_count; i++) {
@@ -139,21 +148,78 @@ class MotionPathInspector : Editor {
 			pos.x = Mathf.Cos(t * MathExt.TAU) * 10.0f;
 			pos.z = Mathf.Sin(t * MathExt.TAU) * 10.0f;
 
-			Transform node = Util.new_transform(game_object.transform, "Node", pos);
+			MotionPathUtil.add_node(path, pos);
 		}
 
 		Undo.RegisterCreatedObjectUndo(game_object, "Create " + game_object.name);
 		Selection.activeObject = game_object;
 	}
 
-	public override void OnInspectorGUI() {
-		DrawDefaultInspector();
+	public void OnEnable() {
+		serializer = new SerializedObject(target);
 
-		MotionPathController controller = (MotionPathController)target;
+		global_speed = serializer.FindProperty("global_speed");
+	}
+
+	public override void OnInspectorGUI() {
+		serializer.Update();
+
+		EditorGUILayout.LabelField("Motion Path Controller", EditorStyles.miniLabel);
+
+		MotionPathController path = (MotionPathController)target;
+
+		EditorGUILayout.PropertyField(global_speed, new GUIContent("Global Speed"));
 
 		if(GUILayout.Button("Add Node")) {
-			Transform node = (new GameObject("Node")).transform;
-			node.parent = controller.transform;
+			MotionPathNode node = MotionPathUtil.add_node(path, Vector3.zero);
+			Selection.activeTransform = node.transform;
 		}
+
+		serializer.ApplyModifiedProperties();
+	}
+}
+
+[CustomEditor(typeof(MotionPathNode))]
+public class MotionPathNodeInspector : Editor {
+	public SerializedObject serializer;
+
+	public SerializedProperty override_speed;
+	public SerializedProperty speed;
+
+	public ReorderableList event_list;
+
+	public void OnEnable() {
+		serializer = new SerializedObject(target);
+
+		override_speed = serializer.FindProperty("override_speed");
+		speed = serializer.FindProperty("speed");
+
+		event_list = new ReorderableList(serializer, serializer.FindProperty("event_list"), true, true, true, true);
+		event_list.drawHeaderCallback = (Rect rect) => {
+			EditorGUI.LabelField(rect, "Event List");
+		};
+		event_list.drawElementCallback = (Rect rect, int index, bool is_active, bool is_focused) => {
+			SerializedProperty elem = event_list.serializedProperty.GetArrayElementAtIndex(index);
+			rect.y += 2;
+
+			EditorGUI.PropertyField(new Rect(rect.x, rect.y, 60, EditorGUIUtility.singleLineHeight), elem.FindPropertyRelative("event_type"), GUIContent.none);
+		};
+	}
+
+	public override void OnInspectorGUI() {
+		serializer.Update();
+
+		EditorGUILayout.LabelField("Motion Path Node", EditorStyles.miniLabel);
+
+		EditorGUILayout.PropertyField(override_speed, new GUIContent("Override Speed"));
+		if(override_speed.boolValue) {
+			EditorGUILayout.PropertyField(speed, new GUIContent("  Speed"));
+		}
+
+		EditorGUILayout.Separator();
+
+		event_list.DoLayoutList();
+
+		serializer.ApplyModifiedProperties();
 	}
 }

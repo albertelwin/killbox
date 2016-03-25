@@ -500,12 +500,15 @@ public class Player1Console {
 		// 	push_print_str_cmd(inst, "\n");
 		// }
 
-		// push_cmd(inst, CmdType.SWITCH_ON_DISPLAY);
-		// push_cmd(inst, CmdType.LOG_IN);
-		// push_cmd(inst, CmdType.ENABLE_CONTROLS);
-		// push_cmd(inst, CmdType.ACQUIRE_TARGET);
+		push_cmd(inst, CmdType.SWITCH_ON_DISPLAY);
+		push_cmd(inst, CmdType.LOG_IN);
+		push_cmd(inst, CmdType.ENABLE_CONTROLS);
+		push_cmd(inst, CmdType.ACQUIRE_TARGET);
 
-		// push_wait_cmd(inst, Mathf.Infinity);
+		push_tutorial_key_cmd(inst, "HOLD \"A\" TO LOOK LEFT\n", Player1Controller.ControlType.LOOK_LEFT, 1.8f, 0);
+		push_tutorial_key_cmd(inst, "HOLD \"D\" TO LOOK RIGHT\n", Player1Controller.ControlType.LOOK_RIGHT, 1.8f, 1);
+
+		push_wait_cmd(inst, Mathf.Infinity);
 
 		// push_print_str_cmd(inst, "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce luctus, lectus ultrices vulputate scelerisque, enim ante mollis libero, at lobortis nisi massa id orci. Quisque ac diam nisl. In hac habitasse platea dictumst. Etiam ligula neque, euismod id ornare sit amet, posuere et ante\n");
 		// push_wait_cmd(inst, Mathf.Infinity);

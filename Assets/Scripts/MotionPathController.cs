@@ -1,8 +1,53 @@
+
 using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 using System.Collections;
+
+public class MotionPath {
+	public static int get_node_count(MotionPathController path) {
+		return path.transform.childCount;
+	}
+
+	public static int reverse_index(MotionPathController path, int index) {
+		int node_count = get_node_count(path);
+		Assert.is_true(index < node_count);
+		return index == 0 ? 0 : node_count - index;
+	}
+
+	public static int get_node_index(MotionPathController path, MotionPathNode node, bool reverse) {
+		Assert.is_true(node != null);
+
+		int index = node.transform.GetSiblingIndex();
+		if(reverse) {
+			index = reverse_index(path, index);
+		}
+
+		return index;
+	}
+
+	public static int wrap_node_index(MotionPathController path, int node_index) {
+		if(node_index >= get_node_count(path)) {
+			node_index = 0;
+		}
+
+		return node_index;
+	}
+
+	public static MotionPathNode get_node(MotionPathController path, int index, bool reverse) {
+		Assert.is_true(index < MotionPath.get_node_count(path));
+
+		int child_index = index;
+		if(reverse) {
+			child_index = reverse_index(path, index);
+		}
+
+		MotionPathNode node = path.transform.GetChild(child_index).GetComponent<MotionPathNode>();
+		Assert.is_true(node != null);
+		return node;
+	}
+}
 
 public class MotionPathController : MonoBehaviour {
 	public float global_speed = 1.0f;
@@ -12,24 +57,11 @@ public class MotionPathController : MonoBehaviour {
 	public static Transform hover_node;
 #endif
 
-	public static int get_node_count(MotionPathController path) {
-		return path.transform.childCount;
-	}
-
-	public static int get_node_index(MotionPathController path, MotionPathNode node) {
-		Assert.is_true(node != null);
-		return node.transform.GetSiblingIndex();
-	}
-
-	public static MotionPathNode get_node(MotionPathController path, int index) {
-		Assert.is_true(index < get_node_count(path));
-		MotionPathNode node = path.transform.GetChild(index).GetComponent<MotionPathNode>();
-		Assert.is_true(node != null);
-		return node;
-	}
+	[System.NonSerialized] public bool reverse_now;
 
 	void Start() {
-		Assert.is_true(get_node_count(this) > 0);
+		int node_count = MotionPath.get_node_count(this);
+		Assert.is_true(node_count > 0);
 	}
 
 #if UNITY_EDITOR

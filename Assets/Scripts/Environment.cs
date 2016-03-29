@@ -84,7 +84,7 @@ public class Environment {
 			Building building = new Building();
 			building.transform = buildings_parent.GetChild(i);
 			building.renderer = building.transform.GetComponent<Renderer>();
-			building.collider = building.transform.GetComponent<Collider>();
+		building.collider = building.transform.GetComponent<Collider>();
 
 			Transform fractured_mesh = building.transform.Find("FracturedMesh");
 			if(fractured_mesh != null) {

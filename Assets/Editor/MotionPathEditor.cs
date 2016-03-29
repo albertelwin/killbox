@@ -1,6 +1,5 @@
 
 using UnityEditor;
-using UnityEditorInternal;
 using UnityEngine;
 
 #pragma warning disable 0219
@@ -175,6 +174,13 @@ public class MotionPathControllerInspector : Editor {
 			Selection.activeTransform = node.transform;
 		}
 
+		//TODO: Temp!!
+		if(EditorApplication.isPlaying) {
+			if(GUILayout.Button("Reverse")) {
+				path.reverse_now = true;
+			}
+		}
+
 		serializer.ApplyModifiedProperties();
 	}
 }
@@ -186,24 +192,24 @@ public class MotionPathNodeInspector : Editor {
 	public SerializedProperty override_speed;
 	public SerializedProperty speed;
 
-	public ReorderableList event_list;
+	public SerializedProperty flip_direction;
+
+	public SerializedProperty has_event;
+	public SerializedProperty evt_type;
+	public SerializedProperty evt_trigger;
 
 	public void OnEnable() {
 		serializer = new SerializedObject(target);
 
+		//TODO: Can we do this automatically??
 		override_speed = serializer.FindProperty("override_speed");
 		speed = serializer.FindProperty("speed");
 
-		event_list = new ReorderableList(serializer, serializer.FindProperty("event_list"), true, true, true, true);
-		event_list.drawHeaderCallback = (Rect rect) => {
-			EditorGUI.LabelField(rect, "Event List");
-		};
-		event_list.drawElementCallback = (Rect rect, int index, bool is_active, bool is_focused) => {
-			SerializedProperty elem = event_list.serializedProperty.GetArrayElementAtIndex(index);
-			rect.y += 2;
+		flip_direction = serializer.FindProperty("flip_direction");
 
-			EditorGUI.PropertyField(new Rect(rect.x, rect.y, 60, EditorGUIUtility.singleLineHeight), elem.FindPropertyRelative("event_type"), GUIContent.none);
-		};
+		has_event = serializer.FindProperty("has_event");
+		evt_type = serializer.FindProperty("evt.type");
+		evt_trigger = serializer.FindProperty("evt.trigger");
 	}
 
 	public override void OnInspectorGUI() {
@@ -216,9 +222,13 @@ public class MotionPathNodeInspector : Editor {
 			EditorGUILayout.PropertyField(speed, new GUIContent("  Speed"));
 		}
 
-		EditorGUILayout.Separator();
+		EditorGUILayout.PropertyField(flip_direction, new GUIContent("Flip Direction"));
 
-		event_list.DoLayoutList();
+		EditorGUILayout.PropertyField(has_event, new GUIContent("Event"));
+		if(has_event.boolValue) {
+			EditorGUILayout.PropertyField(evt_type, new GUIContent("  Type"));
+			EditorGUILayout.PropertyField(evt_trigger, new GUIContent("  Trigger"));
+		}
 
 		serializer.ApplyModifiedProperties();
 	}

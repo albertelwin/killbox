@@ -1,5 +1,8 @@
-﻿using UnityEngine;
+﻿
+using UnityEngine;
 using System.Collections;
+
+#pragma warning disable 0219
 
 //TODO: Remove awake/update/etc.!!
 public class NpcController : MonoBehaviour {
@@ -22,6 +25,7 @@ public class NpcController : MonoBehaviour {
 	[System.NonSerialized] public MotionPathNode motion_node;
 	[System.NonSerialized] public MotionPathNode prev_motion_node;
 	[System.NonSerialized] public Vector3 motion_path_target;
+	[System.NonSerialized] public bool path_is_reversed;
 
 	Vector3 initial_pos;
 
@@ -88,6 +92,7 @@ public class NpcController : MonoBehaviour {
 		next_node_index = 0;
 		motion_node = null;
 		prev_motion_node = null;
+		path_is_reversed = false;
 
 		if(fracture != null) {
 			Environment.remove_fracture(fracture);
@@ -113,38 +118,70 @@ public class NpcController : MonoBehaviour {
 		emission = 0.0f;
 	}
 
+	void set_next_node(bool reverse) {
+		int node_index = MotionPath.get_node_index(motion_path, motion_node, path_is_reversed);
+
+		if(reverse) {
+			if(node_index == 0) {
+				node_index = MotionPath.get_node_count(motion_path);
+			}
+			node_index--;
+		}
+		else {
+			node_index = MotionPath.wrap_node_index(motion_path, node_index + 1);
+		}
+
+		prev_motion_node = motion_node;
+		motion_node = MotionPath.get_node(motion_path, node_index, path_is_reversed);
+
+		if(reverse) {
+			path_is_reversed = !path_is_reversed;
+		}
+
+		next_node_index = MotionPath.wrap_node_index(motion_path, node_index + 1);
+	}
+
 	void Update() {
 		if(nav_agent.enabled && motion_path && !game_manager.first_missile_hit) {
 			if(!motion_node) {
-				if(next_node_index >= MotionPathController.get_node_count(motion_path)) {
-					next_node_index = 0;
+				next_node_index = MotionPath.wrap_node_index(motion_path, next_node_index);
+				motion_node = MotionPath.get_node(motion_path, next_node_index, path_is_reversed);
+			}
+			else {
+				//TODO: Calculate this from velocity/distance/etc.!!
+				float min_dist = Mathf.Max(nav_agent.speed * 0.5f, 1.0f);
+				if(nav_agent.remainingDistance <= min_dist) {
+					set_next_node(motion_node.flip_direction);
+				}
+				else if(motion_path.reverse_now) {
+					set_next_node(true);
 				}
 
-				motion_node = MotionPathController.get_node(motion_path, next_node_index);
+				motion_path.reverse_now = false;
 			}
 
 			Assert.is_true(motion_node != null);
 
-			//TODO: Calculate this from velocity/distance/etc.!!
-			float min_dist = Mathf.Max(nav_agent.speed * 0.5f, 1.0f);
-			if(nav_agent.remainingDistance <= min_dist) {
-				prev_motion_node = motion_node;
-
-				next_node_index = MotionPathController.get_node_index(motion_path, motion_node) + 1;
-				if(next_node_index >= MotionPathController.get_node_count(motion_path)) {
-					next_node_index = 0;
-				}
-
-				motion_node = MotionPathController.get_node(motion_path, next_node_index++);
-				
-				if(next_node_index >= MotionPathController.get_node_count(motion_path)) {
-					next_node_index = 0;
-				}
-			}
-
 			float speed_modifier = motion_path.global_speed;
-			if(prev_motion_node && prev_motion_node.override_speed) {
-				speed_modifier = prev_motion_node.speed;
+			if(prev_motion_node) {
+				if(prev_motion_node.override_speed) {
+					speed_modifier = prev_motion_node.speed;
+				}
+
+				if(prev_motion_node.has_event) {
+					MotionPathEvent evt = prev_motion_node.evt;
+
+					bool trigger = false;
+					if(evt.trigger == MotionPathEventTrigger.ALWAYS) {
+						trigger = true;
+					}
+
+					if(trigger) {
+						if(evt.type == MotionPathEventType.STOP) {
+							speed_modifier = 0.0f;
+						}
+					}
+				}
 			}
 
 			if(motion_path_target != motion_node.transform.position) {

@@ -4,30 +4,28 @@ using System.Collections.Generic;
 
 public enum MotionPathEventType {
 	STOP,
-	FLIP_DIRECTION,
 	CHANGE_PATH,
-
-	COUNT,
 }
 
-public enum MotionPathTriggerType {
+public enum MotionPathEventTrigger {
 	NEVER,
 	ALWAYS,
 
-	FIRST_HIT,
-
-	COUNT,
+	ON_FIRST_HIT,
 }
 
 [System.Serializable]
 public class MotionPathEvent {
-	public MotionPathEventType event_type;
-	public MotionPathTriggerType trigger_type;
+	public MotionPathEventType type;
+	public MotionPathEventTrigger trigger;
 }
 
 public class MotionPathNode : MonoBehaviour {
-	public bool override_speed;
-	public float speed;
+	public bool override_speed = false;
+	public float speed = 1.0f;
 
-	public List<MotionPathEvent> event_list;
+	public bool flip_direction = false;
+
+	public bool has_event = false;
+	public MotionPathEvent evt;
 }

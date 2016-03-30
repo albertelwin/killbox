@@ -20,22 +20,11 @@ public class NpcController : MonoBehaviour {
 	[System.NonSerialized] public Environment.Fracture fracture;
 
 	[System.NonSerialized] public NavMeshAgent nav_agent;
+	[System.NonSerialized] public MotionPathAgent path_agent;
 	public MotionPathController motion_path;
-	[System.NonSerialized] public int next_node_index;
-	[System.NonSerialized] public MotionPathNode motion_node;
-	[System.NonSerialized] public MotionPathNode prev_motion_node;
-	[System.NonSerialized] public Vector3 motion_path_target;
-	[System.NonSerialized] public bool path_is_reversed;
 
 	Vector3 initial_pos;
-
-	[System.NonSerialized] public float walk_speed;
-	[System.NonSerialized] public float walk_accel;
-	[System.NonSerialized] public float run_speed;
-	[System.NonSerialized] public float run_accel;
 	
-
-	[System.NonSerialized] public bool in_player_radius;
 	[System.NonSerialized] public int color_index;
 
 	float activation_dist;
@@ -89,10 +78,7 @@ public class NpcController : MonoBehaviour {
 		nav_agent.Warp(initial_pos);
 		nav_agent.SetDestination(initial_pos);
 
-		next_node_index = 0;
-		motion_node = null;
-		prev_motion_node = null;
-		path_is_reversed = false;
+		path_agent = motion_path ? MotionPath.new_agent(transform, nav_agent, motion_path) : null;
 
 		if(fracture != null) {
 			Environment.remove_fracture(fracture);
@@ -107,116 +93,27 @@ public class NpcController : MonoBehaviour {
 			renderer_.enabled = false;
 		}
 
-		//TODO: Tweak these!!
-		walk_speed = 2.0f;
-		walk_accel = 8.0f;
-		run_speed = 12.0f;
-		run_accel = 48.0f;
-
 		activation_dist = 2.5f;
 		activated = false;
 		emission = 0.0f;
 	}
 
-	void set_next_node(bool reverse) {
-		int node_index = MotionPath.get_node_index(motion_path, motion_node, path_is_reversed);
-
-		if(reverse) {
-			if(node_index == 0) {
-				node_index = MotionPath.get_node_count(motion_path);
-			}
-			node_index--;
-		}
-		else {
-			node_index = MotionPath.wrap_node_index(motion_path, node_index + 1);
-		}
-
-		prev_motion_node = motion_node;
-		motion_node = MotionPath.get_node(motion_path, node_index, path_is_reversed);
-
-		if(reverse) {
-			path_is_reversed = !path_is_reversed;
-		}
-
-		next_node_index = MotionPath.wrap_node_index(motion_path, node_index + 1);
-	}
-
 	void Update() {
-		if(nav_agent.enabled && motion_path && !game_manager.first_missile_hit) {
-			if(!motion_node) {
-				next_node_index = MotionPath.wrap_node_index(motion_path, next_node_index);
-				motion_node = MotionPath.get_node(motion_path, next_node_index, path_is_reversed);
-			}
-			else {
-				//TODO: Calculate this from velocity/distance/etc.!!
-				float min_dist = Mathf.Max(nav_agent.speed * 0.5f, 1.0f);
-				if(nav_agent.remainingDistance <= min_dist) {
-					set_next_node(motion_node.flip_direction);
-				}
-				else if(motion_path.reverse_now) {
-					set_next_node(true);
+		if(path_agent != null) {
+			Transform player2 = game_manager.player2_inst != null ? game_manager.player2_inst.transform : null;
+			MotionPath.move_agent(path_agent, Time.deltaTime, player2, game_manager.first_missile_hit);
+
+			if(path_agent.entered_player_radius) {
+				color_index++;
+				if(color_index >= game_manager.npc_color_pool.Length) {
+					color_index = 0;
 				}
 
-				motion_path.reverse_now = false;
-			}
-
-			Assert.is_true(motion_node != null);
-
-			float speed_modifier = motion_path.global_speed;
-			if(prev_motion_node) {
-				if(prev_motion_node.override_speed) {
-					speed_modifier = prev_motion_node.speed;
-				}
-
-				if(prev_motion_node.has_event) {
-					MotionPathEvent evt = prev_motion_node.evt;
-
-					bool trigger = false;
-					if(evt.trigger == MotionPathEventTrigger.ALWAYS) {
-						trigger = true;
-					}
-
-					if(trigger) {
-						if(evt.type == MotionPathEventType.STOP) {
-							speed_modifier = 0.0f;
-						}
-					}
+				renderer_.material.color = game_manager.npc_color_pool[color_index];
+				if(anim_renderer != null) {
+					anim_renderer.material.color = renderer_.material.color;
 				}
 			}
-
-			if(motion_path_target != motion_node.transform.position) {
-				motion_path_target = motion_node.transform.position;
-				nav_agent.SetDestination(motion_node.transform.position);
-			}
-
-			nav_agent.speed = walk_speed * speed_modifier;
-			nav_agent.acceleration = walk_accel;
-
-			// if(game_manager.player2_inst != null) {
-			// 	Transform player2 = game_manager.player2_inst.transform;
-
-			// 	float dist_to_player = Vector3.Distance(transform.position, player2.position);
-			// 	if(dist_to_player <= 2.5f) {
-			// 		if(!in_player_radius) {
-			// 			color_index++;
-			// 			if(color_index >= game_manager.npc_color_pool.Length) {
-			// 				color_index = 0;
-			// 			}
-
-			// 			renderer_.material.color = game_manager.npc_color_pool[color_index];
-			// 			if(anim_renderer != null) {
-			// 				anim_renderer.material.color = renderer_.material.color;
-			// 			}
-			// 		}
-
-			// 		in_player_radius = true;
-			// 		nav_agent.speed = run_speed;
-			// 		nav_agent.acceleration = run_accel;
-			// 	}
-			// 	else {
-			// 		in_player_radius = false;
-			// 	}
-			// }
 		}
 
 		//TODO: Collapse this!!

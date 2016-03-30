@@ -500,15 +500,15 @@ public class Player1Console {
 		// 	push_print_str_cmd(inst, "\n");
 		// }
 
-		push_cmd(inst, CmdType.SWITCH_ON_DISPLAY);
-		push_cmd(inst, CmdType.LOG_IN);
-		push_cmd(inst, CmdType.ENABLE_CONTROLS);
-		push_cmd(inst, CmdType.ACQUIRE_TARGET);
+		// push_cmd(inst, CmdType.SWITCH_ON_DISPLAY);
+		// push_cmd(inst, CmdType.LOG_IN);
+		// push_cmd(inst, CmdType.ENABLE_CONTROLS);
+		// push_cmd(inst, CmdType.ACQUIRE_TARGET);
 
-		push_tutorial_key_cmd(inst, "HOLD \"A\" TO LOOK LEFT\n", Player1Controller.ControlType.LOOK_LEFT, 1.8f, 0);
-		push_tutorial_key_cmd(inst, "HOLD \"D\" TO LOOK RIGHT\n", Player1Controller.ControlType.LOOK_RIGHT, 1.8f, 1);
+		// push_tutorial_key_cmd(inst, "HOLD \"A\" TO LOOK LEFT\n", Player1Controller.ControlType.LOOK_LEFT, 1.8f, 0);
+		// push_tutorial_key_cmd(inst, "HOLD \"D\" TO LOOK RIGHT\n", Player1Controller.ControlType.LOOK_RIGHT, 1.8f, 1);
 
-		push_wait_cmd(inst, Mathf.Infinity);
+		// push_wait_cmd(inst, Mathf.Infinity);
 
 		// push_print_str_cmd(inst, "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce luctus, lectus ultrices vulputate scelerisque, enim ante mollis libero, at lobortis nisi massa id orci. Quisque ac diam nisl. In hac habitasse platea dictumst. Etiam ligula neque, euismod id ornare sit amet, posuere et ante\n");
 		// push_wait_cmd(inst, Mathf.Infinity);
@@ -1152,7 +1152,7 @@ public class Player1Controller : MonoBehaviour {
 		bool local_inst = network_view.isMine || (game_manager.connection_type == ConnectionType.OFFLINE);
 		if(local_inst) {
 			name = "Player1";
-			game_manager.player1_inst = this;
+			game_manager.player1_inst = this;			
 		}
 		else {
 			name = "NetworkPlayer1";
@@ -1341,11 +1341,13 @@ public class Player1Controller : MonoBehaviour {
 	}
 
 	public IEnumerator log_off() {
-		// yield return StartCoroutine(Util.lerp_text_color(console_.text_mesh, Color.white, Util.white_no_alpha));
-
 		FadeImageEffect ui_camera_fade = ui_camera.GetComponent<FadeImageEffect>();
 		ui_camera_fade.alpha = 0.0f;
 		yield return StartCoroutine(FadeImageEffect.lerp_alpha(ui_camera_fade, 1.0f));
+
+		//TODO: Tidy up how we shutdown player1!!
+		ui_camera.transform.parent = main_camera.transform;
+		console_.enabled = false;
 
 		StartCoroutine(Util.lerp_audio_volume(audio_sources[0], 1.0f, 0.0f, 2.0f));
 		yield return StartCoroutine(Util.lerp_audio_volume(audio_sources[1], 1.0f, 0.0f, 2.0f));

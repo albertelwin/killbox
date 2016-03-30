@@ -337,7 +337,6 @@ public class Environment {
 					npc.anim.gameObject.SetActive(false);
 				}
 
-				// Transform fracture = npc.transform.Find("FracturedMesh");
 				if(npc.fracture != null) {
 					apply_fracture(npc.fracture, hit_pos, fracture_force);
 				}

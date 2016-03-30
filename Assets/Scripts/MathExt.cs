@@ -17,7 +17,7 @@ public static class MathExt {
 	}
 
 	//NOTE: Tavian Barnes Ray-AABB Intersection -> https://tavianator.com/fast-branchless-raybounding-box-intersections/
-	public static bool ray_box_intersect(Vector3 min, Vector3 max, Ray ray) {
+	public static bool ray_box_intersect(Vector3 min, Vector3 max, Ray ray, out float t) {
 		float r_dx = 1.0f / ray.direction.x;
 		float r_dy = 1.0f / ray.direction.y;
 		float r_dz = 1.0f / ray.direction.z;
@@ -40,6 +40,7 @@ public static class MathExt {
 		t_min = Mathf.Max(t_min, Mathf.Min(tz1, tz2));
 		t_max = Mathf.Min(t_max, Mathf.Max(tz1, tz2));
 
+		t = t_min;
 		return t_max >= t_min;
 	}
 }

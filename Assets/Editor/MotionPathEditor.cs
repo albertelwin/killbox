@@ -4,17 +4,41 @@ using UnityEngine;
 
 #pragma warning disable 0219
 
+public enum MotionPathSelectionType {
+	PATH,
+	NODE,
+}
+
+public class MotionPathSelection {
+	public MotionPathSelectionType type;
+
+	public MotionPathController path;
+	public MotionPathNode node;
+}
+
 public static class MotionPathUtil {
-	public static MotionPathController get_selected_motion_path() {
-		MotionPathController path = null;
+	public static MotionPathSelection get_selection() {
+		MotionPathSelection selection = null;
+
 		if(Selection.activeTransform) {
-			path = Selection.activeTransform.GetComponent<MotionPathController>();
-			if(!path && Selection.activeTransform.parent) {
+			MotionPathController path = Selection.activeTransform.GetComponent<MotionPathController>();
+			if(path) {
+				selection = new MotionPathSelection();
+				selection.type = MotionPathSelectionType.PATH;
+				selection.path = path;
+			}
+			else if(Selection.activeTransform.parent) {
 				path = Selection.activeTransform.parent.GetComponent<MotionPathController>();
+				if(path) {
+					selection = new MotionPathSelection();
+					selection.type = MotionPathSelectionType.NODE;
+					selection.path = path;
+					selection.node = Selection.activeTransform.GetComponent<MotionPathNode>();
+				}
 			}
 		}
 
-		return path;
+		return selection;
 	}
 
 	public static MotionPathNode add_node(MotionPathController path, Vector3 pos) {
@@ -28,7 +52,8 @@ public static class MotionPathUtil {
 public class MotionPathEditor {
 	public static MotionPathEditor inst;
 
-	Transform next_active_transform;
+	Transform selected_node;
+	Transform duplicated_node;
 
 	static MotionPathEditor() {
 		if(inst == null) {
@@ -37,7 +62,7 @@ public class MotionPathEditor {
 			SceneView.onSceneGUIDelegate += inst.OnSceneGUI;
 			EditorApplication.hierarchyWindowItemOnGUI += inst.OnHierarchyWindowItem;
 
-			Debug.Log("MotionPathEditor()");
+			// Debug.Log("MotionPathEditor()");
 		}
 	}
 
@@ -45,9 +70,20 @@ public class MotionPathEditor {
 		if(evt != null) {
 			switch(evt.type) {
 				case EventType.Layout: {
-					if(next_active_transform) {
-						Selection.activeTransform = next_active_transform;
-						next_active_transform = null;
+					if(selected_node) {
+						Selection.activeTransform = selected_node;
+						selected_node = null;
+					}
+
+					if(duplicated_node) {
+						MotionPathSelection selection = MotionPathUtil.get_selection();
+						//NOTE: We've just duplicated a node so it should be selected!!
+						Assert.is_true(selection != null && selection.type == MotionPathSelectionType.NODE);
+
+						Transform node = selection.node.transform;
+						node.SetSiblingIndex(duplicated_node.GetSiblingIndex() + 1);
+
+						duplicated_node = null;
 					}
 
 					break;
@@ -60,16 +96,28 @@ public class MotionPathEditor {
 
 				case EventType.ExecuteCommand: {
 					if(evt.commandName == "SoftDelete") {
-						if(!next_active_transform && Selection.activeTransform && Selection.activeTransform.parent) {
-							Transform node = Selection.activeTransform;
-							MotionPathController path = node.parent.GetComponent<MotionPathController>();
-							if(path && node.parent.childCount > 1) {
-								int prev_index = node.GetSiblingIndex() - 1;
-								if(prev_index < 0) {
-									prev_index = node.parent.childCount - 1;
-								}
+						if(!selected_node) {
+							MotionPathSelection selection = MotionPathUtil.get_selection();
+							if(selection != null && selection.type == MotionPathSelectionType.NODE) {
+								Transform path = selection.path.transform;
+								Transform node = selection.node.transform;
 
-								next_active_transform = node.parent.GetChild(prev_index);
+								if(path.childCount > 1) {
+									int prev_index = node.GetSiblingIndex() - 1;
+									if(prev_index < 0) {
+										prev_index = path.childCount - 1;
+									}
+
+									selected_node = path.GetChild(prev_index);
+								}
+							}
+						}
+					}
+					else if(evt.commandName == "Duplicate") {
+						if(!duplicated_node) {
+							MotionPathSelection selection = MotionPathUtil.get_selection();
+							if(selection != null && selection.type == MotionPathSelectionType.NODE) {
+								duplicated_node = Selection.activeTransform;
 							}
 						}
 					}
@@ -88,11 +136,20 @@ public class MotionPathEditor {
 		Event evt = Event.current;
 		process_event(evt);
 
-		MotionPathController path = MotionPathUtil.get_selected_motion_path();
-		if(path) {
+		MotionPathSelection selection = MotionPathUtil.get_selection();
+		if(selection != null) {
+			MotionPathController path = selection.path;
+
 			Transform hover_node = null;
 			
 			Ray mouse_ray = Camera.current.ScreenPointToRay(new Vector3(evt.mousePosition.x, -evt.mousePosition.y + Camera.current.pixelHeight));
+
+			float min_t = Mathf.Infinity;
+
+			RaycastHit hit_info;
+			if(Physics.Raycast(mouse_ray, out hit_info)) {
+				min_t = hit_info.distance;
+			}
 
 			//TODO: This needs to stay in sync with the boz gizmo!!
 			Vector3 min = new Vector3(-0.25f, 0.0f,-0.25f);
@@ -101,10 +158,12 @@ public class MotionPathEditor {
 			for(int i = 0; i < path.transform.childCount; i++) {
 				Transform node = path.transform.GetChild(i);
 
-				//TODO: Need to raycast the scene and all of the nodes to make sure this is the closest intersection!!
-				if(MathExt.ray_box_intersect(node.position + min, node.position + max, mouse_ray)) {
-					hover_node = node;
-					break;
+				float t;
+				if(MathExt.ray_box_intersect(node.position + min, node.position + max, mouse_ray, out t)) {
+					if(t < min_t) {
+						hover_node = node;
+						min_t = t;
+					}
 				}
 			}
 
@@ -129,9 +188,8 @@ public class MotionPathEditor {
 }
 
 [CustomEditor(typeof(MotionPathController))]
+[CanEditMultipleObjects]
 public class MotionPathControllerInspector : Editor {
-	public SerializedObject serializer;
-
 	public SerializedProperty global_speed;
 
 	[MenuItem("Killbox/Motion Path")]
@@ -155,19 +213,29 @@ public class MotionPathControllerInspector : Editor {
 	}
 
 	public void OnEnable() {
-		serializer = new SerializedObject(target);
-
-		global_speed = serializer.FindProperty("global_speed");
+		global_speed = serializedObject.FindProperty("global_speed");
 	}
 
 	public override void OnInspectorGUI() {
-		serializer.Update();
+		serializedObject.Update();
 
 		EditorGUILayout.LabelField("Motion Path Controller", EditorStyles.miniLabel);
 
 		MotionPathController path = (MotionPathController)target;
 
 		EditorGUILayout.PropertyField(global_speed, new GUIContent("Global Speed"));
+
+		EditorGUILayout.Separator();
+
+		if(GUILayout.Button("View Linked NPCs")) {
+			NpcController[] npcs = (NpcController[])Object.FindObjectsOfType(typeof(NpcController));
+			for(int i = 0; i < npcs.Length; i++) {
+				NpcController npc = npcs[i];
+				if(npc.motion_path == path) {
+					EditorGUIUtility.PingObject(npc);
+				}
+			}
+		}
 
 		if(GUILayout.Button("Add Node")) {
 			MotionPathNode node = MotionPathUtil.add_node(path, Vector3.zero);
@@ -179,41 +247,50 @@ public class MotionPathControllerInspector : Editor {
 			if(GUILayout.Button("Reverse")) {
 				path.reverse_now = true;
 			}
+
 		}
 
-		serializer.ApplyModifiedProperties();
+		GameObject prefab = (GameObject)PrefabUtility.GetPrefabParent(path.gameObject);
+		if(prefab) {
+			EditorGUILayout.Separator();
+			EditorGUILayout.LabelField("Prefab Options");
+
+			// if(EditorApplication.isPlaying) {
+				if(GUILayout.Button("Save")) {
+					prefab = PrefabUtility.ReplacePrefab(path.gameObject, prefab);
+				}
+			// }
+		}
+
+		serializedObject.ApplyModifiedProperties();
 	}
 }
 
 [CustomEditor(typeof(MotionPathNode))]
+[CanEditMultipleObjects]
 public class MotionPathNodeInspector : Editor {
-	public SerializedObject serializer;
-
 	public SerializedProperty override_speed;
 	public SerializedProperty speed;
 
 	public SerializedProperty flip_direction;
 
-	public SerializedProperty has_event;
-	public SerializedProperty evt_type;
-	public SerializedProperty evt_trigger;
+	public SerializedProperty stop;
+	public SerializedProperty stop_forever;
+	public SerializedProperty stop_time;
 
 	public void OnEnable() {
-		serializer = new SerializedObject(target);
+		override_speed = serializedObject.FindProperty("override_speed");
+		speed = serializedObject.FindProperty("speed");
 
-		//TODO: Can we do this automatically??
-		override_speed = serializer.FindProperty("override_speed");
-		speed = serializer.FindProperty("speed");
+		flip_direction = serializedObject.FindProperty("flip_direction");
 
-		flip_direction = serializer.FindProperty("flip_direction");
-
-		has_event = serializer.FindProperty("has_event");
-		evt_type = serializer.FindProperty("evt.type");
-		evt_trigger = serializer.FindProperty("evt.trigger");
+		stop = serializedObject.FindProperty("stop");
+		stop_forever = serializedObject.FindProperty("stop_forever");
+		stop_time = serializedObject.FindProperty("stop_time");
 	}
 
 	public override void OnInspectorGUI() {
-		serializer.Update();
+		serializedObject.Update();
 
 		EditorGUILayout.LabelField("Motion Path Node", EditorStyles.miniLabel);
 
@@ -224,12 +301,14 @@ public class MotionPathNodeInspector : Editor {
 
 		EditorGUILayout.PropertyField(flip_direction, new GUIContent("Flip Direction"));
 
-		EditorGUILayout.PropertyField(has_event, new GUIContent("Event"));
-		if(has_event.boolValue) {
-			EditorGUILayout.PropertyField(evt_type, new GUIContent("  Type"));
-			EditorGUILayout.PropertyField(evt_trigger, new GUIContent("  Trigger"));
+		EditorGUILayout.PropertyField(stop, new GUIContent("Stop"));
+		if(stop.boolValue) {
+			EditorGUILayout.PropertyField(stop_forever, new GUIContent("  Forever"));
+			if(!stop_forever.boolValue) {
+				EditorGUILayout.PropertyField(stop_time, new GUIContent("  Time"));
+			}
 		}
 
-		serializer.ApplyModifiedProperties();
+		serializedObject.ApplyModifiedProperties();
 	}
 }

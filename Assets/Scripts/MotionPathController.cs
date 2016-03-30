@@ -5,6 +5,28 @@ using UnityEditor;
 #endif
 using System.Collections;
 
+public class MotionPathAgent {
+	public Transform transform;
+	public NavMeshAgent nav;
+
+	public MotionPathController path;
+	public MotionPathNode node;
+	public MotionPathNode prev_node;
+	public int saved_node_index;
+
+	public Vector3 target_pos;
+	public bool reversed;
+	public float stop_time;
+
+	public bool entered_player_radius;
+	public bool in_player_radius;
+
+	public float walk_speed;
+	public float walk_accel;
+	public float run_speed;
+	public float run_accel;
+}
+
 public class MotionPath {
 	public static int get_node_count(MotionPathController path) {
 		return path.transform.childCount;
@@ -46,6 +68,123 @@ public class MotionPath {
 		MotionPathNode node = path.transform.GetChild(child_index).GetComponent<MotionPathNode>();
 		Assert.is_true(node != null);
 		return node;
+	}
+
+	public static MotionPathAgent new_agent(Transform transform, NavMeshAgent nav, MotionPathController path) {
+		MotionPathAgent agent = new MotionPathAgent();
+		agent.transform = transform;
+		agent.nav = nav;
+
+		agent.path = path;
+
+		agent.walk_speed = 2.0f;
+		agent.walk_accel = 8.0f;
+		agent.run_speed = 12.0f;
+		agent.run_accel = 48.0f;
+
+		return agent;
+	}
+
+	public static void set_agent_next_node(MotionPathAgent agent, bool reverse) {
+		int node_index = MotionPath.get_node_index(agent.path, agent.node, agent.reversed);
+
+		if(reverse) {
+			if(node_index == 0) {
+				node_index = MotionPath.get_node_count(agent.path);
+			}
+			node_index--;
+		}
+		else {
+			node_index = MotionPath.wrap_node_index(agent.path, node_index + 1);
+		}
+
+		agent.prev_node = agent.node;
+		agent.node = MotionPath.get_node(agent.path, node_index, agent.reversed);
+
+		if(reverse) {
+			agent.reversed = !agent.reversed;
+		}
+
+		agent.saved_node_index = MotionPath.wrap_node_index(agent.path, node_index + 1);
+	}
+
+	public static void move_agent(MotionPathAgent agent, float dt, Transform player2, bool first_hit) {
+		agent.entered_player_radius = false;
+		agent.stop_time -= dt;
+		if(agent.stop_time < 0.0f) {
+			agent.stop_time = 0.0f;
+		}
+
+		if(agent.nav.enabled && !first_hit) {
+			if(!agent.node) {
+				agent.saved_node_index = MotionPath.wrap_node_index(agent.path, agent.saved_node_index);
+				agent.node = MotionPath.get_node(agent.path, agent.saved_node_index, agent.reversed);
+			}
+			else {
+				bool should_reverse = agent.path.reverse_now;
+				agent.path.reverse_now = false;
+
+				if(player2 != null && Vector3.Distance(agent.transform.position, player2.position) <= 2.5f) {
+					if(!agent.in_player_radius) {
+						agent.entered_player_radius = true;
+						should_reverse = true;
+					}
+
+					agent.in_player_radius = true;
+					//TODO: Change NPC speed when tigged!!
+					// agent.nav.speed = run_speed;
+					// agent.nav.acceleration = run_accel;
+				}
+				else {
+					agent.in_player_radius = false;
+				}
+
+				//TODO: Calculate this from velocity/distance/etc.!!
+				float min_dist = Mathf.Max(agent.nav.speed * 0.5f, 1.0f);
+				if(agent.nav.remainingDistance <= min_dist) {
+					if(agent.node.stop) {
+						agent.stop_time = agent.node.stop_time;
+					}
+
+					MotionPath.set_agent_next_node(agent, agent.node.flip_direction);
+				}
+				else if(should_reverse) {
+					MotionPath.set_agent_next_node(agent, true);
+				}
+			}
+
+			Assert.is_true(agent.node != null);
+
+			float speed_modifier = agent.path.global_speed;
+			if(agent.prev_node) {
+				if(agent.prev_node.override_speed) {
+					speed_modifier = agent.prev_node.speed;
+				}
+
+				if(!agent.prev_node.stop) {
+					agent.stop_time = 0.0f;
+				}
+				else {
+					if(agent.prev_node.stop_forever || agent.stop_time > 0.0f) {
+						speed_modifier = 0.0f;
+					}					
+				}
+			}
+
+			if(agent.target_pos != agent.node.transform.position) {
+				agent.target_pos = agent.node.transform.position;
+				agent.nav.SetDestination(agent.target_pos);
+			}
+
+			if(agent.in_player_radius) {
+				agent.nav.speed = agent.run_speed * speed_modifier;
+				agent.nav.acceleration = agent.run_accel;
+			}
+			else {
+				agent.nav.speed = agent.walk_speed * speed_modifier;
+				agent.nav.acceleration = agent.walk_accel;
+			}
+		}
 	}
 }
 

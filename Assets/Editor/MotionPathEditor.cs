@@ -46,6 +46,52 @@ public static class MotionPathUtil {
 		MotionPathNode node = transform.gameObject.AddComponent<MotionPathNode>();
 		return node;
 	}
+
+	public static void show_prefab_options(MotionPathController path) {
+		GameObject prefab = (GameObject)PrefabUtility.GetPrefabParent(path.gameObject);
+		EditorGUILayout.Separator();
+		EditorGUILayout.LabelField("Prefab Options");
+
+		GUILayout.BeginHorizontal();
+
+		if(prefab == null) {
+			GUI.enabled = false;
+		}
+
+		if(GUILayout.Button("View")) {
+			EditorGUIUtility.PingObject(prefab);
+		}
+
+		GUI.enabled = true;
+
+		if(GUILayout.Button("Save")) {
+			if(prefab) {
+				prefab = PrefabUtility.ReplacePrefab(path.gameObject, prefab, ReplacePrefabOptions.ConnectToPrefab);
+			}
+			else {
+				string folder = "Assets/Prefabs/Motion Paths";
+
+				//TODO: This could potientially get very slow!!
+				string prefab_name = path.name;
+				int suffix = 0;
+				while(true) {
+					string guid = AssetDatabase.AssetPathToGUID(string.Format("{0}/{1}.prefab", folder, prefab_name));
+					if(guid == "") {
+						break;
+					}
+					else {
+						suffix++;
+						prefab_name = path.name + suffix;
+					}
+				}
+
+				path.name = prefab_name;
+				prefab = PrefabUtility.CreatePrefab(string.Format("{0}/{1}.prefab", folder, prefab_name), path.gameObject, ReplacePrefabOptions.ConnectToPrefab);
+			}
+		}
+
+		GUILayout.EndHorizontal();
+	}
 }
 
 [InitializeOnLoad]
@@ -90,6 +136,15 @@ public class MotionPathEditor {
 				}
 
 				case EventType.ValidateCommand: {
+					if(evt.commandName == "SoftDelete") {
+						MotionPathSelection selection = MotionPathUtil.get_selection();
+						if(selection != null && selection.type == MotionPathSelectionType.NODE) {
+							GameObject prefab = (GameObject)PrefabUtility.GetPrefabParent(selection.path.gameObject);
+							if(prefab) {
+								PrefabUtility.DisconnectPrefabInstance(selection.path.gameObject);
+							}
+						}
+					}
 
 					break;
 				}
@@ -175,8 +230,24 @@ public class MotionPathEditor {
 			if(MotionPathController.hover_node) {
 				HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
 
-				if(evt.type == EventType.MouseUp) {
+				if(evt.type == EventType.MouseUp && evt.button == 0 && evt.modifiers == EventModifiers.None) {
 					Selection.activeTransform = MotionPathController.hover_node;
+					evt.Use();
+				}
+			}
+
+			if(evt.type == EventType.MouseUp && evt.button == 1 && evt.modifiers == EventModifiers.None) {
+				if(min_t == hit_info.distance) {
+					Vector3 pos = mouse_ray.GetPoint(hit_info.distance);
+					MotionPathNode node = MotionPathUtil.add_node(path, pos);
+
+					if(selection.type == MotionPathSelectionType.NODE) {
+						duplicated_node = selection.node.transform;
+					}
+
+					Undo.RegisterCreatedObjectUndo(node.gameObject, "Create " + node.name);
+					Selection.activeTransform = node.transform;
+					// evt.Use();
 				}
 			}
 		}
@@ -187,14 +258,30 @@ public class MotionPathEditor {
 	}
 }
 
+public class MotionPathLinksViewer : PopupWindowContent {
+	public Transform[] links;
+
+	public override Vector2 GetWindowSize() {
+		return new Vector2(200, 18 * links.Length + 2);
+	}
+
+	public override void OnGUI(Rect rect) {
+		for(int i = 0; i < links.Length; i++) {
+			EditorGUILayout.ObjectField(links[i], null, false);
+		}
+	}
+}
+
 [CustomEditor(typeof(MotionPathController))]
 [CanEditMultipleObjects]
 public class MotionPathControllerInspector : Editor {
 	public SerializedProperty global_speed;
 
+	public Rect links_rect;
+
 	[MenuItem("Killbox/Motion Path")]
 	public static void create_motion_path() {
-		GameObject game_object = new GameObject("Motion Path");
+		GameObject game_object = new GameObject("MotionPath");
 		MotionPathController path = game_object.AddComponent<MotionPathController>();
 
 		int intial_node_count = 6;
@@ -219,22 +306,53 @@ public class MotionPathControllerInspector : Editor {
 	public override void OnInspectorGUI() {
 		serializedObject.Update();
 
-		EditorGUILayout.LabelField("Motion Path Controller", EditorStyles.miniLabel);
-
 		MotionPathController path = (MotionPathController)target;
+
+		EditorGUILayout.LabelField("Motion Path Controller", EditorStyles.miniLabel);
 
 		EditorGUILayout.PropertyField(global_speed, new GUIContent("Global Speed"));
 
 		EditorGUILayout.Separator();
 
+		int link_count = 0;
+		NpcController[] npcs = (NpcController[])Object.FindObjectsOfType(typeof(NpcController));
+		for(int i = 0; i < npcs.Length; i++) {
+			NpcController npc = npcs[i];
+			if(npc.motion_path == path) {
+				link_count++;
+			}
+		}
+
+		if(link_count == 0) {
+			GUI.enabled = false;
+		}
+
 		if(GUILayout.Button("View Linked NPCs")) {
-			NpcController[] npcs = (NpcController[])Object.FindObjectsOfType(typeof(NpcController));
-			for(int i = 0; i < npcs.Length; i++) {
-				NpcController npc = npcs[i];
-				if(npc.motion_path == path) {
-					EditorGUIUtility.PingObject(npc);
+			if(link_count > 0) {
+				Transform[] links = new Transform[link_count];
+				for(int i = 0, link_index = 0; i < npcs.Length; i++) {
+					NpcController npc = npcs[i];
+					if(npc.motion_path == path) {
+						Assert.is_true(link_index < link_count);
+						links[link_index++] = npc.transform;
+					}
+				}
+
+				if(link_count == 1) {
+					EditorGUIUtility.PingObject(links[0]);
+				}
+				else {
+					MotionPathLinksViewer links_viewer = new MotionPathLinksViewer();
+					links_viewer.links = links;
+					PopupWindow.Show(links_rect, links_viewer);					
 				}
 			}
+		}
+
+		GUI.enabled = true;
+
+		if(Event.current.type == EventType.Repaint) {
+			links_rect = GUILayoutUtility.GetLastRect();
 		}
 
 		if(GUILayout.Button("Add Node")) {
@@ -242,25 +360,7 @@ public class MotionPathControllerInspector : Editor {
 			Selection.activeTransform = node.transform;
 		}
 
-		//TODO: Temp!!
-		if(EditorApplication.isPlaying) {
-			if(GUILayout.Button("Reverse")) {
-				path.reverse_now = true;
-			}
-
-		}
-
-		GameObject prefab = (GameObject)PrefabUtility.GetPrefabParent(path.gameObject);
-		if(prefab) {
-			EditorGUILayout.Separator();
-			EditorGUILayout.LabelField("Prefab Options");
-
-			// if(EditorApplication.isPlaying) {
-				if(GUILayout.Button("Save")) {
-					prefab = PrefabUtility.ReplacePrefab(path.gameObject, prefab);
-				}
-			// }
-		}
+		MotionPathUtil.show_prefab_options(path);
 
 		serializedObject.ApplyModifiedProperties();
 	}
@@ -292,6 +392,8 @@ public class MotionPathNodeInspector : Editor {
 	public override void OnInspectorGUI() {
 		serializedObject.Update();
 
+		MotionPathNode node = (MotionPathNode)target;
+
 		EditorGUILayout.LabelField("Motion Path Node", EditorStyles.miniLabel);
 
 		EditorGUILayout.PropertyField(override_speed, new GUIContent("Override Speed"));
@@ -308,6 +410,10 @@ public class MotionPathNodeInspector : Editor {
 				EditorGUILayout.PropertyField(stop_time, new GUIContent("  Time"));
 			}
 		}
+
+		MotionPathController path = node.transform.parent != null ? node.transform.parent.GetComponent<MotionPathController>() : null;
+		Assert.is_true(path != null);
+		MotionPathUtil.show_prefab_options(path);
 
 		serializedObject.ApplyModifiedProperties();
 	}

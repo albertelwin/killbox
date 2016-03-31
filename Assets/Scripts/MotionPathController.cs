@@ -121,9 +121,7 @@ public class MotionPath {
 				agent.node = MotionPath.get_node(agent.path, agent.saved_node_index, agent.reversed);
 			}
 			else {
-				bool should_reverse = agent.path.reverse_now;
-				agent.path.reverse_now = false;
-
+				bool should_reverse = false;
 				if(player2 != null && Vector3.Distance(agent.transform.position, player2.position) <= 2.5f) {
 					if(!agent.in_player_radius) {
 						agent.entered_player_radius = true;
@@ -195,8 +193,6 @@ public class MotionPathController : MonoBehaviour {
 	//TODO: There must be a better way to do this!!
 	public static Transform hover_node;
 #endif
-
-	[System.NonSerialized] public bool reverse_now;
 
 	void Start() {
 		int node_count = MotionPath.get_node_count(this);

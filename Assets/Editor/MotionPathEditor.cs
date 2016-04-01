@@ -3,6 +3,7 @@ using UnityEditor;
 using UnityEngine;
 
 #pragma warning disable 0219
+#pragma warning disable 0414
 
 public enum MotionPathSelectionType {
 	PATH,
@@ -49,6 +50,7 @@ public static class MotionPathUtil {
 
 	public static void show_prefab_options(MotionPathController path) {
 		GameObject prefab = (GameObject)PrefabUtility.GetPrefabParent(path.gameObject);
+
 		EditorGUILayout.Separator();
 		EditorGUILayout.LabelField("Prefab Options");
 
@@ -62,7 +64,36 @@ public static class MotionPathUtil {
 			EditorGUIUtility.PingObject(prefab);
 		}
 
-		GUI.enabled = true;
+		bool is_modified = false;
+		if(prefab) {
+			PropertyModification[] changes = PrefabUtility.GetPropertyModifications(path.gameObject);
+			int ignored_change_count = 8;
+
+			if(changes != null && changes.Length > ignored_change_count) {
+				is_modified = true;
+
+				// for(int change_index = ignored_change_count; change_index < changes.Length; change_index++) {
+				// 	PropertyModification change = changes[change_index];
+				// 	Debug.Log(change.propertyPath);
+				// }
+			}
+
+			if(!is_modified) {
+				for(int child_index = 0; child_index < path.transform.childCount; child_index++) {
+					Transform child = path.transform.GetChild(child_index);
+
+					PropertyModification[] child_changes = PrefabUtility.GetPropertyModifications(child.gameObject);
+					if(child_changes == null) {
+						is_modified = true;
+						break;
+					}
+				}
+			}
+		}
+
+		if(!is_modified) {
+			GUI.enabled = false;
+		}
 
 		if(GUILayout.Button("Save")) {
 			if(prefab) {
@@ -90,6 +121,8 @@ public static class MotionPathUtil {
 			}
 		}
 
+		GUI.enabled = true;
+
 		GUILayout.EndHorizontal();
 	}
 }
@@ -100,6 +133,7 @@ public class MotionPathEditor {
 
 	Transform selected_node;
 	Transform duplicated_node;
+	Transform modified_path;
 
 	static MotionPathEditor() {
 		if(inst == null) {
@@ -107,8 +141,6 @@ public class MotionPathEditor {
 
 			SceneView.onSceneGUIDelegate += inst.OnSceneGUI;
 			EditorApplication.hierarchyWindowItemOnGUI += inst.OnHierarchyWindowItem;
-
-			// Debug.Log("MotionPathEditor()");
 		}
 	}
 
@@ -132,6 +164,17 @@ public class MotionPathEditor {
 						duplicated_node = null;
 					}
 
+					if(modified_path) {
+						Assert.is_true(!EditorApplication.isPlaying);
+
+						//TODO: Do we always want to overwrite the prefab on delete??
+						GameObject prefab = (GameObject)PrefabUtility.GetPrefabParent(modified_path.gameObject);
+						Assert.is_true(prefab != null);
+						prefab = PrefabUtility.ReplacePrefab(modified_path.gameObject, prefab, ReplacePrefabOptions.ConnectToPrefab);
+
+						modified_path = null;
+					}
+
 					break;
 				}
 
@@ -144,6 +187,9 @@ public class MotionPathEditor {
 								PrefabUtility.DisconnectPrefabInstance(selection.path.gameObject);
 							}
 						}
+					}
+					else if(evt.commandName == "UndoRedoPerformed") {
+						//TODO: Is there any way to know what was undone/redone??
 					}
 
 					break;
@@ -164,6 +210,14 @@ public class MotionPathEditor {
 									}
 
 									selected_node = path.GetChild(prev_index);
+								}
+
+								if(!EditorApplication.isPlaying) {
+									//TODO: Nodes being deleted from multiple paths
+									GameObject prefab = (GameObject)PrefabUtility.GetPrefabParent(selection.path.gameObject);
+									if(prefab) {
+										modified_path = selection.path.transform;
+									}								
 								}
 							}
 						}
@@ -248,6 +302,30 @@ public class MotionPathEditor {
 					Undo.RegisterCreatedObjectUndo(node.gameObject, "Create " + node.name);
 					Selection.activeTransform = node.transform;
 					// evt.Use();
+				}
+			}
+
+			if(selection.type == MotionPathSelectionType.NODE) {
+				if(evt.type == EventType.KeyDown) {
+					int node_index = -1;
+
+					if(evt.keyCode == KeyCode.W) {
+						node_index = selection.node.transform.GetSiblingIndex() + 1;
+						if(node_index >= selection.path.transform.childCount) {
+							node_index = 0;
+						}
+					}
+					else if(evt.keyCode == KeyCode.S) {
+						node_index = selection.node.transform.GetSiblingIndex() - 1;
+						if(node_index < 0) {
+							node_index = selection.path.transform.childCount - 1;
+						}			
+					}
+
+					if(node_index > -1) {
+						Selection.activeTransform = selection.path.transform.GetChild(node_index);
+						evt.Use();
+					}
 				}
 			}
 		}

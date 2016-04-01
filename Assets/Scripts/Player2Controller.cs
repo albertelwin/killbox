@@ -1,10 +1,6 @@
-﻿using UnityEngine;
+﻿
+using UnityEngine;
 using System.Collections;
-
-#pragma warning disable 0162
-#pragma warning disable 0414
-//NOTE: Disables RPC warning, temp!!
-#pragma warning disable 0618
 
 public class Player2Controller : MonoBehaviour {
 	GameManager game_manager = null;

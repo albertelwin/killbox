@@ -5,12 +5,14 @@ public static class Assert {
 	public const string assert_str_ = "Assert thrown!";
 
 	public static void assert_(bool condition, Object context, string str) {
+#if ASSERT_MODE
 		if(!condition) {
 			Debug.LogError("ASSERT: " + str, context);
 #if UNITY_EDITOR
 			Debug.Break();
 #endif
 		}
+#endif
 	}
 
 	public static void is_true(bool condition, string str = assert_str_) {

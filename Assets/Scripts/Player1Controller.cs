@@ -2,10 +2,6 @@
 using UnityEngine;
 using System.Collections;
 
-//NOTE: Disables RPC warning, temp!!
-#pragma warning disable 0618
-#pragma warning disable 0162
-
 public static class Player1Util {
 	public static Transform new_quad(Transform parent, string layer, Vector3 pos, Vector3 scale, Material material) {
 		Transform transform = GameObject.CreatePrimitive(PrimitiveType.Quad).transform;

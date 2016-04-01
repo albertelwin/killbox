@@ -2,8 +2,6 @@
 using UnityEngine;
 using System.Collections;
 
-#pragma warning disable 0219
-
 //TODO: Remove awake/update/etc.!!
 public class NpcController : MonoBehaviour {
 	GameManager game_manager;

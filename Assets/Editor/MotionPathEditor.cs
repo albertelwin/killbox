@@ -2,9 +2,6 @@
 using UnityEditor;
 using UnityEngine;
 
-#pragma warning disable 0219
-#pragma warning disable 0414
-
 public enum MotionPathSelectionType {
 	PATH,
 	NODE,
@@ -64,13 +61,15 @@ public static class MotionPathUtil {
 			EditorGUIUtility.PingObject(prefab);
 		}
 
-		bool is_modified = false;
+		GUI.enabled = true;
+
+		bool can_save = false;
 		if(prefab) {
 			PropertyModification[] changes = PrefabUtility.GetPropertyModifications(path.gameObject);
 			int ignored_change_count = 8;
 
 			if(changes != null && changes.Length > ignored_change_count) {
-				is_modified = true;
+				can_save = true;
 
 				// for(int change_index = ignored_change_count; change_index < changes.Length; change_index++) {
 				// 	PropertyModification change = changes[change_index];
@@ -78,20 +77,23 @@ public static class MotionPathUtil {
 				// }
 			}
 
-			if(!is_modified) {
+			if(!can_save) {
 				for(int child_index = 0; child_index < path.transform.childCount; child_index++) {
 					Transform child = path.transform.GetChild(child_index);
 
 					PropertyModification[] child_changes = PrefabUtility.GetPropertyModifications(child.gameObject);
 					if(child_changes == null) {
-						is_modified = true;
+						can_save = true;
 						break;
 					}
 				}
 			}
 		}
+		else {
+			can_save = true;
+		}
 
-		if(!is_modified) {
+		if(!can_save) {
 			GUI.enabled = false;
 		}
 

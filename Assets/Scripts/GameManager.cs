@@ -1,16 +1,16 @@
 
 /* TODO ✓
 
-[ ] Optimise pilot view (clear -> render camera feeds -> render ui)
-[ ] Dynamic pilot audio
-[ ] Proper keyboard input for death count
+Optimise pilot view (clear -> render camera feeds -> render ui)
+Dynamic pilot audio
+Proper keyboard input for death count
 
-[ ] Improve motion path editor -> http://va.lent.in/unity-make-your-lists-functional-with-reorderablelist/
-[ ] Camera clipping
+Improve motion path editor -> http://va.lent.in/unity-make-your-lists-functional-with-reorderablelist/
+Camera clipping
 
-[ ] Fix intrusive firewall pop-up
-[ ] Dump password/kills/etc. to Google Drive
-[ ] Load scene async
+Fix intrusive firewall pop-up
+Dump password/kills/etc. to Google Drive
+Load scene async
 
 */
 
@@ -18,11 +18,6 @@ using UnityEngine;
 using UnityEngine.Analytics;
 using System.Collections;
 using System.Collections.Generic;
-
-#pragma warning disable 0108
-#pragma warning disable 0162
-#pragma warning disable 0414
-#pragma warning disable 0618
 
 public enum PlayerType {
 	PLAYER1,
@@ -148,7 +143,7 @@ public class GameManager : MonoBehaviour {
 	[System.NonSerialized] public Environment env;
 	[System.NonSerialized] public Transform scenarios = null;
 
-	[System.NonSerialized] public Audio audio;
+	[System.NonSerialized] new public Audio audio;
 	[System.NonSerialized] public AudioSource menu_sfx_source;
 
 	[System.NonSerialized] public Transform player1_prefab = null;
@@ -930,6 +925,12 @@ public class GameManager : MonoBehaviour {
 	}
 
 	void Awake() {
+#if ASSERT_MODE
+		Debug.Log("ASSERT_MODE");
+#endif
+
+		Assert.is_true(false);
+
 #if !UNITY_EDITOR
 		//TODO: Make sure these are always in sync!!
 		if(Settings.QUALITY_LEVEL_SETTINGS) {

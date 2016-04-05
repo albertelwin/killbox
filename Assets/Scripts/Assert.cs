@@ -23,7 +23,7 @@ public static class Assert {
 		assert_(condition, context, str);
 	}
 
-	public static void invalid_code_path(string str = assert_str_) {
+	public static void invalid_path(string str = assert_str_) {
 		assert_(false, null, assert_str_);
 	}
 }

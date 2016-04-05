@@ -23,6 +23,11 @@ public static class Player1Util {
 }
 
 public class Player1Console {
+	public class Parser {
+		public string str;
+		public int at;
+	}
+
 	public enum ItemType {
 		TEXT_MESH,
 		LOADING_BAR,
@@ -204,7 +209,7 @@ public class Player1Console {
 		cmd.control_type = Player1Controller.ControlType.COUNT;
 
 		cmd.index = -1;
-		
+
 		cmd.str = "";
 		cmd.str_it = 0;
 
@@ -448,6 +453,34 @@ public class Player1Console {
 		bar.localPosition = new Vector3((-LOADING_BAR_WIDTH + bar.localScale.x) * 0.5f, 0.0f, 0.0f);
 	}
 
+	public static bool find_match(Parser parser, string match) {
+		bool found = false;
+
+		int str_len = parser.str.Length - parser.at;
+		if(str_len >= match.Length) {
+			int match_len = str_len - match.Length;
+
+			for(int i = 0; i < match_len; i++) {
+				bool matched = true;
+
+				for(int j = 0; j < match.Length; j++) {
+					if(parser.str[parser.at + i + j] != match[j]) {
+						matched = false;
+						break;
+					}
+				}
+
+				if(matched) {
+					parser.at += (i + match.Length);
+					found = true;
+					break;
+				}
+			}
+		}
+
+		return found;
+	}
+
 	public static Player1Console new_inst(Transform transform) {
 		Player1Console inst = new Player1Console();
 
@@ -476,6 +509,26 @@ public class Player1Console {
 		inst.first_pass = true;
 
 		inst.logged_user_details = false;
+
+		TextAsset script_asset = (TextAsset)Resources.Load("player1_script");
+
+		Parser parser = new Parser();
+		parser.str = script_asset.text;
+		parser.at = 0;
+
+		while(find_match(parser, "<tw-passagedata") && find_match(parser, ">")) {
+			int entry_start = parser.at;
+
+			string entry_end_tag = "</tw-passagedata>";
+			if(!find_match(parser, entry_end_tag)) {
+				Assert.invalid_path();
+			}
+
+			int entry_len = parser.at - (entry_start + entry_end_tag.Length);
+
+			string entry = parser.str.Substring(entry_start, entry_len);
+			push_print_str_cmd(inst, entry);
+		}
 
 		// push_commit_str_cmd(inst, "<quad material=1 width=0.001 height=0.001/>\n");
 
@@ -896,7 +949,7 @@ public class Player1Console {
 
 								inst.working_text_buffer += cmd.str + "\n";
 								cmd.print_cmd.str = cmd.str;
-							}							
+							}
 						}
 
 						break;
@@ -927,7 +980,7 @@ public class Player1Console {
 				}
 
 				Item tail_item = get_tail_item(inst);
-				
+
 				string working_buffer = inst.working_text_buffer;
 				for(int i = 0; i < working_buffer.Length; i++) {
 					char char_ = working_buffer[i];
@@ -975,7 +1028,7 @@ public class Player1Console {
 				}
 
 				inst.last_cursor_time = inst.cursor_time;
-			}			
+			}
 		}
 	}
 }
@@ -1089,7 +1142,7 @@ public class Player1Controller : MonoBehaviour {
 	[System.NonSerialized] public bool firing_missile = false;
 
 	[System.NonSerialized] public Control[] controls;
-	
+
 	[System.NonSerialized] public Transform camera_ref;
 	[System.NonSerialized] public Camera main_camera;
 
@@ -1148,7 +1201,7 @@ public class Player1Controller : MonoBehaviour {
 		bool local_inst = network_view.isMine || (game_manager.connection_type == ConnectionType.OFFLINE);
 		if(local_inst) {
 			name = "Player1";
-			game_manager.player1_inst = this;			
+			game_manager.player1_inst = this;
 		}
 		else {
 			name = "NetworkPlayer1";
@@ -1157,7 +1210,7 @@ public class Player1Controller : MonoBehaviour {
 			main_camera.gameObject.SetActive(false);
 			this.enabled = false;
 		}
-		
+
 		join_time_stamp = Time.time;
 
 		controls = new Control[(int)ControlType.COUNT];
@@ -1244,13 +1297,13 @@ public class Player1Controller : MonoBehaviour {
 			float main_camera_width = 0.75f - viewport_padding_x;
 			float main_camera_height = adjusted_aspect_ratio_y - viewport_padding_y;
 			float main_camera_height_offset = (1.0f - main_camera_height) * 0.5f;
-			
+
 			main_camera.rect = new Rect(viewport_padding_x * 0.5f, main_camera_height_offset, main_camera_width, main_camera_height);
 			hud_camera.rect = main_camera.rect;
 
 			float missile_camera_width = 0.25f - viewport_padding_x * 0.5f;
 			float missile_camera_height = (missile_camera_width * aspect_ratio_x) * adjusted_aspect_ratio_y;
-			
+
 			missile_controller.camera_.rect = new Rect((1.0f - missile_camera_width) - viewport_padding_x * 0.5f, (main_camera_height_offset + main_camera_height) - missile_camera_height, missile_camera_width, missile_camera_height);
 
 			console_transform.localPosition = new Vector3(console_local_position.x * adjusted_aspect_ratio_y, console_local_position.y * adjusted_aspect_ratio_y, console_local_position.z);
@@ -1354,7 +1407,7 @@ public class Player1Controller : MonoBehaviour {
 		game_manager.show_stats(main_camera);
 		yield return null;
 	}
-	
+
 	void Update() {
 		Player1Console.update(console_, this);
 
@@ -1370,7 +1423,7 @@ public class Player1Controller : MonoBehaviour {
 		Control look_right = controls[(int)ControlType.LOOK_RIGHT];
 		if(look_right.enabled && game_manager.get_key(look_right.key)) {
 			camera_moved = true;
-			camera_xy.x -= camera_delta; 
+			camera_xy.x -= camera_delta;
 		}
 
 		Control look_up = controls[(int)ControlType.LOOK_UP];
@@ -1384,7 +1437,7 @@ public class Player1Controller : MonoBehaviour {
 			camera_moved = true;
 			camera_xy.y += camera_delta;
 		}
-		
+
 		Control zoom_in = controls[(int)ControlType.ZOOM_IN];
 		if(zoom_in.enabled && game_manager.get_key(zoom_in.key)) {
 			camera_zoom -= Time.deltaTime * zoom_speed;
@@ -1435,7 +1488,7 @@ public class Player1Controller : MonoBehaviour {
 		float damp = 0.2f;
 		main_camera.transform.localRotation = Quaternion.Slerp(main_camera.transform.localRotation, camera_rot, damp);
 		camera_ref.localRotation = Quaternion.Slerp(camera_ref.localRotation, camera_ref_rot, damp);
-		
+
 		angular_pos += Time.deltaTime * -0.024f;
 		float x = Mathf.Sin(angular_pos) * GameManager.drone_radius;
 		float z = Mathf.Cos(angular_pos) * GameManager.drone_radius;
@@ -1471,7 +1524,7 @@ public class Player1Controller : MonoBehaviour {
 
 	void LateUpdate() {
 		bool marker_active = false;
-		
+
 		if(locked_target != null) {
 			Vector3 target_screen_pos = main_camera.WorldToScreenPoint(locked_target.position);
 			Ray ray_to_target = hud_camera.ScreenPointToRay(target_screen_pos);
@@ -1507,8 +1560,8 @@ public class Player1Controller : MonoBehaviour {
 		if(!Settings.INSTALLATION_BUILD) {
 			if(!game_manager.connected_to_another_player()) {
 				game_manager.network_disconnect();
-			}			
-		} 
+			}
+		}
 
 		if(game_manager.network_player2_inst != null && game_manager.connection_type != ConnectionType.OFFLINE) {
 			if(game_manager.connected_to_another_player()) {
@@ -1548,7 +1601,7 @@ public class Player1Controller : MonoBehaviour {
 				else {
 					missile.position = missile_position;
 
-					yield return Util.wait_for_frame;	
+					yield return Util.wait_for_frame;
 				}
 			}
 		}

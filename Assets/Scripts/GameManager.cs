@@ -48,7 +48,7 @@ public class GameManager : MonoBehaviour {
 		public Renderer player1_body;
 		public Renderer player1_helmet;
 		public TextMesh player1_text;
-		
+
 		public Transform player2_button;
 		public Renderer player2_head;
 		public Renderer player2_body;
@@ -222,7 +222,7 @@ public class GameManager : MonoBehaviour {
 			if(Input.GetKeyDown(KeyCode.Backspace)) {
 				input_str += '\b';
 			}
-#else   
+#else
 			input_str = Input.inputString;
 #endif
 		}
@@ -230,7 +230,7 @@ public class GameManager : MonoBehaviour {
 		return input_str;
 	}
 
-	public bool get_key(KeyCode key_code) {     
+	public bool get_key(KeyCode key_code) {
 		return paused ? false : Input.GetKey(key_code);
 	}
 
@@ -259,7 +259,7 @@ public class GameManager : MonoBehaviour {
 		dot_quad.transform.localRotation = Quaternion.identity;
 		dot_quad.transform.localScale = Vector3.zero;
 
-		return dot_quad;        
+		return dot_quad;
 	}
 
 	public IEnumerator show_stats_(Camera camera) {
@@ -314,7 +314,7 @@ public class GameManager : MonoBehaviour {
 				float t = 0.0f;
 				while(t < 1.0f) {
 					end_screen.hint.color = Util.new_color(Color.white, Mathf.Lerp(hint_a, 0.0f, t));
- 
+
 					t += Time.deltaTime;
 					yield return Util.wait_for_frame;
 				}
@@ -484,14 +484,14 @@ public class GameManager : MonoBehaviour {
 
 	void create_player(ConnectionType connection_type, ScenarioType scenario_type) {
 		if(created_player) {
-			Assert.invalid_code_path("Something went wrong, player already exists!!");
+			Assert.invalid_path("Something went wrong, player already exists!!");
 		}
 		else {
 			this.connection_type = connection_type;
 			created_player = true;
 
 			string player_type_str = player_type == PlayerType.PLAYER1 ? "player1" : "player2";
-			
+
 			Analytics.CustomEvent("game_started", new Dictionary<string, object> {
 				{ "player_type", player_type_str },
 			});
@@ -501,7 +501,7 @@ public class GameManager : MonoBehaviour {
 			if(Settings.INSTALLATION_BUILD) {
 				network_view.RPC("send_scenario_type", RPCMode.Others, (int)persistent_scenario_type);
 			}
-				
+
 			menu_camera.gameObject.SetActive(false);
 
 			if(player_type == PlayerType.PLAYER1) {
@@ -515,7 +515,7 @@ public class GameManager : MonoBehaviour {
 				for(int i = 0; i < env.collectables.Length; i++) {
 					Collectable.mark_as_used(env.collectables[i]);
 				}
-				
+
 				env.controls_hint.gameObject.SetActive(false);
 				env.controls_hidden = true;
 
@@ -539,7 +539,7 @@ public class GameManager : MonoBehaviour {
 
 				QualitySettings.shadowCascades = 4;
 				Environment.apply_look(this, env, Environment.Look.PLAYER2_POV);
-			}           
+			}
 		}
 	}
 
@@ -590,7 +590,7 @@ public class GameManager : MonoBehaviour {
 		if(Settings.INSTALLATION_BUILD) {
 			if(connected_to_another_player()) {
 				network_view.RPC("clear_scenario_type", RPCMode.Others);
-			}			
+			}
 		}
 
 		// if(!Settings.INSTALLATION_BUILD && reset_persistent_state) {
@@ -601,7 +601,7 @@ public class GameManager : MonoBehaviour {
 			pause_camera.gameObject.SetActive(false);
 			menu_camera.gameObject.SetActive(true);
 
-			StartCoroutine(show_splash_screen());			
+			StartCoroutine(show_splash_screen());
 		// }
 	}
 
@@ -774,7 +774,7 @@ public class GameManager : MonoBehaviour {
 					Debug.Log("Looking for " + request_game_type + "...");
 
 					float request_time_out = 5.0f;
-					yield return new WaitForSeconds(request_time_out);					
+					yield return new WaitForSeconds(request_time_out);
 				}
 				else {
 					if(connected_to_another_player()) {
@@ -808,7 +808,7 @@ public class GameManager : MonoBehaviour {
 				else {
 					Network.Connect(Settings.LAN_SERVER_IP, Settings.LAN_SERVER_PORT);
 				}
-				
+
 				log_text_mesh.gameObject.SetActive(true);
 				string wait_str = "ESTABLISHING LAN CONNECTION";
 				int wait_index = 4;
@@ -881,14 +881,14 @@ public class GameManager : MonoBehaviour {
 					main_screen.player1_button.localPosition = Vector3.zero;
 
 					main_screen.player1_head.material.color = Util.new_color(player1_text_color, 0.0f);
-					yield return StartCoroutine(Util.lerp_material_color(main_screen.player1_head, main_screen.player1_head.material.color, player1_text_color));                   
+					yield return StartCoroutine(Util.lerp_material_color(main_screen.player1_head, main_screen.player1_head.material.color, player1_text_color));
 				}
 				else {
 					main_screen.player1_button.gameObject.SetActive(false);
 					main_screen.player2_button.localPosition = Vector3.zero;
 
 					main_screen.player2_head.material.color = Util.new_color(player2_text_color, 0.0f);
-					yield return StartCoroutine(Util.lerp_material_color(main_screen.player2_head, main_screen.player2_head.material.color, player2_text_color));                   
+					yield return StartCoroutine(Util.lerp_material_color(main_screen.player2_head, main_screen.player2_head.material.color, player2_text_color));
 				}
 			}
 			else {
@@ -902,7 +902,7 @@ public class GameManager : MonoBehaviour {
 				else {
 					main_screen.player1_head.material.color = player1_text_color;
 					main_screen.player2_head.material.color = player2_text_color;
-				}               
+				}
 			}
 
 			splash_screen_closed = true;
@@ -928,8 +928,6 @@ public class GameManager : MonoBehaviour {
 #if ASSERT_MODE
 		Debug.Log("ASSERT_MODE");
 #endif
-
-		Assert.is_true(false);
 
 #if !UNITY_EDITOR
 		//TODO: Make sure these are always in sync!!
@@ -981,7 +979,7 @@ public class GameManager : MonoBehaviour {
 		main_screen.player1_helmet = main_screen.player1_button.Find("Helmet").GetComponent<Renderer>();
 		main_screen.player1_body = main_screen.player1_button.Find("Body").GetComponent<Renderer>();
 		main_screen.player1_text = main_screen.player1_button.Find("Text").GetComponent<TextMesh>();
-		
+
 		main_screen.player2_button = main_screen.transform.Find("Player2Button");
 		main_screen.player2_head = main_screen.player2_button.Find("Head").GetComponent<Renderer>();
 		main_screen.player2_body = main_screen.player2_button.Find("Body").GetComponent<Renderer>();
@@ -1050,7 +1048,7 @@ public class GameManager : MonoBehaviour {
 		set_world_brightness_(this, 1.0f);
 		set_infrared_mode(false);
 	}
-	
+
 	void Update() {
 		if(!connected_to_another_player()) {
 			if(network_player1_inst != null) {
@@ -1081,7 +1079,7 @@ public class GameManager : MonoBehaviour {
 			sun.transform.position = new Vector3(pos_x, pos_y, -1.0f);
 			sun.transform.forward = Vector3.zero - sun.transform.position;
 
-			bool is_day_time = time_of_day < 0.5f; 
+			bool is_day_time = time_of_day < 0.5f;
 
 			sun.enabled = is_day_time;
 			sun.shadowStrength = is_day_time ? 1.0f : 0.0f;

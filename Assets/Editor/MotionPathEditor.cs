@@ -219,7 +219,7 @@ public class MotionPathEditor {
 									GameObject prefab = (GameObject)PrefabUtility.GetPrefabParent(selection.path.gameObject);
 									if(prefab) {
 										modified_path = selection.path.transform;
-									}								
+									}
 								}
 							}
 						}
@@ -252,7 +252,7 @@ public class MotionPathEditor {
 			MotionPathController path = selection.path;
 
 			Transform hover_node = null;
-			
+
 			Ray mouse_ray = Camera.current.ScreenPointToRay(new Vector3(evt.mousePosition.x, -evt.mousePosition.y + Camera.current.pixelHeight));
 
 			float min_t = Mathf.Infinity;
@@ -321,7 +321,7 @@ public class MotionPathEditor {
 						node_index = selection.node.transform.GetSiblingIndex() - 1;
 						if(node_index < 0) {
 							node_index = selection.path.transform.childCount - 1;
-						}			
+						}
 					}
 
 					if(node_index > -1) {
@@ -424,7 +424,7 @@ public class MotionPathControllerInspector : Editor {
 				else {
 					MotionPathLinksViewer links_viewer = new MotionPathLinksViewer();
 					links_viewer.links = links;
-					PopupWindow.Show(links_rect, links_viewer);					
+					PopupWindow.Show(links_rect, links_viewer);
 				}
 			}
 		}

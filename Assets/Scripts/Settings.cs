@@ -18,4 +18,5 @@ public static class Settings {
 	public static bool USE_DEATH_CONFIRM = false;
 	public static bool USE_KILLBOX_ANIMATION = false;
 	public static bool USE_DAY_NIGHT_CYCLE = false;
+	public static bool USE_PLAYER1_SCRIPT = true;
 }

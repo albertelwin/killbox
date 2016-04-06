@@ -5,7 +5,7 @@ public static class Util {
 	public static float TAU = 6.283185307179586476925286766559f;
 
 	public static Color white_no_alpha = new Color(1.0f, 1.0f, 1.0f, 0.0f);
-	public static Color black_no_alpha = new Color(0.0f, 0.0f, 0.0f, 0.0f); 
+	public static Color black_no_alpha = new Color(0.0f, 0.0f, 0.0f, 0.0f);
 
 	public static Color white = new Color(1.0f, 1.0f, 1.0f, 1.0f);
 	public static Color black = new Color(0.0f, 0.0f, 0.0f, 1.0f);
@@ -57,6 +57,21 @@ public static class Util {
 
 		string str = r.ToString("X2") + g.ToString("X2") + b.ToString("X2");
 		return str;
+	}
+
+	public static KeyCode char_to_key_code(char char_) {
+		KeyCode key = KeyCode.None;
+
+		if(char_ >= 'A' && char_ <= 'Z') {
+			int key_int = (int)KeyCode.A + ((int)char_ - 'A');
+			key = (KeyCode)key_int;
+		}
+		else if(char_ >= 'a' && char_ <= 'z') {
+			int key_int = (int)KeyCode.A + ((int)char_ - 'a');
+			key = (KeyCode)key_int;
+		}
+
+		return key;
 	}
 
 	public static Transform new_transform(Transform parent, string name, Vector3 pos, Vector3 scale, Quaternion rotation) {

@@ -3,6 +3,182 @@ using UnityEngine;
 using System.Collections;
 
 public static class Player1Util {
+	public class Parser {
+		public string str;
+		public int at;
+	}
+
+	public enum ParsedCmdInputType {
+		NUM,
+		STR,
+	}
+
+	public class ParsedCmdInput {
+		public ParsedCmdInputType type;
+
+		public float num;
+		public string str;
+	}
+
+	public class ParsedCmd {
+		public ParsedCmdInput[] inputs;
+		public int input_count;
+	}
+
+	public static string CMD_START_TAG = "CMD(";
+	public static string CMD_END_TAG = ")";
+
+	public static bool find_match(Parser parser, string match) {
+		bool found = false;
+
+		int str_len = parser.str.Length - parser.at;
+		if(str_len >= match.Length) {
+			int match_len = str_len - (match.Length - 1);
+
+			for(int i = 0; i < match_len; i++) {
+				bool matched = true;
+
+				for(int j = 0; j < match.Length; j++) {
+					if(parser.str[parser.at + i + j] != match[j]) {
+						matched = false;
+						break;
+					}
+				}
+
+				if(matched) {
+					parser.at += (i + match.Length);
+					found = true;
+					break;
+				}
+			}
+		}
+
+		return found;
+	}
+
+	public static bool is_new_line(char char_) {
+		return char_ == '\n' || char_ == '\r';
+	}
+
+	public static bool is_whitespace(char char_) {
+		return char_ == ' ' || char_ == '\t' || char_ == '\v' || char_ == '\f' || is_new_line(char_);
+	}
+
+	public static ParsedCmd parse_cmd(string str) {
+		ParsedCmd cmd = new ParsedCmd();
+		cmd.inputs = new ParsedCmdInput[8];
+		cmd.input_count = 0;
+
+		int at = 0;
+		while(at < str.Length) {
+			while(at < str.Length && is_whitespace(str[at])) {
+				at++;
+			}
+
+			int start = at;
+			while(at < str.Length && str[at] != ',') {
+				at++;
+			}
+
+			int len = at - start;
+			Assert.is_true(len > 0);
+
+			Assert.is_true(cmd.input_count < cmd.inputs.Length);
+
+			ParsedCmdInput input = new ParsedCmdInput();
+			input.type = ParsedCmdInputType.STR;
+			input.num = 0.0f;
+			input.str = str.Substring(start, len);
+			cmd.inputs[cmd.input_count++] = input;
+
+			if(at < str.Length) {
+				at++;
+			}
+		}
+
+		Assert.is_true(cmd.input_count > 0);
+
+		return cmd;
+	}
+
+	public static void parse_script(Player1Console.CmdBuf cmd_buf, string script_path) {
+		TextAsset script_asset = (TextAsset)Resources.Load(script_path);
+
+		Parser parser = new Parser();
+		parser.str = script_asset.text;
+		parser.at = 0;
+
+		while(find_match(parser, "<tw-passagedata") && find_match(parser, ">")) {
+			int entry_start = parser.at;
+			int entry_len = 0;
+
+			//TODO: Stop this from skipping over the entry end tag!!
+			while(find_match(parser, CMD_START_TAG)) {
+				int cmd_start = parser.at;
+
+				entry_len = parser.at - (entry_start + CMD_START_TAG.Length);
+				Player1Console.push_print_str_cmd(cmd_buf, parser.str.Substring(entry_start, entry_len));
+
+				if(!find_match(parser, CMD_END_TAG)) {
+					Assert.invalid_path();
+				}
+
+				int cmd_len = parser.at - (cmd_start + CMD_END_TAG.Length);
+				if(cmd_len > 0) {
+					ParsedCmd cmd = parse_cmd(parser.str.Substring(cmd_start, cmd_len));
+					ParsedCmdInput name = cmd.inputs[0];
+
+					switch(cmd.inputs[0].str) {
+						case "username": {
+							Assert.is_true(cmd.input_count == 1);
+
+							Player1Console.push_print_str_cmd(cmd_buf, "USERNAME: ");
+							Player1Console.push_input_str_cmd(cmd_buf, 16);
+							break;
+						}
+
+						case "password": {
+							Assert.is_true(cmd.input_count == 1);
+
+							Player1Console.push_print_str_cmd(cmd_buf, "PASSWORD: ");
+							Player1Console.push_input_str_cmd(cmd_buf, 16, true);
+							break;
+						}
+
+						case "wait_key": {
+							Assert.is_true(cmd.input_count == 2);
+
+							string key_str = cmd.inputs[1].str;
+							Assert.is_true(key_str.Length == 1);
+
+							KeyCode key = Util.char_to_key_code(key_str[0]);
+							Assert.is_true(key != KeyCode.None);
+
+							Player1Console.push_wait_key_cmd(cmd_buf, key);
+
+							break;
+						}
+
+						default: {
+							Debug.Log("ERROR: Invalid cmd: " + cmd);
+							break;
+						}
+					}
+				}
+
+				entry_start = parser.at;
+			}
+
+			string entry_end_tag = "</tw-passagedata>";
+			if(!find_match(parser, entry_end_tag)) {
+				Assert.invalid_path();
+			}
+
+			entry_len = parser.at - (entry_start + entry_end_tag.Length);
+			Player1Console.push_print_str_cmd(cmd_buf, parser.str.Substring(entry_start, entry_len));
+		}
+	}
+
 	public static Transform new_quad(Transform parent, string layer, Vector3 pos, Vector3 scale, Material material) {
 		Transform transform = GameObject.CreatePrimitive(PrimitiveType.Quad).transform;
 		transform.gameObject.layer = LayerMask.NameToLayer(layer);
@@ -23,11 +199,6 @@ public static class Player1Util {
 }
 
 public class Player1Console {
-	public class Parser {
-		public string str;
-		public int at;
-	}
-
 	public enum ItemType {
 		TEXT_MESH,
 		LOADING_BAR,
@@ -101,6 +272,11 @@ public class Player1Console {
 		public Item item;
 	}
 
+	public class CmdBuf {
+		public Cmd[] elems;
+		public int elem_count;
+	}
+
 	public class KeyValue {
 		public KeyCode key;
 		public int val;
@@ -154,12 +330,10 @@ public class Player1Console {
 	public int item_count;
 	public int item_head_index;
 
+	public CmdBuf cmd_buf;
+
 	public float cursor_time;
 	public float last_cursor_time;
-
-	public int command_buffer_capacity;
-	public int command_buffer_length;
-	public Cmd[] command_buffer;
 
 	public int current_cmd_index;
 	public bool first_pass;
@@ -192,8 +366,15 @@ public class Player1Console {
 		KeyValue.new_inst(KeyCode.Alpha9, 9),
 	};
 
-	public static Cmd push_cmd(Player1Console inst, CmdType cmd_type) {
-		Assert.is_true(inst.command_buffer_length < inst.command_buffer_capacity);
+	public static CmdBuf new_cmd_buf(int capacity) {
+		CmdBuf buf = new CmdBuf();
+		buf.elems = new Cmd[capacity];
+		buf.elem_count = 0;
+		return buf;
+	}
+
+	public static Cmd push_cmd(CmdBuf cmd_buf, CmdType cmd_type) {
+		Assert.is_true(cmd_buf.elem_count < cmd_buf.elems.Length);
 
 		Cmd cmd = new Cmd();
 		cmd.type = cmd_type;
@@ -218,26 +399,26 @@ public class Player1Console {
 		cmd.use_alt_next_cmd = false;
 		cmd.next_cmd_index = -1;
 
-		inst.command_buffer[inst.command_buffer_length++] = cmd;
+		cmd_buf.elems[cmd_buf.elem_count++] = cmd;
 		return cmd;
 	}
 
-	public static Cmd push_commit_str_cmd(Player1Console inst, string str) {
-		Cmd cmd = push_cmd(inst, CmdType.COMMIT_STR);
+	public static Cmd push_commit_str_cmd(CmdBuf cmd_buf, string str) {
+		Cmd cmd = push_cmd(cmd_buf, CmdType.COMMIT_STR);
 		cmd.str = str;
 		return cmd;
 	}
 
-	public static Cmd push_print_str_cmd(Player1Console inst, string str) {
+	public static Cmd push_print_str_cmd(CmdBuf cmd_buf, string str) {
 		//TODO: Extract html tags, we don't want to print them!!
 		Assert.is_true(str.Length > 0);
 
-		Cmd cmd = push_cmd(inst, CmdType.PRINT_STR);
+		Cmd cmd = push_cmd(cmd_buf, CmdType.PRINT_STR);
 		cmd.str = str;
 		return cmd;
 	}
 
-	public static void push_rich_text_str_cmd(Player1Console inst, string str_) {
+	public static void push_rich_text_str_cmd(CmdBuf cmd_buf, string str_) {
 		Assert.is_true(str_.Length > 0);
 
 		int str_it = 0;
@@ -253,7 +434,7 @@ public class Player1Console {
 					if(substr == tag.match_str) {
 						str = str.Substring(0, str.Length - tag.match_str.Length);
 						if(str.Length > 0) {
-							push_print_str_cmd(inst, str);
+							push_print_str_cmd(cmd_buf, str);
 							str = "";
 						}
 
@@ -270,9 +451,9 @@ public class Player1Console {
 						// 	substr += str_[str_it++];
 						// }
 
-						push_commit_str_cmd(inst, substr);
+						push_commit_str_cmd(cmd_buf, substr);
 						if(tag.is_glyph) {
-							push_wait_cmd(inst, CHARS_PER_SEC);
+							push_wait_cmd(cmd_buf, CHARS_PER_SEC);
 						}
 					}
 				}
@@ -280,73 +461,73 @@ public class Player1Console {
 		}
 
 		if(str.Length > 0) {
-			push_print_str_cmd(inst, str);
+			push_print_str_cmd(cmd_buf, str);
 		}
 	}
 
-	public static Cmd push_input_str_cmd(Player1Console inst, int max_str_len, bool hide_str = false) {
+	public static Cmd push_input_str_cmd(CmdBuf cmd_buf, int max_str_len, bool hide_str = false) {
 		Assert.is_true(max_str_len > 0);
 
-		Cmd cmd = push_cmd(inst, CmdType.INPUT_STR);
+		Cmd cmd = push_cmd(cmd_buf, CmdType.INPUT_STR);
 		cmd.max_str_len = max_str_len;
 		cmd.hide_str = hide_str;
 		return cmd;
 	}
 
-	public static void push_wait_cmd(Player1Console inst, float time, bool cursor_on = false) {
-		Cmd cmd = push_cmd(inst, CmdType.WAIT);
+	public static void push_wait_cmd(CmdBuf cmd_buf, float time, bool cursor_on = false) {
+		Cmd cmd = push_cmd(cmd_buf, CmdType.WAIT);
 		cmd.cursor_on = cursor_on;
 		cmd.duration = time;
 	}
 
-	public static void push_wait_key_cmd(Player1Console inst, KeyCode key) {
-		Cmd cmd = push_cmd(inst, CmdType.WAIT_KEY);
+	public static void push_wait_key_cmd(CmdBuf cmd_buf, KeyCode key) {
+		Cmd cmd = push_cmd(cmd_buf, CmdType.WAIT_KEY);
 		cmd.key = key;
 	}
 
-	public static void push_delay_cmd(Player1Console inst, string str = ".\n") {
+	public static void push_delay_cmd(CmdBuf cmd_buf, string str = ".\n") {
 		float duration = 0.5f;
 
-		push_wait_cmd(inst, duration, true);
-		push_commit_str_cmd(inst, str).play_audio = true;
-		push_wait_cmd(inst, duration, true);
-		push_commit_str_cmd(inst, str).play_audio = true;
-		push_wait_cmd(inst, duration, true);
-		push_commit_str_cmd(inst, str).play_audio = true;
-		push_wait_cmd(inst, duration, true);
+		push_wait_cmd(cmd_buf, duration, true);
+		push_commit_str_cmd(cmd_buf, str).play_audio = true;
+		push_wait_cmd(cmd_buf, duration, true);
+		push_commit_str_cmd(cmd_buf, str).play_audio = true;
+		push_wait_cmd(cmd_buf, duration, true);
+		push_commit_str_cmd(cmd_buf, str).play_audio = true;
+		push_wait_cmd(cmd_buf, duration, true);
 	}
 
-	public static void push_tutorial_key_cmd(Player1Console inst, string str, Player1Controller.ControlType control_type, float duration, int index) {
-		push_print_str_cmd(inst, str);
+	public static void push_tutorial_key_cmd(CmdBuf cmd_buf, string str, Player1Controller.ControlType control_type, float duration, int index) {
+		push_print_str_cmd(cmd_buf, str);
 
-		Cmd cmd = push_cmd(inst, CmdType.TUTORIAL_KEY);
+		Cmd cmd = push_cmd(cmd_buf, CmdType.TUTORIAL_KEY);
 		cmd.control_type = control_type;
 		cmd.duration = duration;
 		cmd.index = index;
 
-		push_delay_cmd(inst, "\n");
+		push_delay_cmd(cmd_buf, "\n");
 	}
 
-	public static void push_fire_missile_cmd(Player1Console inst, int index) {
-		push_print_str_cmd(inst, "\nREADYING MISSILE...\n");
-		push_delay_cmd(inst);
-		push_print_str_cmd(inst, "\nMISSILE LAUNCHED\n\n");
+	public static void push_fire_missile_cmd(CmdBuf cmd_buf, int index) {
+		push_print_str_cmd(cmd_buf, "\nREADYING MISSILE...\n");
+		push_delay_cmd(cmd_buf);
+		push_print_str_cmd(cmd_buf, "\nMISSILE LAUNCHED\n\n");
 
-		Cmd cmd = push_cmd(inst, CmdType.FIRE_MISSILE);
+		Cmd cmd = push_cmd(cmd_buf, CmdType.FIRE_MISSILE);
 		cmd.index = index;
 
 		//TODO: Temp!!
-		push_wait_cmd(inst, 11.0f);
+		push_wait_cmd(cmd_buf, 11.0f);
 	}
 
-	public static void push_confirm_deaths_cmd(Player1Console inst) {
-		Cmd cmd = push_cmd(inst, CmdType.CONFIRM_DEATHS);
+	public static void push_confirm_deaths_cmd(CmdBuf cmd_buf) {
+		Cmd cmd = push_cmd(cmd_buf, CmdType.CONFIRM_DEATHS);
 		cmd.duration = 10.0f;
 
-		push_delay_cmd(inst);
-		push_print_str_cmd(inst, "\n");
-		cmd.print_cmd = push_print_str_cmd(inst, "0");
-		push_print_str_cmd(inst, " DEATHS CONFIRMED\n\n");
+		push_delay_cmd(cmd_buf);
+		push_print_str_cmd(cmd_buf, "\n");
+		cmd.print_cmd = push_print_str_cmd(cmd_buf, "0");
+		push_print_str_cmd(cmd_buf, " DEATHS CONFIRMED\n\n");
 	}
 
 	public static Item get_item(Player1Console inst, int it) {
@@ -453,34 +634,6 @@ public class Player1Console {
 		bar.localPosition = new Vector3((-LOADING_BAR_WIDTH + bar.localScale.x) * 0.5f, 0.0f, 0.0f);
 	}
 
-	public static bool find_match(Parser parser, string match) {
-		bool found = false;
-
-		int str_len = parser.str.Length - parser.at;
-		if(str_len >= match.Length) {
-			int match_len = str_len - match.Length;
-
-			for(int i = 0; i < match_len; i++) {
-				bool matched = true;
-
-				for(int j = 0; j < match.Length; j++) {
-					if(parser.str[parser.at + i + j] != match[j]) {
-						matched = false;
-						break;
-					}
-				}
-
-				if(matched) {
-					parser.at += (i + match.Length);
-					found = true;
-					break;
-				}
-			}
-		}
-
-		return found;
-	}
-
 	public static Player1Console new_inst(Transform transform) {
 		Player1Console inst = new Player1Console();
 
@@ -501,181 +654,129 @@ public class Player1Console {
 		inst.cursor_time = 0.0f;
 		inst.last_cursor_time = -0.5f;
 
-		inst.command_buffer_capacity = 512;
-		inst.command_buffer_length = 0;
-		inst.command_buffer = new Cmd[inst.command_buffer_capacity];
+		inst.cmd_buf = new_cmd_buf(512);
 
 		inst.current_cmd_index = 0;
 		inst.first_pass = true;
 
 		inst.logged_user_details = false;
 
-		TextAsset script_asset = (TextAsset)Resources.Load("player1_script");
-
-		Parser parser = new Parser();
-		parser.str = script_asset.text;
-		parser.at = 0;
-
-		while(find_match(parser, "<tw-passagedata") && find_match(parser, ">")) {
-			int entry_start = parser.at;
-
-			string entry_end_tag = "</tw-passagedata>";
-			if(!find_match(parser, entry_end_tag)) {
-				Assert.invalid_path();
+		CmdBuf cmd_buf = inst.cmd_buf;
+		if(Settings.USE_PLAYER1_SCRIPT) {
+			Player1Util.parse_script(cmd_buf, "player1_script_");
+			push_wait_cmd(cmd_buf, Mathf.Infinity);
+		}
+		else {
+			if(Settings.USE_TRANSITIONS) {
+				push_wait_cmd(cmd_buf, 4.0f);
 			}
 
-			int entry_len = parser.at - (entry_start + entry_end_tag.Length);
+			push_print_str_cmd(cmd_buf, "USERNAME: ");
+			inst.username_input_str_cmd = push_input_str_cmd(cmd_buf, 16);
 
-			string entry = parser.str.Substring(entry_start, entry_len);
-			push_print_str_cmd(inst, entry);
+			push_print_str_cmd(cmd_buf, "PASSWORD: ");
+			inst.password_input_str_cmd = push_input_str_cmd(cmd_buf, 16, true);
+
+			push_delay_cmd(cmd_buf);
+			push_cmd(cmd_buf, CmdType.LOG_IN);
+
+			push_print_str_cmd(cmd_buf, "\nCREECH AIRBASE 432D\n");
+			push_wait_cmd(cmd_buf, 2.0f);
+
+			push_print_str_cmd(cmd_buf, "\nN 36°35′32″\n");
+			push_print_str_cmd(cmd_buf, "W 115°40′00″\n\n");
+
+			push_print_str_cmd(cmd_buf, "2512155\n\n");
+			push_print_str_cmd(cmd_buf, "2443872\n\n");
+
+			push_wait_cmd(cmd_buf, 3.0f);
+
+			push_print_str_cmd(cmd_buf, "\nJ09NV0399\n");
+			//TODO: Don't end block here, end if after next wait cmd!!
+			push_delay_cmd(cmd_buf);
+
+			push_print_str_cmd(cmd_buf, "\n");
+			push_wait_cmd(cmd_buf, 4.5f);
+
+			push_print_str_cmd(cmd_buf, "PRESS \"U\" TO LOCATE UAV\n");
+			push_wait_key_cmd(cmd_buf, KeyCode.U);
+			push_print_str_cmd(cmd_buf, "\nSEARCHING...\n");
+			push_delay_cmd(cmd_buf);
+			push_print_str_cmd(cmd_buf, "\nUAV LOCATED OVER WAZIRISTAN, PAKISTAN\n");
+			push_print_str_cmd(cmd_buf, "\nCONNECTING VIA REMOTE SYSTEM...\n");
+			push_delay_cmd(cmd_buf);
+			push_print_str_cmd(cmd_buf, "\nCONNECTED TO UAV PREDATOR DRONE\n\n");
+
+			push_cmd(cmd_buf, CmdType.SWITCH_ON_DISPLAY);
+
+			if(Settings.USE_TRANSITIONS) {
+				push_print_str_cmd(cmd_buf, "RUNNING SYSTEMS CHECK...\n");
+				push_delay_cmd(cmd_buf);
+				push_print_str_cmd(cmd_buf, "\n\n");
+
+				push_tutorial_key_cmd(cmd_buf, "HOLD \"A\" TO LOOK LEFT\n", Player1Controller.ControlType.LOOK_LEFT, 1.8f, 0);
+				push_tutorial_key_cmd(cmd_buf, "HOLD \"D\" TO LOOK RIGHT\n", Player1Controller.ControlType.LOOK_RIGHT, 1.8f, 1);
+				push_tutorial_key_cmd(cmd_buf, "HOLD \"W\" TO LOOK UP\n", Player1Controller.ControlType.LOOK_UP, 1.8f, 2);
+				push_tutorial_key_cmd(cmd_buf, "HOLD \"S\" TO LOOK DOWN\n", Player1Controller.ControlType.LOOK_DOWN, 1.8f, 3);
+				push_tutorial_key_cmd(cmd_buf, "HOLD \"Q\" TO ZOOM IN\n", Player1Controller.ControlType.ZOOM_IN, 1.2f, 4);
+				push_tutorial_key_cmd(cmd_buf, "HOLD \"E\" TO ZOOM OUT\n", Player1Controller.ControlType.ZOOM_OUT, 1.2f, 5);
+
+				push_cmd(cmd_buf, CmdType.ENABLE_CONTROLS);
+				push_print_str_cmd(cmd_buf, "ALL SYSTEMS OPERATIONAL\n\n");
+			}
+			else {
+				push_cmd(cmd_buf, CmdType.ENABLE_CONTROLS);
+			}
+
+			if(Settings.USE_TRANSITIONS) {
+				push_wait_cmd(cmd_buf, 10.0f);
+			}
+
+			push_cmd(cmd_buf, CmdType.ACQUIRE_TARGET);
+			push_print_str_cmd(cmd_buf, "TARGET ACQUIRED\n\n");
+
+			push_print_str_cmd(cmd_buf, "PRESS \"T\" TO CONFIRM TARGET\n");
+			push_wait_key_cmd(cmd_buf, KeyCode.T);
+			push_print_str_cmd(cmd_buf, "\nLOCKING ON...\n");
+			push_delay_cmd(cmd_buf);
+
+			push_print_str_cmd(cmd_buf, "\nTARGET LOCKED\n\n");
+			push_cmd(cmd_buf, CmdType.LOCK_TARGET);
+
+			push_print_str_cmd(cmd_buf, "PRESS \"M\" TO LAUNCH PRIMARY MISSILE\n");
+			push_wait_key_cmd(cmd_buf, KeyCode.M);
+			push_fire_missile_cmd(cmd_buf, 0);
+
+			push_print_str_cmd(cmd_buf, "PRESS \"M\" TO LAUNCH SECONDARY MISSILE\n");
+			{
+				Cmd cmd = push_cmd(cmd_buf, CmdType.LAUNCH_MISSILE);
+				cmd.key = KeyCode.M;
+				cmd.duration = 15.0f;
+
+				push_print_str_cmd(cmd_buf, "\nSWITCHING TO AUTO-PILOT...\n");
+				push_delay_cmd(cmd_buf);
+
+				cmd.next_cmd_index = cmd_buf.elem_count;
+				push_fire_missile_cmd(cmd_buf, 1);
+			}
+
+			if(!Settings.USE_DEATH_CONFIRM) {
+				push_wait_cmd(cmd_buf, 10.0f);
+			}
+			else {
+				push_wait_cmd(cmd_buf, 5.0f);
+				push_print_str_cmd(cmd_buf, "\nENTER NUMBER OF TARGETS NEUTRALISED: ");
+				push_confirm_deaths_cmd(cmd_buf);
+				push_wait_cmd(cmd_buf, 5.0f);
+			}
+
+			push_cmd(cmd_buf, CmdType.SWITCH_OFF_DISPLAY);
+			push_wait_cmd(cmd_buf, 2.0f);
+			push_cmd(cmd_buf, CmdType.LOG_OFF);
+			push_wait_cmd(cmd_buf, 1.0f);
 		}
-
-		// push_commit_str_cmd(inst, "<quad material=1 width=0.001 height=0.001/>\n");
-
-		// int sprite_sheet_size_pixels = 390;
-
-		// float sprite_size = 51.0f / (float)sprite_sheet_size_pixels;
-		// float sprite_size_with_padding = 65.0f / (float)sprite_sheet_size_pixels;
-
-		// for(int y = 0; y < 6; y++) {
-		// 	for(int x = 0; x < 6; x++) {
-		// 		float pos_x = x * sprite_size_with_padding;
-		// 		float pos_y = 1.0f - (y + 1) * sprite_size_with_padding;
-
-		// 		string rich_text = string.Format("<quad material=1 x={0} y={1} width={2} height={2}/>", pos_x, pos_y, sprite_size);
-		// 		push_rich_text_str_cmd(inst, rich_text);
-		// 	}
-
-		// 	push_print_str_cmd(inst, "\n");
-		// }
-
-		// push_cmd(inst, CmdType.SWITCH_ON_DISPLAY);
-		// push_cmd(inst, CmdType.LOG_IN);
-		// push_cmd(inst, CmdType.ENABLE_CONTROLS);
-		// push_cmd(inst, CmdType.ACQUIRE_TARGET);
-
-		// push_tutorial_key_cmd(inst, "HOLD \"A\" TO LOOK LEFT\n", Player1Controller.ControlType.LOOK_LEFT, 1.8f, 0);
-		// push_tutorial_key_cmd(inst, "HOLD \"D\" TO LOOK RIGHT\n", Player1Controller.ControlType.LOOK_RIGHT, 1.8f, 1);
-
-		// push_wait_cmd(inst, Mathf.Infinity);
-
-		// push_print_str_cmd(inst, "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce luctus, lectus ultrices vulputate scelerisque, enim ante mollis libero, at lobortis nisi massa id orci. Quisque ac diam nisl. In hac habitasse platea dictumst. Etiam ligula neque, euismod id ornare sit amet, posuere et ante\n");
-		// push_wait_cmd(inst, Mathf.Infinity);
-
-		if(Settings.USE_TRANSITIONS) {
-			push_wait_cmd(inst, 4.0f);
-		}
-
-		push_print_str_cmd(inst, "USERNAME: ");
-		inst.username_input_str_cmd = push_input_str_cmd(inst, 16);
-
-		push_print_str_cmd(inst, "PASSWORD: ");
-		inst.password_input_str_cmd = push_input_str_cmd(inst, 16, true);
-
-		push_delay_cmd(inst);
-		push_cmd(inst, CmdType.LOG_IN);
-
-		push_print_str_cmd(inst, "\nCREECH AIRBASE 432D\n");
-		push_wait_cmd(inst, 2.0f);
-
-		push_print_str_cmd(inst, "\nN 36°35′32″\n");
-		push_print_str_cmd(inst, "W 115°40′00″\n\n");
-
-		push_print_str_cmd(inst, "2512155\n\n");
-		push_print_str_cmd(inst, "2443872\n\n");
-
-		push_wait_cmd(inst, 3.0f);
-
-		push_print_str_cmd(inst, "\nJ09NV0399\n");
-		//TODO: Don't end block here, end if after next wait cmd!!
-		push_delay_cmd(inst);
-
-		push_print_str_cmd(inst, "\n");
-		push_wait_cmd(inst, 4.5f);
-
-		push_print_str_cmd(inst, "PRESS \"U\" TO LOCATE UAV\n");
-		push_wait_key_cmd(inst, KeyCode.U);
-		push_print_str_cmd(inst, "\nSEARCHING...\n");
-		push_delay_cmd(inst);
-		push_print_str_cmd(inst, "\nUAV LOCATED OVER WAZIRISTAN, PAKISTAN\n");
-		push_print_str_cmd(inst, "\nCONNECTING VIA REMOTE SYSTEM...\n");
-		push_delay_cmd(inst);
-		push_print_str_cmd(inst, "\nCONNECTED TO UAV PREDATOR DRONE\n\n");
-
-		push_cmd(inst, CmdType.SWITCH_ON_DISPLAY);
-
-		// if(Settings.USE_TRANSITIONS) {
-		if(true) {
-			push_print_str_cmd(inst, "RUNNING SYSTEMS CHECK...\n");
-			push_delay_cmd(inst);
-			push_print_str_cmd(inst, "\n\n");
-
-			push_tutorial_key_cmd(inst, "HOLD \"A\" TO LOOK LEFT\n", Player1Controller.ControlType.LOOK_LEFT, 1.8f, 0);
-			push_tutorial_key_cmd(inst, "HOLD \"D\" TO LOOK RIGHT\n", Player1Controller.ControlType.LOOK_RIGHT, 1.8f, 1);
-			push_tutorial_key_cmd(inst, "HOLD \"W\" TO LOOK UP\n", Player1Controller.ControlType.LOOK_UP, 1.8f, 2);
-			push_tutorial_key_cmd(inst, "HOLD \"S\" TO LOOK DOWN\n", Player1Controller.ControlType.LOOK_DOWN, 1.8f, 3);
-			push_tutorial_key_cmd(inst, "HOLD \"Q\" TO ZOOM IN\n", Player1Controller.ControlType.ZOOM_IN, 1.2f, 4);
-			push_tutorial_key_cmd(inst, "HOLD \"E\" TO ZOOM OUT\n", Player1Controller.ControlType.ZOOM_OUT, 1.2f, 5);
-
-			push_cmd(inst, CmdType.ENABLE_CONTROLS);
-			push_print_str_cmd(inst, "ALL SYSTEMS OPERATIONAL\n\n");
-		}
-		else {
-			push_cmd(inst, CmdType.ENABLE_CONTROLS);
-		}
-
-		if(Settings.USE_TRANSITIONS) {
-			push_wait_cmd(inst, 10.0f);
-		}
-
-		push_cmd(inst, CmdType.ACQUIRE_TARGET);
-		push_print_str_cmd(inst, "TARGET ACQUIRED\n\n");
-
-		push_print_str_cmd(inst, "PRESS \"T\" TO CONFIRM TARGET\n");
-		push_wait_key_cmd(inst, KeyCode.T);
-		push_print_str_cmd(inst, "\nLOCKING ON...\n");
-		push_delay_cmd(inst);
-
-		push_print_str_cmd(inst, "\nTARGET LOCKED\n\n");
-		push_cmd(inst, CmdType.LOCK_TARGET);
-
-		push_print_str_cmd(inst, "PRESS \"M\" TO LAUNCH PRIMARY MISSILE\n");
-		push_wait_key_cmd(inst, KeyCode.M);
-		push_fire_missile_cmd(inst, 0);
-
-		push_print_str_cmd(inst, "PRESS \"M\" TO LAUNCH SECONDARY MISSILE\n");
-		{
-			Cmd cmd = push_cmd(inst, CmdType.LAUNCH_MISSILE);
-			cmd.key = KeyCode.M;
-			cmd.duration = 15.0f;
-
-			push_print_str_cmd(inst, "\nSWITCHING TO AUTO-PILOT...\n");
-			push_delay_cmd(inst);
-
-			cmd.next_cmd_index = inst.command_buffer_length;
-			push_fire_missile_cmd(inst, 1);
-		}
-
-		if(!Settings.USE_DEATH_CONFIRM) {
-			push_wait_cmd(inst, 10.0f);
-		}
-		else {
-			push_wait_cmd(inst, 5.0f);
-			push_print_str_cmd(inst, "\nENTER NUMBER OF TARGETS NEUTRALISED: ");
-			push_confirm_deaths_cmd(inst);
-			push_wait_cmd(inst, 5.0f);
-		}
-
-		push_cmd(inst, CmdType.SWITCH_OFF_DISPLAY);
-		push_wait_cmd(inst, 2.0f);
-		push_cmd(inst, CmdType.LOG_OFF);
-		push_wait_cmd(inst, 1.0f);
 
 		return inst;
-	}
-
-	public static bool is_new_line(char char_) {
-		return char_ == '\n' || char_ == '\r';
 	}
 
 	public static bool is_cursor_on(float cursor_time) {
@@ -683,16 +784,16 @@ public class Player1Console {
 	}
 
 	public static void update(Player1Console inst, Player1Controller player1) {
-		if(!inst.logged_user_details) {
-			if(inst.username_input_str_cmd.done && inst.password_input_str_cmd.done) {
-				string details_str = "username: " + inst.username_input_str_cmd.str + ", password: " + inst.password_input_str_cmd.str + "\n";
-				Debug.Log(details_str);
-#if !UNITY_EDITOR && UNITY_STANDALONE_WIN
-				System.IO.File.AppendAllText("killbox_Data/passwords.txt", details_str);
-#endif
-				inst.logged_user_details = true;
-			}
-		}
+// 		if(!inst.logged_user_details) {
+// 			if(inst.username_input_str_cmd.done && inst.password_input_str_cmd.done) {
+// 				string details_str = "username: " + inst.username_input_str_cmd.str + ", password: " + inst.password_input_str_cmd.str + "\n";
+// 				Debug.Log(details_str);
+// #if !UNITY_EDITOR && UNITY_STANDALONE_WIN
+// 				System.IO.File.AppendAllText("killbox_Data/passwords.txt", details_str);
+// #endif
+// 				inst.logged_user_details = true;
+// 			}
+// 		}
 
 		if(inst.enabled) {
 			GameManager game_manager = player1.game_manager;
@@ -700,8 +801,8 @@ public class Player1Console {
 			float time_left = Time.deltaTime;
 			inst.cursor_time += Time.deltaTime;
 
-			while(time_left > 0.0f && inst.current_cmd_index < inst.command_buffer_length) {
-				Cmd cmd = inst.command_buffer[inst.current_cmd_index];
+			while(time_left > 0.0f && inst.current_cmd_index < inst.cmd_buf.elem_count) {
+				Cmd cmd = inst.cmd_buf.elems[inst.current_cmd_index];
 
 				switch(cmd.type) {
 					case CmdType.COMMIT_STR: {
@@ -754,7 +855,7 @@ public class Player1Console {
 									}
 								}
 								else {
-									if(is_new_line(input_char)) {
+									if(Player1Util.is_new_line(input_char)) {
 										if(str.Length > 0) {
 											inst.working_text_buffer += "\n";
 
@@ -985,7 +1086,7 @@ public class Player1Console {
 				for(int i = 0; i < working_buffer.Length; i++) {
 					char char_ = working_buffer[i];
 
-					if(is_new_line(char_)) {
+					if(Player1Util.is_new_line(char_)) {
 						tail_item.text_mesh.text = working_buffer.Substring(0, i);
 						tail_item = push_text_mesh(inst, "");
 

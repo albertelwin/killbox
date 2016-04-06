@@ -1,0 +1,13 @@
+<tw-passagedata>
+
+CMD(username)
+
+PRESS "A" CMD(wait_key, A)
+PRESS "B" CMD(wait_key, B)
+
+</tw-passagedata>
+<tw-passagedata>
+
+CMD(password)
+
+</tw-passagedata>

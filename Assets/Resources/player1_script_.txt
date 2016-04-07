@@ -1,13 +1,74 @@
-<tw-passagedata>
 
+<tw-storydata name="killbox" startnode="1">
+
+<tw-passagedata pid="1" name="script">
+CMD(wait, 4.0)
 CMD(username)
-
-PRESS "A" CMD(wait_key, A)
-PRESS "B" CMD(wait_key, B)
-
-</tw-passagedata>
-<tw-passagedata>
-
 CMD(password)
+CMD(delay)
+CMD(log_in)
 
+CREECH AIRBASE 432D
+CMD(wait, 2.0)
+
+N 36°35′32″
+W 115°40′00″
+
+2512155
+
+2443872
+
+CMD(wait, 3.0)
+
+J09NV0399
+CMD(delay)
+
+CMD(wait, 4.5)
+PRESS "U" TO LOCATE UAV
+CMD(wait_key, U)
+
+SEARCHING...
+CMD(delay)
+
+UAV LOCATED OVER WAZIRISTAN, PAKISTAN
+
+CONNECTING VIA REMOTE SYSTEM...
+CMD(delay)
+
+CONNECTED TO UAV PREDATOR DRONE
+
+CMD(display_on)
+RUNNING SYSTEMS CHECK...
+CMD(delay)
+
+
+CMD(tutorial)
+ALL SYSTEMS OPERATIONAL
+
+CMD(wait, 10.0)
+CMD(acquire)
+TARGET ACQUIRED
+
+PRESS "T" TO CONFIRM TARGET
+CMD(wait_key, T)
+
+LOCKING ON...
+CMD(delay)
+
+TARGET LOCKED
+CMD(lock)
+
+PRESS "M" TO LAUNCH PRIMARY MISSILE
+CMD(wait_key, M)
+CMD(fire, 0)
+PRESS "M" TO LAUNCH SECONDARY MISSILE
+CMD(wait_key, M)
+CMD(fire, 1)
+CMD(wait, 10.0)
+CMD(display_off)
+CMD(wait, 2.0)
+CMD(log_off)
+CMD(wait, 1.0)
 </tw-passagedata>
+
+</tw-storydata>

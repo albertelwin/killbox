@@ -3,7 +3,6 @@
 
 Optimise pilot view (clear -> render camera feeds -> render ui)
 Dynamic pilot audio
-Proper keyboard input for death count
 
 Improve motion path editor -> http://va.lent.in/unity-make-your-lists-functional-with-reorderablelist/
 Camera clipping
@@ -212,6 +211,13 @@ public class GameManager : MonoBehaviour {
 				if(Input.GetKeyDown((KeyCode)i)) {
 					char character_code = (char)(first_char + (i - first_key_index));
 					input_str += character_code;
+				}
+			}
+
+			for(int i = 0; i < Util.numeric_key_values; i++) {
+				Util.KeyValue key_val = Util.numeric_key_values[i];
+				if(Input.GetKeyDown(key_val.key)) {
+					input_str += key_val.val.ToString();
 				}
 			}
 

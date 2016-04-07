@@ -1,11 +1,13 @@
-﻿
+
 using UnityEngine;
 using System.Collections;
+using System.Text;
 
 public static class Player1Util {
 	public class Parser {
 		public string str;
 		public int at;
+		public int len;
 	}
 
 	public enum ParsedCmdInputType {
@@ -31,7 +33,7 @@ public static class Player1Util {
 	public static bool find_match(Parser parser, string match) {
 		bool found = false;
 
-		int str_len = parser.str.Length - parser.at;
+		int str_len = parser.len - parser.at;
 		if(str_len >= match.Length) {
 			int match_len = str_len - (match.Length - 1);
 
@@ -54,6 +56,33 @@ public static class Player1Util {
 		}
 
 		return found;
+	}
+
+	public static int require_match(Parser parser, string match) {
+		if(!find_match(parser, match)) {
+			Assert.invalid_path();
+		}
+
+		return parser.at;
+	}
+
+	public static string extract_str_match(Parser parser, string start_match, string end_match) {
+		string str = "";
+
+		if(find_match(parser, start_match)) {
+			int str_at = parser.at;
+
+			require_match(parser, end_match);
+
+			int str_len = parser.at - (str_at + end_match.Length);
+			str = parser.str.Substring(str_at, str_len);
+		}
+
+		return str;
+	}
+
+	public static string extract_link_name(string str) {
+		return str.Substring(2, str.Length - 4);
 	}
 
 	public static bool is_new_line(char char_) {
@@ -86,9 +115,16 @@ public static class Player1Util {
 			Assert.is_true(cmd.input_count < cmd.inputs.Length);
 
 			ParsedCmdInput input = new ParsedCmdInput();
-			input.type = ParsedCmdInputType.STR;
-			input.num = 0.0f;
 			input.str = str.Substring(start, len);
+
+			if(float.TryParse(input.str, out input.num)) {
+				input.type = ParsedCmdInputType.NUM;
+			}
+			else {
+				input.type = ParsedCmdInputType.STR;
+				input.num = 0.0f;
+			}
+
 			cmd.inputs[cmd.input_count++] = input;
 
 			if(at < str.Length) {
@@ -101,47 +137,104 @@ public static class Player1Util {
 		return cmd;
 	}
 
+	public static int find_cmd_index(Player1Console.CmdBuf cmd_buf, Player1Console.CmdType type, string str) {
+		int index = -1;
+
+		for(int i = 0; i < cmd_buf.elem_count; i++) {
+			Player1Console.Cmd cmd = cmd_buf.elems[i];
+			if(cmd.type == type && cmd.str == str) {
+				index = i;
+				break;
+			}
+		}
+
+		return index;
+	}
+
 	public static void parse_script(Player1Console.CmdBuf cmd_buf, string script_path) {
 		TextAsset script_asset = (TextAsset)Resources.Load(script_path);
 
 		Parser parser = new Parser();
-		parser.str = script_asset.text;
+		parser.str = Util.convert_to_unix_line_endings(script_asset.text);
 		parser.at = 0;
+		parser.len = parser.str.Length;
 
-		while(find_match(parser, "<tw-passagedata") && find_match(parser, ">")) {
-			int entry_start = parser.at;
-			int entry_len = 0;
+		while(find_match(parser, "<tw-passagedata")) {
+			string passage_id = extract_str_match(parser, "pid=\"", "\"");
+			string passage_name = extract_str_match(parser, "name=\"", "\"");
 
-			//TODO: Stop this from skipping over the entry end tag!!
-			while(find_match(parser, CMD_START_TAG)) {
-				int cmd_start = parser.at;
+			require_match(parser, ">");
 
-				entry_len = parser.at - (entry_start + CMD_START_TAG.Length);
-				Player1Console.push_print_str_cmd(cmd_buf, parser.str.Substring(entry_start, entry_len));
+			Player1Console.Cmd passage_cmd = Player1Console.push_cmd(cmd_buf, Player1Console.CmdType.NOOP);
+			passage_cmd.str = passage_name;
 
-				if(!find_match(parser, CMD_END_TAG)) {
-					Assert.invalid_path();
+			Parser passage_parser = new Parser();
+			passage_parser.str = parser.str;
+			passage_parser.at = parser.at;
+
+			string passage_end_tag = "</tw-passagedata>";
+			require_match(parser, passage_end_tag);
+
+			passage_parser.len = parser.at - passage_end_tag.Length;
+
+			int print_start = passage_parser.at;
+			int print_len = 0;
+
+			while(find_match(passage_parser, CMD_START_TAG)) {
+				int cmd_start = passage_parser.at;
+
+				print_len = passage_parser.at - (print_start + CMD_START_TAG.Length);
+				if(print_len > 0) {
+					Player1Console.push_print_str_cmd(cmd_buf, passage_parser.str.Substring(print_start, print_len));
 				}
 
-				int cmd_len = parser.at - (cmd_start + CMD_END_TAG.Length);
+				require_match(passage_parser, CMD_END_TAG);
+
+				int cmd_len = passage_parser.at - (cmd_start + CMD_END_TAG.Length);
 				if(cmd_len > 0) {
-					ParsedCmd cmd = parse_cmd(parser.str.Substring(cmd_start, cmd_len));
-					ParsedCmdInput name = cmd.inputs[0];
+					string cmd_str = passage_parser.str.Substring(cmd_start, cmd_len);
+					ParsedCmd cmd = parse_cmd(cmd_str);
 
 					switch(cmd.inputs[0].str) {
-						case "username": {
-							Assert.is_true(cmd.input_count == 1);
-
-							Player1Console.push_print_str_cmd(cmd_buf, "USERNAME: ");
-							Player1Console.push_input_str_cmd(cmd_buf, 16);
+						case "noop": {
 							break;
 						}
 
-						case "password": {
-							Assert.is_true(cmd.input_count == 1);
+						case "go_to": {
+							Assert.is_true(cmd.input_count == 2);
+							Assert.is_true(cmd.inputs[1].type == ParsedCmdInputType.STR);
 
-							Player1Console.push_print_str_cmd(cmd_buf, "PASSWORD: ");
-							Player1Console.push_input_str_cmd(cmd_buf, 16, true);
+							string go_to_name = extract_link_name(cmd.inputs[1].str);
+							Player1Console.push_go_to_cmd(cmd_buf, go_to_name);
+
+							break;
+						}
+
+						case "yes_no": {
+							Assert.is_true(cmd.input_count == 3);
+							Assert.is_true(cmd.inputs[1].type == ParsedCmdInputType.STR);
+							Assert.is_true(cmd.inputs[2].type == ParsedCmdInputType.STR);
+
+							Player1Console.push_yes_no_cmd(cmd_buf, extract_link_name(cmd.inputs[1].str), extract_link_name(cmd.inputs[2].str));
+
+							break;
+						}
+
+						case "delay": {
+							Assert.is_true(cmd.input_count == 1);
+							Player1Console.push_delay_cmd(cmd_buf);
+							break;
+						}
+
+						case "wait": {
+							Assert.is_true(cmd.input_count == 2);
+							Assert.is_true(cmd.inputs[1].type == ParsedCmdInputType.NUM);
+
+							float wait_time = cmd.inputs[1].num;
+							if(wait_time > 0.0f) {
+								Player1Console.push_wait_cmd(cmd_buf, wait_time);
+							}
+
 							break;
 						}
 
@@ -159,23 +252,127 @@ public static class Player1Util {
 							break;
 						}
 
+						case "username": {
+							Assert.is_true(cmd.input_count == 1);
+							Player1Console.push_print_str_cmd(cmd_buf, "USERNAME: ");
+							Player1Console.push_user_str_cmd(cmd_buf, Player1Console.UserStrId.USERNAME, 16);
+							break;
+						}
+
+						case "password": {
+							Assert.is_true(cmd.input_count == 1);
+							Player1Console.push_print_str_cmd(cmd_buf, "PASSWORD: ");
+							Player1Console.push_user_str_cmd(cmd_buf, Player1Console.UserStrId.PASSWORD, 16, false, true);
+							break;
+						}
+
+						case "log_in": {
+							Assert.is_true(cmd.input_count == 1);
+							Player1Console.push_cmd(cmd_buf, Player1Console.CmdType.LOG_IN);
+							break;
+						}
+
+						case "log_off": {
+							Assert.is_true(cmd.input_count == 1);
+							Player1Console.push_cmd(cmd_buf, Player1Console.CmdType.LOG_OFF);
+							break;
+						}
+
+						case "display_on": {
+							Assert.is_true(cmd.input_count == 1);
+							Player1Console.push_cmd(cmd_buf, Player1Console.CmdType.SWITCH_ON_DISPLAY);
+							break;
+						}
+
+						case "display_off": {
+							Assert.is_true(cmd.input_count == 1);
+							Player1Console.push_cmd(cmd_buf, Player1Console.CmdType.SWITCH_OFF_DISPLAY);
+							break;
+						}
+
+						case "tutorial": {
+							Assert.is_true(cmd.input_count == 1);
+
+							Player1Console.push_tutorial_key_cmd(cmd_buf, "HOLD \"A\" TO LOOK LEFT\n", Player1Controller.ControlType.LOOK_LEFT, 1.8f, 0);
+							Player1Console.push_tutorial_key_cmd(cmd_buf, "HOLD \"D\" TO LOOK RIGHT\n", Player1Controller.ControlType.LOOK_RIGHT, 1.8f, 1);
+							Player1Console.push_tutorial_key_cmd(cmd_buf, "HOLD \"W\" TO LOOK UP\n", Player1Controller.ControlType.LOOK_UP, 1.8f, 2);
+							Player1Console.push_tutorial_key_cmd(cmd_buf, "HOLD \"S\" TO LOOK DOWN\n", Player1Controller.ControlType.LOOK_DOWN, 1.8f, 3);
+							Player1Console.push_tutorial_key_cmd(cmd_buf, "HOLD \"Q\" TO ZOOM IN\n", Player1Controller.ControlType.ZOOM_IN, 1.2f, 4);
+							Player1Console.push_tutorial_key_cmd(cmd_buf, "HOLD \"E\" TO ZOOM OUT\n", Player1Controller.ControlType.ZOOM_OUT, 1.2f, 5);
+
+							Player1Console.push_cmd(cmd_buf, Player1Console.CmdType.ENABLE_CONTROLS);
+
+							break;
+						}
+
+						case "acquire": {
+							Assert.is_true(cmd.input_count == 1);
+							Player1Console.push_cmd(cmd_buf, Player1Console.CmdType.ACQUIRE_TARGET);
+							break;
+						}
+
+						case "lock": {
+							Assert.is_true(cmd.input_count == 1);
+							Player1Console.push_cmd(cmd_buf, Player1Console.CmdType.LOCK_TARGET);
+							break;
+						}
+
+						case "fire": {
+							Assert.is_true(cmd.input_count == 2);
+							Assert.is_true(cmd.inputs[1].type == ParsedCmdInputType.NUM);
+
+							int missile_index = (int)cmd.inputs[1].num;
+							Assert.is_true(missile_index >= 0 && missile_index <= 2);
+							Player1Console.push_fire_missile_cmd(cmd_buf, missile_index);
+
+							break;
+						}
+
 						default: {
-							Debug.Log("ERROR: Invalid cmd: " + cmd);
+							Debug.Log("ERROR: Invalid cmd: " + CMD_START_TAG + cmd_str + CMD_END_TAG);
 							break;
 						}
 					}
 				}
 
-				entry_start = parser.at;
+				while(passage_parser.at < passage_parser.len && is_whitespace(passage_parser.str[passage_parser.at])) {
+					if(is_new_line(passage_parser.str[passage_parser.at])) {
+						break;
+					}
+					else {
+						passage_parser.at++;
+					}
+				}
+
+				if(passage_parser.at < passage_parser.len) {
+					Assert.is_true(is_new_line(passage_parser.str[passage_parser.at]));
+					passage_parser.at++;
+				}
+
+				print_start = passage_parser.at;
 			}
 
-			string entry_end_tag = "</tw-passagedata>";
-			if(!find_match(parser, entry_end_tag)) {
-				Assert.invalid_path();
+			print_len = passage_parser.len - print_start;
+			if(print_len > 0) {
+				Player1Console.push_print_str_cmd(cmd_buf, parser.str.Substring(print_start, print_len));
 			}
+		}
 
-			entry_len = parser.at - (entry_start + entry_end_tag.Length);
-			Player1Console.push_print_str_cmd(cmd_buf, parser.str.Substring(entry_start, entry_len));
+		//TODO: Use a separate table for this to avoid looping over the entire cmd buf!!
+		for(int i = 0; i < cmd_buf.elem_count; i++) {
+			Player1Console.Cmd cmd = cmd_buf.elems[i];
+			if(cmd.type == Player1Console.CmdType.GO_TO && cmd.next_index < 0) {
+				Assert.is_true(cmd.str != null && cmd.str != "");
+
+				cmd.next_index = find_cmd_index(cmd_buf, Player1Console.CmdType.NOOP, cmd.str);
+				Assert.is_true(cmd.next_index > -1);
+			}
+			else if(cmd.type == Player1Console.CmdType.YES_NO) {
+				Assert.is_true(cmd.str != null && cmd.str != "" && cmd.str2 != null && cmd.str2 != "");
+
+				cmd.next_index = find_cmd_index(cmd_buf, Player1Console.CmdType.NOOP, cmd.str);
+				cmd.next_index2 = find_cmd_index(cmd_buf, Player1Console.CmdType.NOOP, cmd.str2);
+			}
 		}
 	}
 
@@ -218,9 +415,13 @@ public class Player1Console {
 	}
 
 	public enum CmdType {
+		NOOP,
+		GO_TO,
+		YES_NO,
+
 		COMMIT_STR,
 		PRINT_STR,
-		INPUT_STR,
+		USER_STR,
 
 		WAIT,
 		WAIT_KEY,
@@ -239,54 +440,47 @@ public class Player1Console {
 
 		LAUNCH_MISSILE,
 		FIRE_MISSILE,
+	}
 
-		CONFIRM_DEATHS,
+	//TODO: User str table!!
+	public enum UserStrId {
+		NONE,
+
+		USERNAME,
+		PASSWORD,
+		DEATH_COUNT,
+
+		COUNT,
 	}
 
 	//TODO: This is getting a bit ridiculous, use a base class instead??
 	public class Cmd {
 		public CmdType type;
-		public bool done;
+		public int index;
+		public int next_index;
+		public int next_index2;
 
 		public bool cursor_on;
 		public bool play_audio;
 
-		public float time;
 		public float duration;
 
 		public KeyCode key;
 		public Player1Controller.ControlType control_type;
 
-		public int index;
+		public int num;
 
 		public string str;
-		public int str_it;
+		public string str2;
+		public UserStrId str_id;
 		public int max_str_len;
+		public bool numeric_only;
 		public bool hide_str;
-
-		public Cmd print_cmd;
-
-		public bool use_alt_next_cmd;
-		public int next_cmd_index;
-
-		public Item item;
 	}
 
 	public class CmdBuf {
 		public Cmd[] elems;
 		public int elem_count;
-	}
-
-	public class KeyValue {
-		public KeyCode key;
-		public int val;
-
-		public static KeyValue new_inst(KeyCode key, int val) {
-			KeyValue key_val = new KeyValue();
-			key_val.key = key;
-			key_val.val = val;
-			return key_val;
-		}
 	}
 
 	public class RichTextTag {
@@ -336,35 +530,15 @@ public class Player1Console {
 	public float last_cursor_time;
 
 	public int current_cmd_index;
+	public int next_cmd_index;
+	public float current_cmd_time;
+	public string current_cmd_str;
+	public int current_cmd_str_it;
+	public Item current_cmd_item;
 	public bool first_pass;
 
+	public string[] user_str_table;
 	public bool logged_user_details;
-	public Cmd username_input_str_cmd;
-	public Cmd password_input_str_cmd;
-
-	public KeyValue[] number_key_values = new KeyValue[] {
-		KeyValue.new_inst(KeyCode.Keypad0, 0),
-		KeyValue.new_inst(KeyCode.Keypad1, 1),
-		KeyValue.new_inst(KeyCode.Keypad2, 2),
-		KeyValue.new_inst(KeyCode.Keypad3, 3),
-		KeyValue.new_inst(KeyCode.Keypad4, 4),
-		KeyValue.new_inst(KeyCode.Keypad5, 5),
-		KeyValue.new_inst(KeyCode.Keypad6, 6),
-		KeyValue.new_inst(KeyCode.Keypad7, 7),
-		KeyValue.new_inst(KeyCode.Keypad8, 8),
-		KeyValue.new_inst(KeyCode.Keypad9, 9),
-
-		KeyValue.new_inst(KeyCode.Alpha0, 0),
-		KeyValue.new_inst(KeyCode.Alpha1, 1),
-		KeyValue.new_inst(KeyCode.Alpha2, 2),
-		KeyValue.new_inst(KeyCode.Alpha3, 3),
-		KeyValue.new_inst(KeyCode.Alpha4, 4),
-		KeyValue.new_inst(KeyCode.Alpha5, 5),
-		KeyValue.new_inst(KeyCode.Alpha6, 6),
-		KeyValue.new_inst(KeyCode.Alpha7, 7),
-		KeyValue.new_inst(KeyCode.Alpha8, 8),
-		KeyValue.new_inst(KeyCode.Alpha9, 9),
-	};
 
 	public static CmdBuf new_cmd_buf(int capacity) {
 		CmdBuf buf = new CmdBuf();
@@ -378,28 +552,44 @@ public class Player1Console {
 
 		Cmd cmd = new Cmd();
 		cmd.type = cmd_type;
-		cmd.done = false;
+		cmd.index = cmd_buf.elem_count;
+		cmd.next_index = -1;
+		cmd.next_index2 = -1;
 
 		cmd.cursor_on = false;
 		cmd.play_audio = false;
 
-		cmd.time = 0.0f;
 		cmd.duration = 0.0f;
 
 		cmd.key = KeyCode.None;
 		cmd.control_type = Player1Controller.ControlType.COUNT;
 
-		cmd.index = -1;
+		cmd.num = 0;
 
 		cmd.str = "";
-		cmd.str_it = 0;
-
-		cmd.print_cmd = null;
-
-		cmd.use_alt_next_cmd = false;
-		cmd.next_cmd_index = -1;
+		cmd.str2 = "";
+		cmd.str_id = UserStrId.NONE;
 
 		cmd_buf.elems[cmd_buf.elem_count++] = cmd;
+		return cmd;
+	}
+
+	public static Cmd push_go_to_cmd(CmdBuf cmd_buf, int index) {
+		Cmd cmd = push_cmd(cmd_buf, CmdType.GO_TO);
+		cmd.index = index;
+		return cmd;
+	}
+
+	public static Cmd push_go_to_cmd(CmdBuf cmd_buf, string name) {
+		Cmd cmd = push_cmd(cmd_buf, CmdType.GO_TO);
+		cmd.str = name;
+		return cmd;
+	}
+
+	public static Cmd push_yes_no_cmd(CmdBuf cmd_buf, string yes, string no) {
+		Cmd cmd = push_cmd(cmd_buf, CmdType.YES_NO);
+		cmd.str = yes;
+		cmd.str2 = no;
 		return cmd;
 	}
 
@@ -415,6 +605,14 @@ public class Player1Console {
 
 		Cmd cmd = push_cmd(cmd_buf, CmdType.PRINT_STR);
 		cmd.str = str;
+		return cmd;
+	}
+
+	public static Cmd push_print_str_cmd(CmdBuf cmd_buf, UserStrId str_id) {
+		Assert.is_true(str_id != UserStrId.NONE);
+
+		Cmd cmd = push_cmd(cmd_buf, CmdType.PRINT_STR);
+		cmd.str_id = str_id;
 		return cmd;
 	}
 
@@ -465,11 +663,14 @@ public class Player1Console {
 		}
 	}
 
-	public static Cmd push_input_str_cmd(CmdBuf cmd_buf, int max_str_len, bool hide_str = false) {
+	public static Cmd push_user_str_cmd(CmdBuf cmd_buf, UserStrId str_id, int max_str_len, bool numeric_only = false, bool hide_str = false) {
 		Assert.is_true(max_str_len > 0);
+		Assert.is_true(str_id != UserStrId.NONE);
 
-		Cmd cmd = push_cmd(cmd_buf, CmdType.INPUT_STR);
+		Cmd cmd = push_cmd(cmd_buf, CmdType.USER_STR);
+		cmd.str_id = str_id;
 		cmd.max_str_len = max_str_len;
+		cmd.numeric_only = numeric_only;
 		cmd.hide_str = hide_str;
 		return cmd;
 	}
@@ -497,36 +698,36 @@ public class Player1Console {
 		push_wait_cmd(cmd_buf, duration, true);
 	}
 
-	public static void push_tutorial_key_cmd(CmdBuf cmd_buf, string str, Player1Controller.ControlType control_type, float duration, int index) {
+	public static void push_tutorial_key_cmd(CmdBuf cmd_buf, string str, Player1Controller.ControlType control_type, float duration, int id) {
 		push_print_str_cmd(cmd_buf, str);
 
 		Cmd cmd = push_cmd(cmd_buf, CmdType.TUTORIAL_KEY);
 		cmd.control_type = control_type;
 		cmd.duration = duration;
-		cmd.index = index;
+		cmd.num = id;
 
 		push_delay_cmd(cmd_buf, "\n");
 	}
 
-	public static void push_fire_missile_cmd(CmdBuf cmd_buf, int index) {
+	public static void push_fire_missile_cmd(CmdBuf cmd_buf, int id) {
 		push_print_str_cmd(cmd_buf, "\nREADYING MISSILE...\n");
 		push_delay_cmd(cmd_buf);
 		push_print_str_cmd(cmd_buf, "\nMISSILE LAUNCHED\n\n");
 
 		Cmd cmd = push_cmd(cmd_buf, CmdType.FIRE_MISSILE);
-		cmd.index = index;
+		cmd.num = id;
 
 		//TODO: Temp!!
 		push_wait_cmd(cmd_buf, 11.0f);
 	}
 
 	public static void push_confirm_deaths_cmd(CmdBuf cmd_buf) {
-		Cmd cmd = push_cmd(cmd_buf, CmdType.CONFIRM_DEATHS);
-		cmd.duration = 10.0f;
+		//TODO: Time out!!
+		push_user_str_cmd(cmd_buf, UserStrId.DEATH_COUNT, 2, true);
 
 		push_delay_cmd(cmd_buf);
 		push_print_str_cmd(cmd_buf, "\n");
-		cmd.print_cmd = push_print_str_cmd(cmd_buf, "0");
+		push_print_str_cmd(cmd_buf, UserStrId.DEATH_COUNT);
 		push_print_str_cmd(cmd_buf, " DEATHS CONFIRMED\n\n");
 	}
 
@@ -657,14 +858,22 @@ public class Player1Console {
 		inst.cmd_buf = new_cmd_buf(512);
 
 		inst.current_cmd_index = 0;
+		inst.next_cmd_index = inst.current_cmd_index + 1;
+		inst.current_cmd_time = 0.0f;
+		inst.current_cmd_str = "";
+		inst.current_cmd_str_it = 0;
+		inst.current_cmd_item = null;
 		inst.first_pass = true;
 
+		inst.user_str_table = new string[(int)UserStrId.COUNT];
+		for(int i = 0; i < inst.user_str_table.Length; i++) {
+			inst.user_str_table[i] = "";
+		}
 		inst.logged_user_details = false;
 
 		CmdBuf cmd_buf = inst.cmd_buf;
 		if(Settings.USE_PLAYER1_SCRIPT) {
-			Player1Util.parse_script(cmd_buf, "player1_script_");
-			push_wait_cmd(cmd_buf, Mathf.Infinity);
+			Player1Util.parse_script(cmd_buf, "killbox_script");
 		}
 		else {
 			if(Settings.USE_TRANSITIONS) {
@@ -672,10 +881,10 @@ public class Player1Console {
 			}
 
 			push_print_str_cmd(cmd_buf, "USERNAME: ");
-			inst.username_input_str_cmd = push_input_str_cmd(cmd_buf, 16);
+			push_user_str_cmd(cmd_buf, UserStrId.USERNAME, 16);
 
 			push_print_str_cmd(cmd_buf, "PASSWORD: ");
-			inst.password_input_str_cmd = push_input_str_cmd(cmd_buf, 16, true);
+			push_user_str_cmd(cmd_buf, UserStrId.PASSWORD, 16, false, true);
 
 			push_delay_cmd(cmd_buf);
 			push_cmd(cmd_buf, CmdType.LOG_IN);
@@ -756,7 +965,7 @@ public class Player1Console {
 				push_print_str_cmd(cmd_buf, "\nSWITCHING TO AUTO-PILOT...\n");
 				push_delay_cmd(cmd_buf);
 
-				cmd.next_cmd_index = cmd_buf.elem_count;
+				cmd.next_index = cmd_buf.elem_count;
 				push_fire_missile_cmd(cmd_buf, 1);
 			}
 
@@ -784,16 +993,19 @@ public class Player1Console {
 	}
 
 	public static void update(Player1Console inst, Player1Controller player1) {
-// 		if(!inst.logged_user_details) {
-// 			if(inst.username_input_str_cmd.done && inst.password_input_str_cmd.done) {
-// 				string details_str = "username: " + inst.username_input_str_cmd.str + ", password: " + inst.password_input_str_cmd.str + "\n";
-// 				Debug.Log(details_str);
-// #if !UNITY_EDITOR && UNITY_STANDALONE_WIN
-// 				System.IO.File.AppendAllText("killbox_Data/passwords.txt", details_str);
-// #endif
-// 				inst.logged_user_details = true;
-// 			}
-// 		}
+		if(!inst.logged_user_details) {
+			string user = inst.user_str_table[(int)UserStrId.USERNAME];
+			string pass = inst.user_str_table[(int)UserStrId.PASSWORD];
+
+			if(user != null && user != "" && pass != null && pass != "") {
+				string details_str = "username: " + user + ", password: " + pass + "\n";
+				Debug.Log(details_str);
+#if !UNITY_EDITOR && UNITY_STANDALONE_WIN
+				System.IO.File.AppendAllText("killbox_Data/passwords.txt", details_str);
+#endif
+				inst.logged_user_details = true;
+			}
+		}
 
 		if(inst.enabled) {
 			GameManager game_manager = player1.game_manager;
@@ -803,8 +1015,46 @@ public class Player1Console {
 
 			while(time_left > 0.0f && inst.current_cmd_index < inst.cmd_buf.elem_count) {
 				Cmd cmd = inst.cmd_buf.elems[inst.current_cmd_index];
+				bool done = false;
 
 				switch(cmd.type) {
+					case CmdType.NOOP: {
+						done = true;
+						break;
+					}
+
+					case CmdType.GO_TO: {
+						int next_index = cmd.next_index;
+						if(next_index > -1) {
+							inst.next_cmd_index = next_index;
+						}
+						else {
+							Assert.invalid_path();
+						}
+
+						done = true;
+						break;
+					}
+
+					case CmdType.YES_NO: {
+						int next_index = -1;
+						if(game_manager.get_key_down(KeyCode.Y)) {
+							next_index = cmd.next_index;
+							Assert.is_true(next_index > -1);
+						}
+						else if(game_manager.get_key_down(KeyCode.N)) {
+							next_index = cmd.next_index2;
+							Assert.is_true(next_index > -1);
+						}
+
+						if(next_index > -1) {
+							inst.next_cmd_index = next_index;
+							done = true;
+						}
+
+						break;
+					}
+
 					case CmdType.COMMIT_STR: {
 						inst.working_text_buffer += cmd.str;
 
@@ -812,35 +1062,37 @@ public class Player1Console {
 							Audio.play(game_manager.audio, Audio.Clip.CONSOLE_TYPING);
 						}
 
-						cmd.done = true;
+						done = true;
 						break;
 					}
 
 					case CmdType.PRINT_STR: {
-						cmd.time += time_left;
-						int chars_left = cmd.str.Length - cmd.str_it;
-						int chars_to_print = Mathf.Min((int)(cmd.time / CHARS_PER_SEC), chars_left);
-						cmd.time -= chars_to_print * CHARS_PER_SEC;
+						string str = cmd.str_id != UserStrId.NONE ? inst.user_str_table[(int)cmd.str_id] : cmd.str;
+
+						inst.current_cmd_time += time_left;
+						int chars_left = str.Length - inst.current_cmd_str_it;
+						int chars_to_print = Mathf.Min((int)(inst.current_cmd_time / CHARS_PER_SEC), chars_left);
+						inst.current_cmd_time -= chars_to_print * CHARS_PER_SEC;
 
 						for(int i = 0; i < chars_to_print; i++) {
-							inst.working_text_buffer += cmd.str[cmd.str_it++];
+							inst.working_text_buffer += str[inst.current_cmd_str_it++];
 						}
 
 						if(chars_to_print > 0) {
 							Audio.play(game_manager.audio, Audio.Clip.CONSOLE_TYPING);
 						}
 
-						if(cmd.str_it >= cmd.str.Length) {
-							time_left = cmd.time;
-							cmd.done = true;
+						if(inst.current_cmd_str_it >= str.Length) {
+							time_left = inst.current_cmd_time;
+							done = true;
 						}
 
 						inst.cursor_time = inst.last_cursor_time = 0.0f;
 						break;
 					}
 
-					case CmdType.INPUT_STR: {
-						string str = cmd.str;
+					case CmdType.USER_STR: {
+						string str = inst.current_cmd_str;
 
 						string input_str = game_manager.get_input_str();
 						if(input_str.Length > 0) {
@@ -859,29 +1111,33 @@ public class Player1Console {
 										if(str.Length > 0) {
 											inst.working_text_buffer += "\n";
 
-											cmd.done = true;
+											Assert.is_true(cmd.str_id != UserStrId.NONE);
+											inst.user_str_table[(int)cmd.str_id] = str;
+
+											done = true;
 											break;
-											// Debug.Log(str);
 										}
 									}
 									else {
 										if(str.Length < cmd.max_str_len) {
-											str += input_char;
-											if(cmd.hide_str) {
-												//TODO: Replace this with a better character??
-												inst.working_text_buffer += "*";
-											}
-											else {
-												inst.working_text_buffer += input_char;
-											}
+											if(!cmd.numeric_only || (input_char >= '0' && input_char <= '9')) {
+												str += input_char;
+												if(cmd.hide_str) {
+													//TODO: Replace this with a better character??
+													inst.working_text_buffer += "*";
+												}
+												else {
+													inst.working_text_buffer += input_char;
+												}
 
-											Audio.play(game_manager.audio, Audio.Clip.CONSOLE_TYPING);
+												Audio.play(game_manager.audio, Audio.Clip.CONSOLE_TYPING);
+											}
 										}
 									}
 								}
 							}
 
-							cmd.str = str;
+							inst.current_cmd_str = str;
 							inst.cursor_time = inst.last_cursor_time = 0.0f;
 						}
 
@@ -889,10 +1145,10 @@ public class Player1Console {
 					}
 
 					case CmdType.WAIT: {
-						cmd.time += time_left;
-						if(cmd.time >= cmd.duration) {
-							time_left = cmd.time - cmd.duration;
-							cmd.done = true;
+						inst.current_cmd_time += time_left;
+						if(inst.current_cmd_time >= cmd.duration) {
+							time_left = inst.current_cmd_time - cmd.duration;
+							done = true;
 						}
 
 						if(cmd.cursor_on) {
@@ -904,7 +1160,7 @@ public class Player1Console {
 
 					case CmdType.WAIT_KEY: {
 						if(game_manager.get_key_down(cmd.key)) {
-							cmd.done = true;
+							done = true;
 						}
 
 						break;
@@ -916,28 +1172,28 @@ public class Player1Console {
 							player1.audio_sources[1].Play();
 						}
 
-						cmd.done = true;
+						done = true;
 						break;
 					}
 
 					case CmdType.LOG_OFF: {
 						player1.StartCoroutine(player1.log_off());
 
-						cmd.done = true;
+						done = true;
 						break;
 					}
 
 					case CmdType.SWITCH_ON_DISPLAY: {
 						player1.StartCoroutine(FadeImageEffect.lerp_alpha(player1.camera_fade, 0.0f, DISPLAY_FADE_IN_DURATION));
 
-						cmd.done = true;
+						done = true;
 						break;
 					}
 
 					case CmdType.SWITCH_OFF_DISPLAY: {
 						player1.StartCoroutine(FadeImageEffect.lerp_alpha(player1.camera_fade, 1.0f, DISPLAY_FADE_OUT_DURATION));
 
-						cmd.done = true;
+						done = true;
 						break;
 					}
 
@@ -945,25 +1201,25 @@ public class Player1Console {
 						Player1Controller.Control control = player1.controls[(int)cmd.control_type];
 						control.enabled = true;
 
-						if(cmd.item == null) {
+						if(inst.current_cmd_item == null) {
 							//TODO: Actually parse the working buffer and push as many text meshes as needed!!
 							Item tail = get_tail_item(inst);
 							if(tail.type == ItemType.TEXT_MESH) {
 								tail.text_mesh.text = "";
 							}
 
-							cmd.item = push_loading_bar(inst);
+							inst.current_cmd_item = push_loading_bar(inst);
 							push_text_mesh(inst, "");
 						}
 
 						if(game_manager.get_key(control.key)) {
-							cmd.time += time_left;
+							inst.current_cmd_time += time_left;
 
-							set_loading_bar_progress(cmd.item, cmd.time / cmd.duration);
+							set_loading_bar_progress(inst.current_cmd_item, inst.current_cmd_time / cmd.duration);
 
-							if(cmd.time >= cmd.duration) {
-								time_left = cmd.time - cmd.duration;
-								cmd.done = true;
+							if(inst.current_cmd_time >= cmd.duration) {
+								time_left = inst.current_cmd_time - cmd.duration;
+								done = true;
 
 								for(int i = 0; i < player1.controls.Length; i++) {
 									player1.controls[i].enabled = false;
@@ -981,7 +1237,7 @@ public class Player1Console {
 							player1.controls[i].enabled = true;
 						}
 
-						cmd.done = true;
+						done = true;
 						break;
 					}
 
@@ -990,7 +1246,7 @@ public class Player1Console {
 						player1.marker_renderer.material.SetColor("_Temperature", Util.green);
 						player1.locked_target = game_manager.scenario.high_value_target;
 
-						cmd.done = true;
+						done = true;
 						break;
 					}
 
@@ -998,21 +1254,21 @@ public class Player1Console {
 						player1.marker_renderer.material.color = Util.red;
 						// player1.marker_renderer.material.SetColor("_Temperature", Util.red);
 
-						cmd.done = true;
+						done = true;
 						break;
 					}
 
 					case CmdType.LAUNCH_MISSILE: {
-						cmd.time += time_left;
-						if(cmd.time >= cmd.duration) {
-							time_left = cmd.time - cmd.duration;
-							cmd.done = true;
+						inst.current_cmd_time += time_left;
+						if(inst.current_cmd_time >= cmd.duration) {
+							time_left = inst.current_cmd_time - cmd.duration;
+							done = true;
 						}
 						else {
 							if(game_manager.get_key_down(cmd.key)) {
-								cmd.done = true;
+								done = true;
 
-								cmd.use_alt_next_cmd = true;
+								inst.next_cmd_index = cmd.next_index;
 							}
 						}
 
@@ -1020,57 +1276,27 @@ public class Player1Console {
 					}
 
 					case CmdType.FIRE_MISSILE: {
-						player1.StartCoroutine(player1.fire_missile_(cmd.index));
+						player1.StartCoroutine(player1.fire_missile_(cmd.num));
 
-						cmd.done = true;
-						break;
-					}
-
-					case CmdType.CONFIRM_DEATHS: {
-						cmd.time += time_left;
-						if(cmd.time >= cmd.duration) {
-							time_left = cmd.time - cmd.duration;
-							cmd.done = true;
-
-							inst.working_text_buffer += "\n";
-						}
-						else {
-							//TODO: Support multiple digit numbers!!
-							for(int i = 0; i < inst.number_key_values.Length; i++) {
-								KeyValue key_val = inst.number_key_values[i];
-								if(game_manager.get_key(key_val.key)) {
-									cmd.str += key_val.val.ToString();
-									break;
-								}
-							}
-
-							//TODO: Hit enter to confirm!!
-							if(cmd.str.Length > 0) {
-								cmd.done = true;
-
-								inst.working_text_buffer += cmd.str + "\n";
-								cmd.print_cmd.str = cmd.str;
-							}
-						}
-
+						done = true;
 						break;
 					}
 
 					default: {
 						Debug.Log("LOG: Cmd_" + cmd.type.ToString() + " not implemented!!");
 
-						cmd.done = true;
+						done = true;
 						break;
 					}
 				}
 
-				if(cmd.done) {
-					if(cmd.use_alt_next_cmd) {
-						inst.current_cmd_index = cmd.next_cmd_index;
-					}
-					else {
-						inst.current_cmd_index++;
-					}
+				if(done) {
+					inst.current_cmd_index = inst.next_cmd_index;
+					inst.next_cmd_index = inst.current_cmd_index + 1;
+					inst.current_cmd_time = 0.0f;
+					inst.current_cmd_str = "";
+					inst.current_cmd_str_it = 0;
+					inst.current_cmd_item = null;
 
 					inst.first_pass = true;
 				}

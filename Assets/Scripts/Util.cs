@@ -1,7 +1,21 @@
-﻿using UnityEngine;
+﻿
+using UnityEngine;
 using System.Collections;
+using System.Text;
 
 public static class Util {
+	public class KeyValue {
+		public KeyCode key;
+		public char val;
+
+		public static KeyValue new_inst(KeyCode key, char val) {
+			KeyValue key_val = new KeyValue();
+			key_val.key = key;
+			key_val.val = val;
+			return key_val;
+		}
+	}
+
 	public static float TAU = 6.283185307179586476925286766559f;
 
 	public static Color white_no_alpha = new Color(1.0f, 1.0f, 1.0f, 0.0f);
@@ -25,6 +39,30 @@ public static class Util {
 	public static YieldInstruction wait_for_500ms = new WaitForSeconds(0.5f);
 	public static YieldInstruction wait_for_1000ms = new WaitForSeconds(1.0f);
 	public static YieldInstruction wait_for_2000ms = new WaitForSeconds(2.0f);
+
+	public static KeyValue[] numeric_key_chars = new KeyValue[] {
+		KeyValue.new_inst(KeyCode.Keypad0, '0'),
+		KeyValue.new_inst(KeyCode.Keypad1, '1'),
+		KeyValue.new_inst(KeyCode.Keypad2, '2'),
+		KeyValue.new_inst(KeyCode.Keypad3, '3'),
+		KeyValue.new_inst(KeyCode.Keypad4, '4'),
+		KeyValue.new_inst(KeyCode.Keypad5, '5'),
+		KeyValue.new_inst(KeyCode.Keypad6, '6'),
+		KeyValue.new_inst(KeyCode.Keypad7, '7'),
+		KeyValue.new_inst(KeyCode.Keypad8, '8'),
+		KeyValue.new_inst(KeyCode.Keypad9, '9'),
+
+		KeyValue.new_inst(KeyCode.Alpha0, '0'),
+		KeyValue.new_inst(KeyCode.Alpha1, '1'),
+		KeyValue.new_inst(KeyCode.Alpha2, '2'),
+		KeyValue.new_inst(KeyCode.Alpha3, '3'),
+		KeyValue.new_inst(KeyCode.Alpha4, '4'),
+		KeyValue.new_inst(KeyCode.Alpha5, '5'),
+		KeyValue.new_inst(KeyCode.Alpha6, '6'),
+		KeyValue.new_inst(KeyCode.Alpha7, '7'),
+		KeyValue.new_inst(KeyCode.Alpha8, '8'),
+		KeyValue.new_inst(KeyCode.Alpha9, '9'),
+	};
 
 	public static Vector3 new_vec3(float x, float y, float z) {
 		return new Vector3(x, y, z);
@@ -57,6 +95,26 @@ public static class Util {
 
 		string str = r.ToString("X2") + g.ToString("X2") + b.ToString("X2");
 		return str;
+	}
+
+	public static string convert_to_unix_line_endings(string raw_str) {
+		StringBuilder string_builder = new StringBuilder();
+
+		for(int i = 0; i < raw_str.Length; i++) {
+			if(raw_str[i] == '\r') {
+				int j = i + 1;
+				if(j < (raw_str.Length - 1) && raw_str[j] == '\n') {
+					i++;
+				}
+
+				string_builder.Append('\n');
+			}
+			else {
+				string_builder.Append(raw_str[i]);
+			}
+		}
+
+		return string_builder.ToString();
 	}
 
 	public static KeyCode char_to_key_code(char char_) {

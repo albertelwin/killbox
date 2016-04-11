@@ -231,12 +231,6 @@ public static class Player1Util {
 							break;
 						}
 
-						case "delay": {
-							Assert.is_true(cmd.input_count == 1);
-							Player1Console.push_delay_cmd(cmd_buf);
-							break;
-						}
-
 						case "wait": {
 							Assert.is_true(cmd.input_count == 2);
 							Assert.is_true(cmd.inputs[1].type == ParsedCmdInputType.NUM);
@@ -246,6 +240,12 @@ public static class Player1Util {
 								Player1Console.push_wait_cmd(cmd_buf, wait_time);
 							}
 
+							break;
+						}
+
+						case "delay": {
+							Assert.is_true(cmd.input_count == 1);
+							Player1Console.push_delay_cmd(cmd_buf);
 							break;
 						}
 
@@ -262,22 +262,16 @@ public static class Player1Util {
 							break;
 						}
 
-						case "username": {
-							Assert.is_true(cmd.input_count == 1);
-							Player1Console.push_print_str_cmd(cmd_buf, "USERNAME: ");
-							Player1Console.push_user_str_cmd(cmd_buf, Player1Console.UserStrId.USERNAME, 16);
-							break;
-						}
-
-						case "password": {
-							Assert.is_true(cmd.input_count == 1);
-							Player1Console.push_print_str_cmd(cmd_buf, "PASSWORD: ");
-							Player1Console.push_user_str_cmd(cmd_buf, Player1Console.UserStrId.PASSWORD, 16, false, true);
-							break;
-						}
-
 						case "log_in": {
 							Assert.is_true(cmd.input_count == 1);
+
+							Player1Console.push_print_str_cmd(cmd_buf, "USERNAME: ");
+							Player1Console.push_user_str_cmd(cmd_buf, Player1Console.UserStrId.USERNAME, 16);
+							Player1Console.push_print_str_cmd(cmd_buf, "PASSWORD: ");
+							Player1Console.push_user_str_cmd(cmd_buf, Player1Console.UserStrId.PASSWORD, 16, false, true);
+
+							Player1Console.push_delay_cmd(cmd_buf);
+
 							Player1Console.push_cmd(cmd_buf, Player1Console.CmdType.LOG_IN);
 							break;
 						}
@@ -328,13 +322,8 @@ public static class Player1Util {
 						}
 
 						case "fire": {
-							Assert.is_true(cmd.input_count == 2);
-							Assert.is_true(cmd.inputs[1].type == ParsedCmdInputType.NUM);
-
-							int missile_index = (int)cmd.inputs[1].num;
-							Assert.is_true(missile_index >= 0 && missile_index <= 2);
-							Player1Console.push_fire_missile_cmd(cmd_buf, missile_index);
-
+							Assert.is_true(cmd.input_count == 1);
+							Player1Console.push_fire_missile_cmd(cmd_buf);
 							break;
 						}
 
@@ -532,7 +521,7 @@ public class Player1Console {
 
 	public static string CURSOR_STR = "\u2588";
 
-	public static float CHARS_PER_SEC = 0.03f;
+	public static float SECS_PER_CHAR = 0.03f;
 
 	public static float DISPLAY_FADE_IN_DURATION = 0.25f;
 	public static float DISPLAY_FADE_OUT_DURATION = 1.0f;
@@ -681,7 +670,7 @@ public class Player1Console {
 
 						push_commit_str_cmd(cmd_buf, substr);
 						if(tag.is_glyph) {
-							push_wait_cmd(cmd_buf, CHARS_PER_SEC);
+							push_wait_cmd(cmd_buf, SECS_PER_CHAR);
 						}
 					}
 				}
@@ -742,14 +731,11 @@ public class Player1Console {
 		push_delay_cmd(cmd_buf, "\n");
 	}
 
-	public static void push_fire_missile_cmd(CmdBuf cmd_buf, int id) {
+	public static void push_fire_missile_cmd(CmdBuf cmd_buf) {
 		push_print_str_cmd(cmd_buf, "\nREADYING MISSILE...\n");
 		push_delay_cmd(cmd_buf);
 		push_print_str_cmd(cmd_buf, "\nMISSILE LAUNCHED\n\n");
-
-		Cmd cmd = push_cmd(cmd_buf, CmdType.FIRE_MISSILE);
-		cmd.num = id;
-
+		push_cmd(cmd_buf, CmdType.FIRE_MISSILE);
 		//TODO: Temp!!
 		push_wait_cmd(cmd_buf, 11.0f);
 	}
@@ -908,7 +894,7 @@ public class Player1Console {
 
 		CmdBuf cmd_buf = inst.cmd_buf;
 		if(Settings.USE_PLAYER1_SCRIPT) {
-			Player1Util.parse_script(cmd_buf, "killbox_script");
+			Player1Util.parse_script(cmd_buf, "player1_script_");
 		}
 		else {
 			if(Settings.USE_TRANSITIONS) {
@@ -989,20 +975,19 @@ public class Player1Console {
 
 			push_print_str_cmd(cmd_buf, "PRESS \"M\" TO LAUNCH PRIMARY MISSILE\n");
 			push_wait_key_cmd(cmd_buf, KeyCode.M);
-			push_fire_missile_cmd(cmd_buf, 0);
+			push_fire_missile_cmd(cmd_buf);
 
 			push_print_str_cmd(cmd_buf, "PRESS \"M\" TO LAUNCH SECONDARY MISSILE\n");
-			{
-				Cmd cmd = push_cmd(cmd_buf, CmdType.LAUNCH_MISSILE);
-				cmd.key = KeyCode.M;
-				cmd.duration = 15.0f;
 
-				push_print_str_cmd(cmd_buf, "\nSWITCHING TO AUTO-PILOT...\n");
-				push_delay_cmd(cmd_buf);
+			Cmd fire2 = push_wait_key_cmd(cmd_buf, KeyCode.M, -1, 15.0f);
 
-				cmd.next_index = cmd_buf.elem_count;
-				push_fire_missile_cmd(cmd_buf, 1);
-			}
+			push_print_str_cmd(cmd_buf, "\nSWITCHING TO AUTO-PILOT...\n");
+			push_delay_cmd(cmd_buf);
+
+			fire2.next_index = cmd_buf.elem_count;
+			push_fire_missile_cmd(cmd_buf);
+
+			Debug.Log(fire2.duration + ", " + fire2.next_index.ToString());
 
 			if(!Settings.USE_DEATH_CONFIRM) {
 				push_wait_cmd(cmd_buf, 10.0f);
@@ -1106,8 +1091,8 @@ public class Player1Console {
 
 						inst.current_cmd_time += time_left;
 						int chars_left = str.Length - inst.current_cmd_str_it;
-						int chars_to_print = Mathf.Min((int)(inst.current_cmd_time / CHARS_PER_SEC), chars_left);
-						inst.current_cmd_time -= chars_to_print * CHARS_PER_SEC;
+						int chars_to_print = Mathf.Min((int)(inst.current_cmd_time / SECS_PER_CHAR), chars_left);
+						inst.current_cmd_time -= chars_to_print * SECS_PER_CHAR;
 
 						for(int i = 0; i < chars_to_print; i++) {
 							inst.working_text_buffer += str[inst.current_cmd_str_it++];
@@ -1194,6 +1179,10 @@ public class Player1Console {
 					}
 
 					case CmdType.WAIT_KEY: {
+						if(cmd.key == KeyCode.M) {
+							Debug.Log(inst.current_cmd_time.ToString() + ", " + cmd.duration + ", " + cmd.next_index);
+						}
+
 						inst.current_cmd_time += time_left;
 						if(inst.current_cmd_time >= cmd.duration) {
 							time_left = inst.current_cmd_time - cmd.duration;
@@ -1322,7 +1311,7 @@ public class Player1Console {
 					}
 
 					case CmdType.FIRE_MISSILE: {
-						player1.StartCoroutine(player1.fire_missile_(cmd.num));
+						player1.StartCoroutine(player1.fire_missile_());
 
 						done = true;
 						break;
@@ -1538,6 +1527,7 @@ public class Player1Controller : MonoBehaviour {
 	float zoom_speed = 12.0f;
 
 	MissileController missile_controller;
+	int missile_index;
 
 	Camera hud_camera = null;
 	TextMesh hud_acft_text = null;
@@ -1648,6 +1638,7 @@ public class Player1Controller : MonoBehaviour {
 
 		missile_controller = main_camera.transform.Find("Missile").GetComponent<MissileController>();
 		missile_controller.player1 = this;
+		missile_index = 0;
 
 		ui_camera = main_camera.transform.Find("UiCamera").GetComponent<Camera>();
 		ui_camera.transform.parent = null;
@@ -1714,7 +1705,10 @@ public class Player1Controller : MonoBehaviour {
 		StartCoroutine(start_console_delayed());
 	}
 
-	public IEnumerator fire_missile_(int index) {
+	public IEnumerator fire_missile_() {
+		Assert.is_true(missile_index < 2);
+		int index = missile_index++;
+
 		firing_missile = true;
 		StartCoroutine(fire_missile());
 
@@ -1723,6 +1717,7 @@ public class Player1Controller : MonoBehaviour {
 			indicator.lines[i].material.color = Color.red;
 			// indicator.lines[i].material.SetColor("_Temperature", Color.red);
 		}
+
 
 		float flash_duration = 0.25f;
 		float inv_flash_duration = 1.0f / flash_duration;

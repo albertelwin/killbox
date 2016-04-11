@@ -1,6 +1,7 @@
 
 /* TODO ✓
 
+Camera smoothstep t -> 3t² - 2t³
 Optimise pilot view (clear -> render camera feeds -> render ui)
 Dynamic pilot audio
 
@@ -214,10 +215,10 @@ public class GameManager : MonoBehaviour {
 				}
 			}
 
-			for(int i = 0; i < Util.numeric_key_values; i++) {
-				Util.KeyValue key_val = Util.numeric_key_values[i];
+			for(int i = 0; i < Util.numeric_key_chars.Length; i++) {
+				Util.KeyValue key_val = Util.numeric_key_chars[i];
 				if(Input.GetKeyDown(key_val.key)) {
-					input_str += key_val.val.ToString();
+					input_str += key_val.val;
 				}
 			}
 

@@ -11,16 +11,15 @@
 
 <tw-story></tw-story>
 
-<tw-storydata name="killbox_script" startnode="1" creator="Twine" creator-version="2.0.11" ifid="9728C063-616F-455B-83BA-EBAD6402EA78" format="Harlowe" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css"></style><script role="script" id="twine-user-script" type="text/twine-javascript"></script><tw-passagedata pid="1" name="black" tags="" position="590,93.33333333333334">CMD(wait, 4.0)
-CMD(go_to, [[log_in]])</tw-passagedata>
-<tw-passagedata pid="2" name="log_in" tags="" position="253.33333333333334,296.6666666666667">CMD(username)
-CMD(password)
-CMD(delay)
-CMD(log_in)
-CMD(go_to, [[boot]])</tw-passagedata>
-<tw-passagedata pid="3" name="boot" tags="" position="235,615">
+<tw-storydata name="killbox_script" startnode="1" creator="Twine" creator-version="2.0.11" ifid="9728C063-616F-455B-83BA-EBAD6402EA78" format="Harlowe" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css"></style><script role="script" id="twine-user-script" type="text/twine-javascript"></script><tw-passagedata pid="1" name="boot" tags="" position="676.6666666666667,258.33333333333337">KIL(wait, 4.0)
+KIL(go_to, [[log_in]])</tw-passagedata>
+<tw-passagedata pid="2" name="log_in" tags="" position="645,686.6666666666667">KIL(username)
+KIL(password)
+KIL(delay)
+KIL(log_in)
+
 CREECH AIRBASE 432D
-CMD(wait, 2.0)
+KIL(wait, 2.0)
 
 N 36°35′32″
 W 115°40′00″
@@ -29,30 +28,35 @@ W 115°40′00″
 
 2443872
 
-CMD(wait, 3.0)
+KIL(wait, 3.0)
 
 J09NV0399
-CMD(delay)
+KIL(delay)
 
-CMD(wait, 4.5)
-CMD(go_to, [[locate]])</tw-passagedata>
-<tw-passagedata pid="4" name="locate" tags="" position="486.6666666666667,910">LOCATE UAV YES/NO
-CMD(yes_no, [[search]], [[reboot]])</tw-passagedata>
-<tw-passagedata pid="5" name="search" tags="" position="965,730">
+KIL(wait, 4.5)
+KIL(go_to, [[locate]])</tw-passagedata>
+<tw-passagedata pid="3" name="locate" tags="" position="421.6666666666667,1101.6666666666667">PRESS &quot;U&quot; TO LOCATE UAV
+KIL(wait_key, U, [[search]], 5.0)
+WARNING: TIME OUT IN 5.0
+KIL(wait_key, U, [[search]], 5.0)
+ERROR: TIMED OUT
+KIL(delay)
+KIL(go_to, [[reboot]])</tw-passagedata>
+<tw-passagedata pid="4" name="search" tags="" position="1046.6666666666667,891.6666666666667">
 SEARCHING...
-CMD(delay)
+KIL(delay)
 
 UAV LOCATED OVER WAZIRISTAN, PAKISTAN
 
 CONNECTING VIA REMOTE SYSTEM...
-CMD(delay)
+KIL(delay)
 
 CONNECTED TO UAV PREDATOR DRONE
 
-CMD(display_on)
+KIL(display_on)
 RUNNING SYSTEMS CHECK...
-CMD(delay)</tw-passagedata>
-<tw-passagedata pid="6" name="reboot" tags="" position="891.6666666666667,143.33333333333334">
+KIL(delay)</tw-passagedata>
+<tw-passagedata pid="5" name="reboot" tags="" position="156.66666666666669,486.6666666666667">
 
 
 
@@ -65,15 +69,6 @@ CMD(delay)</tw-passagedata>
 
 
 
-
-
-
-
-xÚ¥kÛ
-6òû
-
-^Ñ
-õÈvï
 
 
 
@@ -82,15 +77,6 @@ xÚ¥kÛ
 HÑ
 ¶
 vÀ!È’
-
-
-
-
-
-þŠýVˆ
-zP’|(6
-iÒ¦
--.½
 
 
 
@@ -103,44 +89,26 @@ d‹
 
 
 
-ÝÞï&amp;2   Éj_
-ý¼þîî
+ÝÞï&amp;  Éj_
+ý¼þî
 
 Ë8_
-
-Ñj±
-Ìâ8x
-Ã›
-_q¼  ÿð
 
 Ï
 ¼ ú
 •
-Û»¿yÿ
+Û»¿ÿ
 
 
 
 
-
-
-
-
-î÷óñÍ¯‹?
-Ÿ7¿ý
-Ö·Ð&gt; Õæ
-ek
-
-×7oþ
-s¸jNî4M
-£
-p
 
 
 
 
 •
-Ÿ  &#39;«$Iô²ÓÀ
-Î§±
+Ÿ &#39;«$
+ô²ÓÀ
 aë†åÁ~…A
 §
 ‹A÷Oí
@@ -173,15 +141,7 @@ I
 
 
 
-
-
-
-
-
-
-
-
-CMD(go_to, [[black]])</tw-passagedata>
+KIL(go_to, [[boot]])</tw-passagedata>
 </tw-storydata>
 
 

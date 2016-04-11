@@ -27,7 +27,7 @@ public static class Player1Util {
 		public int input_count;
 	}
 
-	public static string CMD_START_TAG = "CMD(";
+	public static string CMD_START_TAG = "KIL(";
 	public static string CMD_END_TAG = ")";
 
 	public static bool find_match(Parser parser, string match) {
@@ -79,10 +79,6 @@ public static class Player1Util {
 		}
 
 		return str;
-	}
-
-	public static string extract_link_name(string str) {
-		return str.Substring(2, str.Length - 4);
 	}
 
 	public static bool is_new_line(char char_) {
@@ -137,12 +133,14 @@ public static class Player1Util {
 		return cmd;
 	}
 
-	public static int find_cmd_index(Player1Console.CmdBuf cmd_buf, Player1Console.CmdType type, string str) {
+	public static int find_branch_cmd_index(Player1Console.CmdBuf cmd_buf, string str) {
+		Assert.is_true(str != null && str != "");
+
 		int index = -1;
 
 		for(int i = 0; i < cmd_buf.elem_count; i++) {
 			Player1Console.Cmd cmd = cmd_buf.elems[i];
-			if(cmd.type == type && cmd.str == str) {
+			if(cmd.type == Player1Console.CmdType.NOOP && cmd.str == str) {
 				index = i;
 				break;
 			}
@@ -151,11 +149,25 @@ public static class Player1Util {
 		return index;
 	}
 
+	public static KeyCode get_cmd_input_key(ParsedCmdInput input) {
+		Assert.is_true(input.str.Length == 1);
+
+		KeyCode key = Util.char_to_key_code(input.str[0]);
+		Assert.is_true(key != KeyCode.None);
+
+		return key;
+	}
+
+	public static string get_cmd_input_branch(ParsedCmdInput input) {
+		Assert.is_true(input.type == ParsedCmdInputType.STR);
+		return input.str.Substring(2, input.str.Length - 4);
+	}
+
 	public static void parse_script(Player1Console.CmdBuf cmd_buf, string script_path) {
 		TextAsset script_asset = (TextAsset)Resources.Load(script_path);
 
 		Parser parser = new Parser();
-		parser.str = Util.convert_to_unix_line_endings(script_asset.text);
+		parser.str = Util.to_unix_str(script_asset.text);
 		parser.at = 0;
 		parser.len = parser.str.Length;
 
@@ -204,8 +216,7 @@ public static class Player1Util {
 							Assert.is_true(cmd.input_count == 2);
 							Assert.is_true(cmd.inputs[1].type == ParsedCmdInputType.STR);
 
-							string go_to_name = extract_link_name(cmd.inputs[1].str);
-							Player1Console.push_go_to_cmd(cmd_buf, go_to_name);
+							Player1Console.push_go_to_cmd(cmd_buf, get_cmd_input_branch(cmd.inputs[1]));
 
 							break;
 						}
@@ -215,7 +226,7 @@ public static class Player1Util {
 							Assert.is_true(cmd.inputs[1].type == ParsedCmdInputType.STR);
 							Assert.is_true(cmd.inputs[2].type == ParsedCmdInputType.STR);
 
-							Player1Console.push_yes_no_cmd(cmd_buf, extract_link_name(cmd.inputs[1].str), extract_link_name(cmd.inputs[2].str));
+							Player1Console.push_yes_no_cmd(cmd_buf, get_cmd_input_branch(cmd.inputs[1]), get_cmd_input_branch(cmd.inputs[2]));
 
 							break;
 						}
@@ -239,15 +250,14 @@ public static class Player1Util {
 						}
 
 						case "wait_key": {
-							Assert.is_true(cmd.input_count == 2);
+							Assert.is_true(cmd.input_count >= 2 && cmd.input_count <= 4);
 
-							string key_str = cmd.inputs[1].str;
-							Assert.is_true(key_str.Length == 1);
+							KeyCode key = get_cmd_input_key(cmd.inputs[1]);
+							string branch = cmd.input_count >= 3 ? get_cmd_input_branch(cmd.inputs[2]) : "";
+							float timeout = cmd.input_count >= 4 ? cmd.inputs[3].num : Mathf.Infinity;
 
-							KeyCode key = Util.char_to_key_code(key_str[0]);
-							Assert.is_true(key != KeyCode.None);
-
-							Player1Console.push_wait_key_cmd(cmd_buf, key);
+							Player1Console.Cmd pushed_cmd = Player1Console.push_wait_key_cmd(cmd_buf, key, -1, timeout);
+							pushed_cmd.str = branch;
 
 							break;
 						}
@@ -356,22 +366,38 @@ public static class Player1Util {
 			if(print_len > 0) {
 				Player1Console.push_print_str_cmd(cmd_buf, parser.str.Substring(print_start, print_len));
 			}
+
+			//NOTE: We should never reach this!!
+			Player1Console.push_wait_cmd(cmd_buf, Mathf.Infinity);
 		}
 
 		//TODO: Use a separate table for this to avoid looping over the entire cmd buf!!
 		for(int i = 0; i < cmd_buf.elem_count; i++) {
 			Player1Console.Cmd cmd = cmd_buf.elems[i];
-			if(cmd.type == Player1Console.CmdType.GO_TO && cmd.next_index < 0) {
-				Assert.is_true(cmd.str != null && cmd.str != "");
 
-				cmd.next_index = find_cmd_index(cmd_buf, Player1Console.CmdType.NOOP, cmd.str);
-				Assert.is_true(cmd.next_index > -1);
-			}
-			else if(cmd.type == Player1Console.CmdType.YES_NO) {
-				Assert.is_true(cmd.str != null && cmd.str != "" && cmd.str2 != null && cmd.str2 != "");
+			switch(cmd.type) {
+				case Player1Console.CmdType.GO_TO: {
+					if(cmd.next_index < 0) {
+						cmd.next_index = find_branch_cmd_index(cmd_buf, cmd.str);
+						Assert.is_true(cmd.next_index > -1);
+					}
 
-				cmd.next_index = find_cmd_index(cmd_buf, Player1Console.CmdType.NOOP, cmd.str);
-				cmd.next_index2 = find_cmd_index(cmd_buf, Player1Console.CmdType.NOOP, cmd.str2);
+					break;
+				}
+
+				case Player1Console.CmdType.YES_NO: {
+					cmd.next_index = find_branch_cmd_index(cmd_buf, cmd.str);
+					cmd.next_index2 = find_branch_cmd_index(cmd_buf, cmd.str2);
+					break;
+				}
+
+				case Player1Console.CmdType.WAIT_KEY: {
+					if(cmd.str != "") {
+						cmd.next_index = find_branch_cmd_index(cmd_buf, cmd.str);
+					}
+
+					break;
+				}
 			}
 		}
 	}
@@ -416,6 +442,7 @@ public class Player1Console {
 
 	public enum CmdType {
 		NOOP,
+
 		GO_TO,
 		YES_NO,
 
@@ -425,6 +452,7 @@ public class Player1Console {
 
 		WAIT,
 		WAIT_KEY,
+
 		TUTORIAL_KEY,
 
 		LOG_IN,
@@ -512,6 +540,8 @@ public class Player1Console {
 	public Transform transform;
 	public Renderer renderer;
 	public bool enabled;
+
+	public float width;
 
 	public string working_text_buffer;
 
@@ -681,9 +711,12 @@ public class Player1Console {
 		cmd.duration = time;
 	}
 
-	public static void push_wait_key_cmd(CmdBuf cmd_buf, KeyCode key) {
+	public static Cmd push_wait_key_cmd(CmdBuf cmd_buf, KeyCode key, int index = -1, float timeout = Mathf.Infinity) {
 		Cmd cmd = push_cmd(cmd_buf, CmdType.WAIT_KEY);
 		cmd.key = key;
+		cmd.duration = timeout;
+		cmd.next_index = index;
+		return cmd;
 	}
 
 	public static void push_delay_cmd(CmdBuf cmd_buf, string str = ".\n") {
@@ -842,6 +875,8 @@ public class Player1Console {
 		inst.renderer = transform.GetComponent<Renderer>();
 		inst.enabled = true;
 
+		inst.width = 0.28125f * ((float)Screen.width / (float)Screen.height);
+
 		inst.working_text_buffer = "";
 
 		inst.text_mesh_prefab = ((GameObject)Resources.Load("TextMeshPrefab")).transform;
@@ -938,7 +973,7 @@ public class Player1Console {
 			}
 
 			if(Settings.USE_TRANSITIONS) {
-				push_wait_cmd(cmd_buf, 10.0f);
+				push_wait_cmd(cmd_buf, 20.0f);
 			}
 
 			push_cmd(cmd_buf, CmdType.ACQUIRE_TARGET);
@@ -1159,8 +1194,19 @@ public class Player1Console {
 					}
 
 					case CmdType.WAIT_KEY: {
-						if(game_manager.get_key_down(cmd.key)) {
+						inst.current_cmd_time += time_left;
+						if(inst.current_cmd_time >= cmd.duration) {
+							time_left = inst.current_cmd_time - cmd.duration;
 							done = true;
+						}
+						else {
+							if(game_manager.get_key_down(cmd.key)) {
+								if(cmd.next_index > -1) {
+									inst.next_cmd_index = cmd.next_index;
+								}
+
+								done = true;
+							}
 						}
 
 						break;
@@ -1309,6 +1355,7 @@ public class Player1Console {
 				Item tail_item = get_tail_item(inst);
 
 				string working_buffer = inst.working_text_buffer;
+
 				for(int i = 0; i < working_buffer.Length; i++) {
 					char char_ = working_buffer[i];
 
@@ -1317,6 +1364,7 @@ public class Player1Console {
 						tail_item = push_text_mesh(inst, "");
 
 						working_buffer = working_buffer.Substring(i + 1);
+						i = -1;
 					}
 					else {
 						tail_item.text_mesh.text = working_buffer.Substring(0, i);
@@ -1324,7 +1372,7 @@ public class Player1Console {
 						Renderer renderer = tail_item.text_mesh.GetComponent<Renderer>();
 						float width = renderer.bounds.size.x;
 
-						if(width >= 0.5f) {
+						if(width >= inst.width) {
 							int word_start_index = 0;
 							for(int j = i - 1; j >= 0; j--) {
 								if(working_buffer[j] == ' ') {
@@ -1338,6 +1386,7 @@ public class Player1Console {
 								tail_item = push_text_mesh(inst, "");
 
 								working_buffer = working_buffer.Substring(word_start_index + 1);
+								i = -1;
 							}
 						}
 					}

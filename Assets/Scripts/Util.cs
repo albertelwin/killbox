@@ -97,10 +97,27 @@ public static class Util {
 		return str;
 	}
 
-	public static string convert_to_unix_line_endings(string raw_str) {
+	public static string to_unix_str(string raw_str) {
 		StringBuilder string_builder = new StringBuilder();
 
 		for(int i = 0; i < raw_str.Length; i++) {
+			int remaining = raw_str.Length - (i + 1);
+
+			if(raw_str[i] == '&') {
+				if(remaining >= 5 && raw_str[i + 1] == 'q' && raw_str[i + 2] == 'u' && raw_str[i + 3] == 'o' && raw_str[i + 4] == 't' && raw_str[i + 5] == ';') {
+					i += 6;
+					string_builder.Append('\"');
+				}
+				else if(remaining >= 4 && raw_str[i + 1] == 'a' && raw_str[i + 2] == 'm' && raw_str[i + 3] == 'p' && raw_str[i + 4] == ';') {
+					i += 5;
+					string_builder.Append('&');
+				}
+				else if(remaining >= 4 && raw_str[i + 1] == '#' && raw_str[i + 2] == '3' && raw_str[i + 3] == '9' && raw_str[i + 4] == ';') {
+					i += 5;
+					string_builder.Append('#');
+				}
+			}
+
 			if(raw_str[i] == '\r') {
 				int j = i + 1;
 				if(j < (raw_str.Length - 1) && raw_str[j] == '\n') {
@@ -120,13 +137,15 @@ public static class Util {
 	public static KeyCode char_to_key_code(char char_) {
 		KeyCode key = KeyCode.None;
 
+		//TODO: Support more keys??
 		if(char_ >= 'A' && char_ <= 'Z') {
-			int key_int = (int)KeyCode.A + ((int)char_ - 'A');
-			key = (KeyCode)key_int;
+			key = (KeyCode)((int)KeyCode.A + ((int)char_ - 'A'));
 		}
 		else if(char_ >= 'a' && char_ <= 'z') {
-			int key_int = (int)KeyCode.A + ((int)char_ - 'a');
-			key = (KeyCode)key_int;
+			key = (KeyCode)((int)KeyCode.A + ((int)char_ - 'a'));
+		}
+		else if(char_ >= '0' && char_ <= '9') {
+			key = (KeyCode)((int)KeyCode.Alpha0 + ((int)char_ - '0'));
 		}
 
 		return key;

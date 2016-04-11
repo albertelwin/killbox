@@ -12,6 +12,7 @@ public class MotionPathNode : MonoBehaviour {
 	public bool stop = false;
 	public bool stop_forever = false;
 	public float stop_time = 1.0f;
+	public MotionPathAnimationType stop_animation = MotionPathAnimationType.IDLE;
 
 #if UNITY_EDITOR
 	public void OnEnable() {

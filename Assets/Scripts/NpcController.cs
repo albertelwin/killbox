@@ -22,7 +22,7 @@ public class NpcController : MonoBehaviour {
 	public MotionPathController motion_path;
 
 	Vector3 initial_pos;
-	
+
 	[System.NonSerialized] public int color_index;
 
 	float activation_dist;
@@ -54,8 +54,15 @@ public class NpcController : MonoBehaviour {
 		Transform anim_transform = transform.Find("Animation");
 		if(anim_transform != null) {
 			anim = anim_transform.GetComponent<Animation>();
-			//TODO: Make sure this is the right child??
-			anim_renderer = anim_transform.GetChild(0).GetComponent<SkinnedMeshRenderer>();
+
+			for(int i = 0; i < anim_transform.childCount; i++) {
+				anim_renderer = anim_transform.GetChild(i).GetComponent<SkinnedMeshRenderer>();
+				if(anim_renderer != null) {
+					break;
+				}
+			}
+
+			Assert.is_true(anim_renderer != null);
 			main_renderer = anim_renderer;
 		}
 		else {
@@ -85,8 +92,8 @@ public class NpcController : MonoBehaviour {
 		if(anim != null) {
 			anim.gameObject.SetActive(true);
 
-			anim["Take 001"].time = Random.Range(0.0f, anim["Take 001"].length);
-			anim.Play();
+			// anim["Take 001"].time = Random.Range(0.0f, anim["Take 001"].length);
+			// anim.Play();
 
 			renderer_.enabled = false;
 		}
@@ -100,6 +107,35 @@ public class NpcController : MonoBehaviour {
 		if(path_agent != null) {
 			Transform player2 = game_manager.player2_inst != null ? game_manager.player2_inst.transform : null;
 			MotionPath.move_agent(path_agent, Time.deltaTime, player2, game_manager.first_missile_hit);
+
+			if(anim != null) {
+				if(path_agent.started) {
+					anim.CrossFade("moving");
+				}
+				else if(path_agent.stopped && path_agent.prev_node != null) {
+					string next_anim = "idle";
+					switch(path_agent.prev_node.stop_animation) {
+						case MotionPathAnimationType.IDLE: {
+							next_anim = "idle";
+							break;
+						}
+
+						case MotionPathAnimationType.MOVING: {
+							next_anim = "moving";
+							break;
+						}
+
+						case MotionPathAnimationType.ACTION: {
+							next_anim = "action";
+							break;
+						}
+					}
+
+					if(anim[next_anim] != null) {
+						anim.CrossFade(next_anim);
+					}
+				}
+			}
 
 			if(path_agent.entered_player_radius) {
 				color_index++;
@@ -121,7 +157,7 @@ public class NpcController : MonoBehaviour {
 			if(game_manager.player_type == PlayerType.PLAYER2 && game_manager.first_missile_hit == false) {
 				Vector3 closest_point = collider_.ClosestPointOnBounds(player2.position);
 				float distance_to_player = Vector3.Distance(closest_point, player2.position);
-				
+
 				if(!activated && distance_to_player < activation_dist) {
 					audio_source.clip = Audio.get_random_clip(game_manager.audio, Audio.Clip.NPC);
 					audio_source.Play();

@@ -2,14 +2,14 @@
 <tw-storydata name="killbox" startnode="1">
 
 <tw-passagedata pid="1" name="script">
-CMD(wait, 4.0)
-CMD(username)
-CMD(password)
-CMD(delay)
-CMD(log_in)
+KIL(wait, 4.0)
+KIL(username)
+KIL(password)
+KIL(delay)
+KIL(log_in)
 
 CREECH AIRBASE 432D
-CMD(wait, 2.0)
+KIL(wait, 2.0)
 
 N 36°35′32″
 W 115°40′00″
@@ -18,57 +18,57 @@ W 115°40′00″
 
 2443872
 
-CMD(wait, 3.0)
+KIL(wait, 3.0)
 
 J09NV0399
-CMD(delay)
+KIL(delay)
 
-CMD(wait, 4.5)
+KIL(wait, 4.5)
 PRESS "U" TO LOCATE UAV
-CMD(wait_key, U)
+KIL(wait_key, U)
 
 SEARCHING...
-CMD(delay)
+KIL(delay)
 
 UAV LOCATED OVER WAZIRISTAN, PAKISTAN
 
 CONNECTING VIA REMOTE SYSTEM...
-CMD(delay)
+KIL(delay)
 
 CONNECTED TO UAV PREDATOR DRONE
 
-CMD(display_on)
+KIL(display_on)
 RUNNING SYSTEMS CHECK...
-CMD(delay)
+KIL(delay)
 
 
-CMD(tutorial)
+KIL(tutorial)
 ALL SYSTEMS OPERATIONAL
 
-CMD(wait, 10.0)
-CMD(acquire)
+KIL(wait, 10.0)
+KIL(acquire)
 TARGET ACQUIRED
 
 PRESS "T" TO CONFIRM TARGET
-CMD(wait_key, T)
+KIL(wait_key, T)
 
 LOCKING ON...
-CMD(delay)
+KIL(delay)
 
 TARGET LOCKED
-CMD(lock)
+KIL(lock)
 
 PRESS "M" TO LAUNCH PRIMARY MISSILE
-CMD(wait_key, M)
-CMD(fire, 0)
+KIL(wait_key, M)
+KIL(fire, 0)
 PRESS "M" TO LAUNCH SECONDARY MISSILE
-CMD(wait_key, M)
-CMD(fire, 1)
-CMD(wait, 10.0)
-CMD(display_off)
-CMD(wait, 2.0)
-CMD(log_off)
-CMD(wait, 1.0)
+KIL(wait_key, M)
+KIL(fire, 1)
+KIL(wait, 10.0)
+KIL(display_off)
+KIL(wait, 2.0)
+KIL(log_off)
+KIL(wait, 1.0)
 </tw-passagedata>
 
 </tw-storydata>

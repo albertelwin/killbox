@@ -5,6 +5,12 @@ using UnityEditor;
 #endif
 using System.Collections;
 
+public enum MotionPathAnimationType {
+	IDLE,
+	MOVING,
+	ACTION,
+}
+
 public class MotionPathAgent {
 	public Transform transform;
 	public NavMeshAgent nav;
@@ -17,6 +23,9 @@ public class MotionPathAgent {
 	public Vector3 target_pos;
 	public bool reversed;
 	public float stop_time;
+
+	public bool stopped;
+	public bool started;
 
 	public bool entered_player_radius;
 	public bool in_player_radius;
@@ -110,15 +119,23 @@ public class MotionPath {
 
 	public static void move_agent(MotionPathAgent agent, float dt, Transform player2, bool first_hit) {
 		agent.entered_player_radius = false;
-		agent.stop_time -= dt;
-		if(agent.stop_time < 0.0f) {
-			agent.stop_time = 0.0f;
+
+		agent.stopped = false;
+		agent.started = false;
+
+		if(agent.stop_time > 0.0f) {
+			agent.stop_time -= dt;
+			if(agent.stop_time < 0.0f) {
+				agent.stop_time = 0.0f;
+				agent.started = true;
+			}
 		}
 
 		if(agent.nav.enabled && !first_hit) {
 			if(!agent.node) {
 				agent.saved_node_index = MotionPath.wrap_node_index(agent.path, agent.saved_node_index);
 				agent.node = MotionPath.get_node(agent.path, agent.saved_node_index, agent.reversed);
+				agent.started = true;
 			}
 			else {
 				bool should_reverse = false;
@@ -142,6 +159,9 @@ public class MotionPath {
 				if(agent.nav.remainingDistance <= min_dist) {
 					if(agent.node.stop) {
 						agent.stop_time = agent.node.stop_time;
+						if(agent.stop_time > 0.0f) {
+							agent.stopped = true;
+						}
 					}
 
 					MotionPath.set_agent_next_node(agent, agent.node.flip_direction);
@@ -165,7 +185,7 @@ public class MotionPath {
 				else {
 					if(agent.prev_node.stop_forever || agent.stop_time > 0.0f) {
 						speed_modifier = 0.0f;
-					}					
+					}
 				}
 			}
 
@@ -219,7 +239,7 @@ public class MotionPathController : MonoBehaviour {
 			Gizmos.DrawLine(p0, p4);
 			Gizmos.DrawLine(p1, p4);
 			Gizmos.DrawLine(p2, p4);
-			Gizmos.DrawLine(p3, p4);			
+			Gizmos.DrawLine(p3, p4);
 		}
 	}
 
@@ -264,7 +284,7 @@ public class MotionPathController : MonoBehaviour {
 				}
 
 				draw_arrow_gizmo(pos, next_pos, gizmo_scale);
-			}			
+			}
 		}
 	}
 

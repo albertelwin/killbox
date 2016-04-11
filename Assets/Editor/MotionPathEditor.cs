@@ -457,6 +457,7 @@ public class MotionPathNodeInspector : Editor {
 	public SerializedProperty stop;
 	public SerializedProperty stop_forever;
 	public SerializedProperty stop_time;
+	public SerializedProperty stop_animation;
 
 	public void OnEnable() {
 		override_speed = serializedObject.FindProperty("override_speed");
@@ -467,6 +468,7 @@ public class MotionPathNodeInspector : Editor {
 		stop = serializedObject.FindProperty("stop");
 		stop_forever = serializedObject.FindProperty("stop_forever");
 		stop_time = serializedObject.FindProperty("stop_time");
+		stop_animation = serializedObject.FindProperty("stop_animation");
 	}
 
 	public override void OnInspectorGUI() {
@@ -489,6 +491,8 @@ public class MotionPathNodeInspector : Editor {
 			if(!stop_forever.boolValue) {
 				EditorGUILayout.PropertyField(stop_time, new GUIContent("  Time"));
 			}
+
+			EditorGUILayout.PropertyField(stop_animation, new GUIContent("  Animation"));
 		}
 
 		MotionPathController path = node.transform.parent != null ? node.transform.parent.GetComponent<MotionPathController>() : null;

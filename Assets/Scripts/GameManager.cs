@@ -932,10 +932,6 @@ public class GameManager : MonoBehaviour {
 	}
 
 	void Awake() {
-#if ASSERT_MODE
-		Debug.Log("ASSERT_MODE");
-#endif
-
 #if !UNITY_EDITOR
 		//TODO: Make sure these are always in sync!!
 		if(Settings.QUALITY_LEVEL_SETTINGS) {

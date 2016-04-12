@@ -163,13 +163,16 @@ public static class Player1Util {
 		return input.str.Substring(2, input.str.Length - 4);
 	}
 
-	public static void parse_script(Player1Console.CmdBuf cmd_buf, string script_path) {
+	public static int parse_script(Player1Console.CmdBuf cmd_buf, string script_path) {
 		TextAsset script_asset = (TextAsset)Resources.Load(script_path);
 
 		Parser parser = new Parser();
 		parser.str = Util.to_unix_str(script_asset.text);
 		parser.at = 0;
 		parser.len = parser.str.Length;
+
+		require_match(parser, "<tw-storydata");
+		int start_passage = int.Parse(extract_str_match(parser, "startnode=\"", "\""));
 
 		while(find_match(parser, "<tw-passagedata")) {
 			string passage_id = extract_str_match(parser, "pid=\"", "\"");
@@ -179,6 +182,7 @@ public static class Player1Util {
 
 			Player1Console.Cmd passage_cmd = Player1Console.push_cmd(cmd_buf, Player1Console.CmdType.NOOP);
 			passage_cmd.str = passage_name;
+			passage_cmd.num = int.Parse(passage_id);
 
 			Parser passage_parser = new Parser();
 			passage_parser.str = parser.str;
@@ -327,6 +331,15 @@ public static class Player1Util {
 							break;
 						}
 
+						case "death_count": {
+							Assert.is_true(cmd.input_count == 1);
+
+							Player1Console.push_print_str_cmd(cmd_buf, "\nENTER NUMBER OF TARGETS NEUTRALISED: ");
+							Player1Console.push_confirm_deaths_cmd(cmd_buf);
+
+							break;
+						}
+
 						default: {
 							Debug.Log("ERROR: Invalid cmd: " + CMD_START_TAG + cmd_str + CMD_END_TAG);
 							break;
@@ -389,6 +402,17 @@ public static class Player1Util {
 				}
 			}
 		}
+
+		int start_index = 0;
+		for(int i = 0; i < cmd_buf.elem_count; i++) {
+			Player1Console.Cmd cmd = cmd_buf.elems[i];
+			if(cmd.type == Player1Console.CmdType.NOOP && cmd.num == start_passage) {
+				start_index = cmd.index;
+				break;
+			}
+		}
+
+		return start_index;
 	}
 
 	public static Transform new_quad(Transform parent, string layer, Vector3 pos, Vector3 scale, Material material) {
@@ -455,7 +479,6 @@ public class Player1Console {
 		ACQUIRE_TARGET,
 		LOCK_TARGET,
 
-		LAUNCH_MISSILE,
 		FIRE_MISSILE,
 	}
 
@@ -554,10 +577,11 @@ public class Player1Console {
 	public string current_cmd_str;
 	public int current_cmd_str_it;
 	public Item current_cmd_item;
-	public bool first_pass;
 
 	public string[] user_str_table;
 	public bool logged_user_details;
+
+	public static int MAX_CMD_COUNT = 512;
 
 	public static CmdBuf new_cmd_buf(int capacity) {
 		CmdBuf buf = new CmdBuf();
@@ -876,134 +900,20 @@ public class Player1Console {
 		inst.cursor_time = 0.0f;
 		inst.last_cursor_time = -0.5f;
 
-		inst.cmd_buf = new_cmd_buf(512);
-
-		inst.current_cmd_index = 0;
+		inst.cmd_buf = new_cmd_buf(MAX_CMD_COUNT);
+		inst.current_cmd_index = Player1Util.parse_script(inst.cmd_buf, "killbox_script");
 		inst.next_cmd_index = inst.current_cmd_index + 1;
+
 		inst.current_cmd_time = 0.0f;
 		inst.current_cmd_str = "";
 		inst.current_cmd_str_it = 0;
 		inst.current_cmd_item = null;
-		inst.first_pass = true;
 
 		inst.user_str_table = new string[(int)UserStrId.COUNT];
 		for(int i = 0; i < inst.user_str_table.Length; i++) {
 			inst.user_str_table[i] = "";
 		}
 		inst.logged_user_details = false;
-
-		CmdBuf cmd_buf = inst.cmd_buf;
-		if(Settings.USE_PLAYER1_SCRIPT) {
-			Player1Util.parse_script(cmd_buf, "player1_script_");
-		}
-		else {
-			if(Settings.USE_TRANSITIONS) {
-				push_wait_cmd(cmd_buf, 4.0f);
-			}
-
-			push_print_str_cmd(cmd_buf, "USERNAME: ");
-			push_user_str_cmd(cmd_buf, UserStrId.USERNAME, 16);
-
-			push_print_str_cmd(cmd_buf, "PASSWORD: ");
-			push_user_str_cmd(cmd_buf, UserStrId.PASSWORD, 16, false, true);
-
-			push_delay_cmd(cmd_buf);
-			push_cmd(cmd_buf, CmdType.LOG_IN);
-
-			push_print_str_cmd(cmd_buf, "\nCREECH AIRBASE 432D\n");
-			push_wait_cmd(cmd_buf, 2.0f);
-
-			push_print_str_cmd(cmd_buf, "\nN 36°35′32″\n");
-			push_print_str_cmd(cmd_buf, "W 115°40′00″\n\n");
-
-			push_print_str_cmd(cmd_buf, "2512155\n\n");
-			push_print_str_cmd(cmd_buf, "2443872\n\n");
-
-			push_wait_cmd(cmd_buf, 3.0f);
-
-			push_print_str_cmd(cmd_buf, "\nJ09NV0399\n");
-			//TODO: Don't end block here, end if after next wait cmd!!
-			push_delay_cmd(cmd_buf);
-
-			push_print_str_cmd(cmd_buf, "\n");
-			push_wait_cmd(cmd_buf, 4.5f);
-
-			push_print_str_cmd(cmd_buf, "PRESS \"U\" TO LOCATE UAV\n");
-			push_wait_key_cmd(cmd_buf, KeyCode.U);
-			push_print_str_cmd(cmd_buf, "\nSEARCHING...\n");
-			push_delay_cmd(cmd_buf);
-			push_print_str_cmd(cmd_buf, "\nUAV LOCATED OVER WAZIRISTAN, PAKISTAN\n");
-			push_print_str_cmd(cmd_buf, "\nCONNECTING VIA REMOTE SYSTEM...\n");
-			push_delay_cmd(cmd_buf);
-			push_print_str_cmd(cmd_buf, "\nCONNECTED TO UAV PREDATOR DRONE\n\n");
-
-			push_cmd(cmd_buf, CmdType.SWITCH_ON_DISPLAY);
-
-			if(Settings.USE_TRANSITIONS) {
-				push_print_str_cmd(cmd_buf, "RUNNING SYSTEMS CHECK...\n");
-				push_delay_cmd(cmd_buf);
-				push_print_str_cmd(cmd_buf, "\n\n");
-
-				push_tutorial_key_cmd(cmd_buf, "HOLD \"A\" TO LOOK LEFT\n", Player1Controller.ControlType.LOOK_LEFT, 1.8f, 0);
-				push_tutorial_key_cmd(cmd_buf, "HOLD \"D\" TO LOOK RIGHT\n", Player1Controller.ControlType.LOOK_RIGHT, 1.8f, 1);
-				push_tutorial_key_cmd(cmd_buf, "HOLD \"W\" TO LOOK UP\n", Player1Controller.ControlType.LOOK_UP, 1.8f, 2);
-				push_tutorial_key_cmd(cmd_buf, "HOLD \"S\" TO LOOK DOWN\n", Player1Controller.ControlType.LOOK_DOWN, 1.8f, 3);
-				push_tutorial_key_cmd(cmd_buf, "HOLD \"Q\" TO ZOOM IN\n", Player1Controller.ControlType.ZOOM_IN, 1.2f, 4);
-				push_tutorial_key_cmd(cmd_buf, "HOLD \"E\" TO ZOOM OUT\n", Player1Controller.ControlType.ZOOM_OUT, 1.2f, 5);
-
-				push_cmd(cmd_buf, CmdType.ENABLE_CONTROLS);
-				push_print_str_cmd(cmd_buf, "ALL SYSTEMS OPERATIONAL\n\n");
-			}
-			else {
-				push_cmd(cmd_buf, CmdType.ENABLE_CONTROLS);
-			}
-
-			if(Settings.USE_TRANSITIONS) {
-				push_wait_cmd(cmd_buf, 20.0f);
-			}
-
-			push_cmd(cmd_buf, CmdType.ACQUIRE_TARGET);
-			push_print_str_cmd(cmd_buf, "TARGET ACQUIRED\n\n");
-
-			push_print_str_cmd(cmd_buf, "PRESS \"T\" TO CONFIRM TARGET\n");
-			push_wait_key_cmd(cmd_buf, KeyCode.T);
-			push_print_str_cmd(cmd_buf, "\nLOCKING ON...\n");
-			push_delay_cmd(cmd_buf);
-
-			push_print_str_cmd(cmd_buf, "\nTARGET LOCKED\n\n");
-			push_cmd(cmd_buf, CmdType.LOCK_TARGET);
-
-			push_print_str_cmd(cmd_buf, "PRESS \"M\" TO LAUNCH PRIMARY MISSILE\n");
-			push_wait_key_cmd(cmd_buf, KeyCode.M);
-			push_fire_missile_cmd(cmd_buf);
-
-			push_print_str_cmd(cmd_buf, "PRESS \"M\" TO LAUNCH SECONDARY MISSILE\n");
-
-			Cmd fire2 = push_wait_key_cmd(cmd_buf, KeyCode.M, -1, 15.0f);
-
-			push_print_str_cmd(cmd_buf, "\nSWITCHING TO AUTO-PILOT...\n");
-			push_delay_cmd(cmd_buf);
-
-			fire2.next_index = cmd_buf.elem_count;
-			push_fire_missile_cmd(cmd_buf);
-
-			Debug.Log(fire2.duration + ", " + fire2.next_index.ToString());
-
-			if(!Settings.USE_DEATH_CONFIRM) {
-				push_wait_cmd(cmd_buf, 10.0f);
-			}
-			else {
-				push_wait_cmd(cmd_buf, 5.0f);
-				push_print_str_cmd(cmd_buf, "\nENTER NUMBER OF TARGETS NEUTRALISED: ");
-				push_confirm_deaths_cmd(cmd_buf);
-				push_wait_cmd(cmd_buf, 5.0f);
-			}
-
-			push_cmd(cmd_buf, CmdType.SWITCH_OFF_DISPLAY);
-			push_wait_cmd(cmd_buf, 2.0f);
-			push_cmd(cmd_buf, CmdType.LOG_OFF);
-			push_wait_cmd(cmd_buf, 1.0f);
-		}
 
 		return inst;
 	}
@@ -1179,10 +1089,6 @@ public class Player1Console {
 					}
 
 					case CmdType.WAIT_KEY: {
-						if(cmd.key == KeyCode.M) {
-							Debug.Log(inst.current_cmd_time.ToString() + ", " + cmd.duration + ", " + cmd.next_index);
-						}
-
 						inst.current_cmd_time += time_left;
 						if(inst.current_cmd_time >= cmd.duration) {
 							time_left = inst.current_cmd_time - cmd.duration;
@@ -1293,23 +1199,6 @@ public class Player1Console {
 						break;
 					}
 
-					case CmdType.LAUNCH_MISSILE: {
-						inst.current_cmd_time += time_left;
-						if(inst.current_cmd_time >= cmd.duration) {
-							time_left = inst.current_cmd_time - cmd.duration;
-							done = true;
-						}
-						else {
-							if(game_manager.get_key_down(cmd.key)) {
-								done = true;
-
-								inst.next_cmd_index = cmd.next_index;
-							}
-						}
-
-						break;
-					}
-
 					case CmdType.FIRE_MISSILE: {
 						player1.StartCoroutine(player1.fire_missile_());
 
@@ -1332,13 +1221,9 @@ public class Player1Console {
 					inst.current_cmd_str = "";
 					inst.current_cmd_str_it = 0;
 					inst.current_cmd_item = null;
-
-					inst.first_pass = true;
 				}
 				else {
-					//NOTE: If a cmd isn't done it must have consumed all of the step time!!
 					time_left = 0.0f;
-					inst.first_pass = false;
 				}
 
 				Item tail_item = get_tail_item(inst);

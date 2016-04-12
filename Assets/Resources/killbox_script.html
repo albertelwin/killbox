@@ -11,7 +11,7 @@
 
 <tw-story></tw-story>
 
-<tw-storydata name="killbox_script" startnode="1" creator="Twine" creator-version="2.0.11" ifid="9728C063-616F-455B-83BA-EBAD6402EA78" format="Harlowe" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css"></style><script role="script" id="twine-user-script" type="text/twine-javascript"></script><tw-passagedata pid="1" name="boot" tags="" position="676.6666666666667,258.33333333333337">KIL(wait, 4.0)
+<tw-storydata name="killbox_script" startnode="1" creator="Twine" creator-version="2.0.11" ifid="9728C063-616F-455B-83BA-EBAD6402EA78" format="Harlowe" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css"></style><script role="script" id="twine-user-script" type="text/twine-javascript"></script><tw-passagedata pid="1" name="boot" tags="" position="678.3333333333334,258.33333333333337">KIL(wait, 4.0)
 KIL(go_to, [[log_in]])</tw-passagedata>
 <tw-passagedata pid="2" name="log_in" tags="" position="645,686.6666666666667">KIL(log_in)
 
@@ -32,14 +32,14 @@ KIL(delay)
 
 KIL(wait, 4.5)
 KIL(go_to, [[locate]])</tw-passagedata>
-<tw-passagedata pid="3" name="locate" tags="" position="421.6666666666667,1101.6666666666667">PRESS &quot;U&quot; TO LOCATE UAV
+<tw-passagedata pid="3" name="locate" tags="" position="421.6666666666667,1103.3333333333335">PRESS &quot;U&quot; TO LOCATE UAV
 KIL(wait_key, U, [[search]], 5.0)
 WARNING: TIME OUT IN 5.0
 KIL(wait_key, U, [[search]], 5.0)
 ERROR: TIMED OUT
 KIL(delay)
 KIL(go_to, [[reboot]])</tw-passagedata>
-<tw-passagedata pid="4" name="search" tags="" position="1046.6666666666667,891.6666666666667">
+<tw-passagedata pid="4" name="search" tags="" position="728.3333333333334,1376.6666666666667">
 SEARCHING...
 KIL(delay)
 
@@ -52,7 +52,34 @@ CONNECTED TO UAV PREDATOR DRONE
 
 KIL(display_on)
 RUNNING SYSTEMS CHECK...
-KIL(delay)</tw-passagedata>
+KIL(delay)
+
+
+KIL(tutorial)
+ALL SYSTEMS OPERATIONAL
+
+KIL(wait, 10.0)
+KIL(acquire)
+TARGET ACQUIRED
+
+PRESS &quot;T&quot; TO CONFIRM TARGET
+KIL(wait_key, T)
+
+LOCKING ON...
+KIL(delay)
+
+TARGET LOCKED
+KIL(lock)
+
+PRESS &quot;M&quot; TO LAUNCH PRIMARY MISSILE
+KIL(wait_key, M)
+KIL(fire)
+PRESS &quot;M&quot; TO LAUNCH SECONDARY MISSILE
+KIL(wait_key, M, [[fire2]], 15.0)
+
+SWITCHING TO AUTO-PILOT...
+KIL(delay)
+KIL(go_to, [[fire2]])</tw-passagedata>
 <tw-passagedata pid="5" name="reboot" tags="" position="156.66666666666669,486.6666666666667">
 
 
@@ -139,6 +166,14 @@ I
 
 
 KIL(go_to, [[boot]])</tw-passagedata>
+<tw-passagedata pid="6" name="fire2" tags="" position="1255,1425">KIL(fire)
+KIL(wait, 5.0)
+KIL(death_count)
+KIL(wait, 5.0)
+KIL(display_off)
+KIL(wait, 2.0)
+KIL(log_off)
+KIL(wait, 1.0)</tw-passagedata>
 </tw-storydata>
 
 

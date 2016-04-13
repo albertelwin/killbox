@@ -112,7 +112,9 @@ public class Player2Controller : MonoBehaviour {
 	}
 
 	IEnumerator fire_first_missile(Vector3 hit_pos, float hit_time) {
-		StartCoroutine(Killbox.show(game_manager.env.killbox, hit_pos, hit_time));
+		if(Settings.USE_KILLBOX_ANIMATION) {
+			StartCoroutine(Killbox.show(game_manager.env.killbox, hit_pos, hit_time));
+		}
 
 		yield return StartCoroutine(wait_for_hit(hit_time));
 
@@ -217,7 +219,7 @@ public class Player2Controller : MonoBehaviour {
 		Killbox.hide(game_manager.env.killbox);
 
 		yield return StartCoroutine(FadeImageEffect.lerp_alpha(camera_fade, 0.0f, 5.0f));
-		
+
 		yield return new WaitForSeconds(10.0f);
 
 		StartCoroutine(FadeImageEffect.lerp_alpha(camera_fade, 1.0f, 5.0f));
@@ -426,7 +428,7 @@ public class Player2Controller : MonoBehaviour {
 						exp_source.Play();
 					}
 				}
-			}			
+			}
 		}
 
 		if(game_manager.get_key_down(KeyCode.Alpha4)) {
@@ -466,7 +468,7 @@ public class Player2Controller : MonoBehaviour {
 #endif
 
 				if(auto_fire) {
-					if(!Settings.INSTALLATION_BUILD) {
+					if(!Settings.LAN_MODE) {
 						game_manager.network_disconnect();
 					}
 
@@ -582,7 +584,7 @@ public class Player2Controller : MonoBehaviour {
 				// 		camera_.transform.position = hit_info.point;
 				// 	}
 				// }
-		
+
 				break;
 			}
 
@@ -619,7 +621,7 @@ public class Player2Controller : MonoBehaviour {
 					if(game_manager.get_key_down(KeyCode.Space)) {
 						jump_key = true;
 						has_jumped = true;
-					}					
+					}
 				}
 			}
 		}
@@ -628,13 +630,13 @@ public class Player2Controller : MonoBehaviour {
 			Environment.hide_controls_hint(game_manager, game_manager.env);
 		}
 	}
-	
+
 	void FixedUpdate() {
 		Vector3 acceleration = Vector3.zero;
 
 		// if(user_has_control) {
 			if(game_manager.get_key(KeyCode.W)) {
-				acceleration += Vector3.forward; 
+				acceleration += Vector3.forward;
 			}
 
 			if(game_manager.get_key(KeyCode.S)) {
@@ -685,7 +687,7 @@ public class Player2Controller : MonoBehaviour {
 				has_moved = true;
 				anim.CrossFade("walk");
 				set_walk_sfx_volume(camera_.gameObject.activeSelf ? 1.0f : 0.0f);
-			}			
+			}
 		}
 
 		if(!user_has_control || camera_looking_up) {

@@ -1,3 +1,4 @@
+
 using UnityEngine;
 using System.Collections;
 
@@ -268,7 +269,7 @@ public class Environment {
 
 	public static IEnumerator play_explosion_smoke(MonoBehaviour player, Renderer sphere) {
 		sphere.enabled = true;
-		
+
 		yield return player.StartCoroutine(Util.lerp_local_scale(sphere.transform, Vector3.zero, Vector3.one * EXPLOSION_RADIUS * 2.0f, 0.2f));
 		yield return player.StartCoroutine(Util.lerp_material_color(sphere, Util.black, Util.black_no_alpha, 8.0f));
 
@@ -331,7 +332,9 @@ public class Environment {
 			if(Vector3.Distance(hit_pos, point_on_bounds) < EXPLOSION_RADIUS) {
 				npc.renderer_.enabled = false;
 				npc.collider_.enabled = false;
-				npc.nav_agent.enabled = false;
+				if(npc.nav_agent) {
+					npc.nav_agent.enabled = false;
+				}
 
 				if(npc.anim != null) {
 					npc.anim.gameObject.SetActive(false);
@@ -361,8 +364,10 @@ public class Environment {
 					}
 				}
 
-				npc.nav_agent.speed = 7.0f;
-				npc.nav_agent.SetDestination(safe_point.position);
+				if(npc.nav_agent) {
+					npc.nav_agent.speed = 7.0f;
+					npc.nav_agent.SetDestination(safe_point.position);
+				}
 			}
 		}
 

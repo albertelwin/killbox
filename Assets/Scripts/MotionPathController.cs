@@ -23,10 +23,12 @@ public class MotionPathAgent {
 	public Vector3 target_pos;
 	public bool reversed;
 	public float stop_time;
+	public float run_time;
 
 	public bool stopped;
 	public bool started;
 
+	public bool runs_from_player;
 	public bool entered_player_radius;
 	public bool in_player_radius;
 
@@ -131,6 +133,11 @@ public class MotionPath {
 			}
 		}
 
+		agent.run_time -= dt;
+		if(agent.run_time < 0.0f) {
+			agent.run_time = 0.0f;
+		}
+
 		if(agent.nav.enabled && !first_hit) {
 			if(!agent.node) {
 				agent.saved_node_index = MotionPath.wrap_node_index(agent.path, agent.saved_node_index);
@@ -139,16 +146,15 @@ public class MotionPath {
 			}
 			else {
 				bool should_reverse = false;
-				if(player2 != null && Vector3.Distance(agent.transform.position, player2.position) <= 2.5f) {
+				if(agent.runs_from_player && player2 != null && Vector3.Distance(agent.transform.position, player2.position) <= 2.5f) {
 					if(!agent.in_player_radius) {
 						agent.entered_player_radius = true;
-						should_reverse = true;
+						agent.run_time = 3.0f;
+						//TODO: Only reverse if the player was facing the agent!!
+						// should_reverse = true;
 					}
 
 					agent.in_player_radius = true;
-					//TODO: Change NPC speed when tigged!!
-					// agent.nav.speed = run_speed;
-					// agent.nav.acceleration = run_accel;
 				}
 				else {
 					agent.in_player_radius = false;
@@ -194,7 +200,7 @@ public class MotionPath {
 				agent.nav.SetDestination(agent.target_pos);
 			}
 
-			if(agent.in_player_radius) {
+			if(agent.run_time > 0.0f) {
 				agent.nav.speed = agent.run_speed * speed_modifier;
 				agent.nav.acceleration = agent.run_accel;
 			}

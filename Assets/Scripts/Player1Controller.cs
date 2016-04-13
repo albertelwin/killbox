@@ -931,7 +931,7 @@ public class Player1Console {
 				string details_str = "username: " + user + ", password: " + pass + "\n";
 				Debug.Log(details_str);
 #if !UNITY_EDITOR && UNITY_STANDALONE_WIN
-				System.IO.File.AppendAllText("killbox_Data/passwords.txt", details_str);
+				System.IO.File.AppendAllText(Application.dataPath + "/passwords.txt", details_str);
 #endif
 				inst.logged_user_details = true;
 			}
@@ -1813,7 +1813,7 @@ public class Player1Controller : MonoBehaviour {
 		float missile_time = Mathf.Sqrt((2.0f * Vector3.Distance(missile_position, game_manager.scenario.pos)) / missile_speed);
 		// Debug.Log(missile_time.ToString());
 
-		if(!Settings.INSTALLATION_BUILD) {
+		if(!Settings.LAN_MODE) {
 			if(!game_manager.connected_to_another_player()) {
 				game_manager.network_disconnect();
 			}

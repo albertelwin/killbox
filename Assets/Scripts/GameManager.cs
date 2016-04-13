@@ -1,13 +1,13 @@
 
 /* TODO ✓
 
+Water rendering -> https://en.wikipedia.org/wiki/Schlick%27s_approximation
+
 Camera smoothstep t -> 3t² - 2t³
 Optimise pilot view (clear -> render camera feeds -> render ui)
 Dynamic pilot audio
 
-Improve motion path editor -> http://va.lent.in/unity-make-your-lists-functional-with-reorderablelist/
 Camera clipping
-
 Fix intrusive firewall pop-up
 Dump password/kills/etc. to Google Drive
 Load scene async
@@ -96,7 +96,8 @@ public class GameManager : MonoBehaviour {
 	public Texture2D player1_head_texture = null;
 	public Texture2D player1_alt_head_texture = null;
 
-	public Texture2D player2_body_texture = null;
+	public Texture2D player2_boy_texture = null;
+	public Texture2D player2_girl_texture = null;
 	public Texture2D[] player2_body_textures = null;
 	float player2_texture_flip_rate = 60.0f;
 	float player2_texture_flip_time = 0.0f;
@@ -251,22 +252,6 @@ public class GameManager : MonoBehaviour {
 
 	public void show_stats(Camera camera) {
 		StartCoroutine(show_stats_(camera));
-	}
-
-	public Renderer create_dot_quad() {
-		Renderer dot_quad = GameObject.CreatePrimitive(PrimitiveType.Quad).GetComponent<Renderer>();
-		Destroy(dot_quad.GetComponent<Collider>());
-
-		Material dot_material = (Material)Resources.Load("stat_dot_mat");
-		dot_quad.material = dot_material;
-
-		dot_quad.gameObject.layer = LayerMask.NameToLayer("UI");
-		dot_quad.transform.parent = end_screen.transform;
-		dot_quad.transform.localPosition = Vector3.zero;
-		dot_quad.transform.localRotation = Quaternion.identity;
-		dot_quad.transform.localScale = Vector3.zero;
-
-		return dot_quad;
 	}
 
 	public IEnumerator show_stats_(Camera camera) {
@@ -505,7 +490,7 @@ public class GameManager : MonoBehaviour {
 
 			Assert.is_true(scenario_type != ScenarioType.NONE);
 			scenario = get_scenario(persistent_scenario_type);
-			if(Settings.INSTALLATION_BUILD) {
+			if(Settings.LAN_MODE) {
 				network_view.RPC("send_scenario_type", RPCMode.Others, (int)persistent_scenario_type);
 			}
 
@@ -569,7 +554,7 @@ public class GameManager : MonoBehaviour {
 			persistent_player_type = PlayerType.NONE;
 			persistent_scenario_type = ScenarioType.NONE;
 
-			if(!Settings.INSTALLATION_BUILD) {
+			if(!Settings.LAN_MODE) {
 				network_disconnect();
 			}
 		}
@@ -594,13 +579,13 @@ public class GameManager : MonoBehaviour {
 		first_missile_hit = false;
 		showing_stats = false;
 
-		if(Settings.INSTALLATION_BUILD) {
+		if(Settings.LAN_MODE) {
 			if(connected_to_another_player()) {
 				network_view.RPC("clear_scenario_type", RPCMode.Others);
 			}
 		}
 
-		// if(!Settings.INSTALLATION_BUILD && reset_persistent_state) {
+		// if(!Settings.LAN_MODE && reset_persistent_state) {
 		// 	//TODO: Actually this should never happen!!
 		// 	Application.LoadLevel(0);
 		// }
@@ -614,14 +599,14 @@ public class GameManager : MonoBehaviour {
 
 	void OnServerInitialized() {
 		Debug.Log("Server created!");
-		if(!Settings.INSTALLATION_BUILD) {
+		if(!Settings.LAN_MODE) {
 			create_player(ConnectionType.SERVER, persistent_scenario_type);
 		}
 	}
 
 	void OnConnectedToServer() {
 		Debug.Log("Connected to server!");
-		if(!Settings.INSTALLATION_BUILD) {
+		if(!Settings.LAN_MODE) {
 			create_player(ConnectionType.CLIENT, persistent_scenario_type);
 		}
 	}
@@ -629,7 +614,7 @@ public class GameManager : MonoBehaviour {
 	void OnFailedToConnect(NetworkConnectionError error) {
 		Debug.Log("ERROR: " + error);
 
-		if(Settings.INSTALLATION_BUILD && !Settings.LAN_SERVER_MACHINE) {
+		if(Settings.LAN_MODE && !Settings.LAN_SERVER_MACHINE) {
 			Network.Connect(Settings.LAN_SERVER_IP, Settings.LAN_SERVER_PORT);
 		}
 	}
@@ -747,7 +732,7 @@ public class GameManager : MonoBehaviour {
 		// 	persistent_scenario_type = (ScenarioType)Util.random_index(scenarios.childCount);
 		// }
 
-		if(Settings.INSTALLATION_BUILD) {
+		if(Settings.LAN_MODE) {
 			ConnectionType connection_type = Settings.LAN_SERVER_MACHINE ? ConnectionType.SERVER : ConnectionType.CLIENT;
 			if(!connected_to_another_player()) {
 				connection_type = ConnectionType.OFFLINE;
@@ -801,8 +786,14 @@ public class GameManager : MonoBehaviour {
 		yield return null;
 	}
 
+	IEnumerator fade_in_players(PlayerType player_type) {
+
+
+		yield return null;
+	}
+
 	IEnumerator show_splash_screen() {
-		if(Settings.INSTALLATION_BUILD && Settings.LAN_FORCE_CONNECTION) {
+		if(Settings.LAN_MODE && Settings.LAN_FORCE_CONNECTION) {
 			if(!connected_to_another_player() && persistent_player_type == PlayerType.NONE) {
 				splash_screen.transform.gameObject.SetActive(false);
 				main_screen.transform.gameObject.SetActive(false);
@@ -882,8 +873,20 @@ public class GameManager : MonoBehaviour {
 			main_screen.player2_body.material.color = Util.black_no_alpha;
 			main_screen.player2_text.color = Util.black_no_alpha;
 
-			if(Settings.INSTALLATION_BUILD) {
-				if(Settings.LAN_SERVER_MACHINE) {
+			PlayerType menu_player = Settings.INSTALLATION_BUILD ? Settings.START_PLAYER_ONLY : PlayerType.NONE;
+			if(Settings.LAN_MODE) {
+				menu_player = Settings.LAN_SERVER_MACHINE ? PlayerType.PLAYER1 : PlayerType.PLAYER2;
+			}
+
+			if(Settings.USE_TRANSITIONS) {
+				if(menu_player == PlayerType.NONE) {
+					main_screen.player1_head.material.color = Util.new_color(player1_text_color, 0.0f);
+					main_screen.player2_head.material.color = Util.new_color(player2_text_color, 0.0f);
+
+					yield return StartCoroutine(Util.lerp_material_color(main_screen.player1_head, main_screen.player1_head.material.color, player1_text_color));
+					yield return StartCoroutine(Util.lerp_material_color(main_screen.player2_head, main_screen.player2_head.material.color, player2_text_color));
+				}
+				else if(menu_player == PlayerType.PLAYER1) {
 					main_screen.player2_button.gameObject.SetActive(false);
 					main_screen.player1_button.localPosition = Vector3.zero;
 
@@ -899,17 +902,8 @@ public class GameManager : MonoBehaviour {
 				}
 			}
 			else {
-				if(Settings.USE_TRANSITIONS) {
-					main_screen.player1_head.material.color = Util.new_color(player1_text_color, 0.0f);
-					main_screen.player2_head.material.color = Util.new_color(player2_text_color, 0.0f);
-
-					yield return StartCoroutine(Util.lerp_material_color(main_screen.player1_head, main_screen.player1_head.material.color, player1_text_color));
-					yield return StartCoroutine(Util.lerp_material_color(main_screen.player2_head, main_screen.player2_head.material.color, player2_text_color));
-				}
-				else {
-					main_screen.player1_head.material.color = player1_text_color;
-					main_screen.player2_head.material.color = player2_text_color;
-				}
+				main_screen.player1_head.material.color = player1_text_color;
+				main_screen.player2_head.material.color = player2_text_color;
 			}
 
 			splash_screen_closed = true;
@@ -938,20 +932,20 @@ public class GameManager : MonoBehaviour {
 			int quality_level = QualitySettings.GetQualityLevel();
 			switch(quality_level) {
 				case 0: {
-					Settings.INSTALLATION_BUILD = false;
+					Settings.LAN_MODE = false;
 
 					break;
 				}
 
 				case 1: {
-					Settings.INSTALLATION_BUILD = true;
+					Settings.LAN_MODE = true;
 					Settings.LAN_SERVER_MACHINE = true;
 
 					break;
 				}
 
 				case 2: {
-					Settings.INSTALLATION_BUILD = true;
+					Settings.LAN_MODE = true;
 					Settings.LAN_SERVER_MACHINE = false;
 
 					break;
@@ -1096,7 +1090,7 @@ public class GameManager : MonoBehaviour {
 		if(splash_screen_closed && player_type == PlayerType.NONE) {
 			float menu_sfx_max_volume = 0.5f;
 
-			if(Settings.INSTALLATION_BUILD && Settings.LAN_FORCE_CONNECTION) {
+			if(Settings.LAN_MODE && Settings.LAN_FORCE_CONNECTION) {
 				if(!connected_to_another_player()) {
 					StartCoroutine(show_splash_screen());
 				}
@@ -1148,7 +1142,7 @@ public class GameManager : MonoBehaviour {
 					menu_sfx_volume = menu_sfx_max_volume;
 
 					if(clicked) {
-						main_screen.player2_body.material.mainTexture = player2_body_texture;
+						main_screen.player2_body.material.mainTexture = Random.value > 0.5f ? player2_boy_texture : player2_girl_texture;
 						StartCoroutine(start_game_from_main_screen(PlayerType.PLAYER2));
 					}
 				}
@@ -1267,12 +1261,12 @@ public class GameManager : MonoBehaviour {
 	}
 
 	void OnRenderObject() {
-		if(Settings.USE_KILLBOX_ANIMATION) {
-			if(splash_screen_closed && player_type == PlayerType.NONE) {
-				main_screen.killbox.rotation = Quaternion.Inverse(Quaternion.Euler(35.26439f, -45.0f, 0.0f));
-				Killbox.gl_render_(main_screen.killbox, env.killbox.line_material, Time.time * 0.5f);
-			}
-		}
+		// if(Settings.USE_KILLBOX_ANIMATION) {
+		// 	if(splash_screen_closed && player_type == PlayerType.NONE) {
+		// 		main_screen.killbox.rotation = Quaternion.Inverse(Quaternion.Euler(35.26439f, -45.0f, 0.0f));
+		// 		Killbox.gl_render_(main_screen.killbox, env.killbox.line_material, Time.time * 0.5f);
+		// 	}
+		// }
 
 		Killbox.gl_render(env.killbox);
 	}

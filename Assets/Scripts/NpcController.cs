@@ -20,6 +20,7 @@ public class NpcController : MonoBehaviour {
 	[System.NonSerialized] public NavMeshAgent nav_agent;
 	[System.NonSerialized] public MotionPathAgent path_agent;
 	public MotionPathController motion_path;
+	public bool runs_from_player = false;
 
 	Vector3 initial_pos;
 
@@ -78,12 +79,17 @@ public class NpcController : MonoBehaviour {
 		renderer_.enabled = true;
 		collider_.enabled = true;
 
-		nav_agent.enabled = true;
-		nav_agent.speed = 7.0f;
-		nav_agent.Warp(initial_pos);
-		nav_agent.SetDestination(initial_pos);
+		if(nav_agent) {
+			nav_agent.enabled = true;
+			nav_agent.speed = 7.0f;
+			nav_agent.Warp(initial_pos);
+			nav_agent.SetDestination(initial_pos);
 
-		path_agent = motion_path ? MotionPath.new_agent(transform, nav_agent, motion_path) : null;
+			path_agent = motion_path ? MotionPath.new_agent(transform, nav_agent, motion_path) : null;
+			if(path_agent != null) {
+				path_agent.runs_from_player = runs_from_player;
+			}
+		}
 
 		if(fracture != null) {
 			Environment.remove_fracture(fracture);
@@ -92,8 +98,11 @@ public class NpcController : MonoBehaviour {
 		if(anim != null) {
 			anim.gameObject.SetActive(true);
 
-			// anim["Take 001"].time = Random.Range(0.0f, anim["Take 001"].length);
-			// anim.Play();
+			if(anim["Take 001"] != null) {
+				anim["Take 001"].time = Random.Range(0.0f, anim["Take 001"].length);
+			}
+
+			anim.Play();
 
 			renderer_.enabled = false;
 		}

@@ -21,6 +21,8 @@ ModelImporter:
     7400012: ghost_idle
     7400014: fall
     7400016: land
+    7400018: moving
+    7400020: action
     9500000: //RootNode
     11100000: //RootNode
     13700000: BounceyDot:KidJump
@@ -306,6 +308,70 @@ ModelImporter:
       firstFrame: 150
       lastFrame: 160
       wrapMode: 1
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask:
+      - path: 
+        weight: 1
+      - path: BounceyDot:KidJump
+        weight: 1
+      - path: BounceyDotRoot
+        weight: 1
+      maskType: 0
+      maskSource: {instanceID: 0}
+    - serializedVersion: 16
+      name: moving
+      takeName: Take 001
+      firstFrame: 80
+      lastFrame: 119
+      wrapMode: 2
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask:
+      - path: 
+        weight: 1
+      - path: BounceyDot:KidJump
+        weight: 1
+      - path: BounceyDotRoot
+        weight: 1
+      maskType: 0
+      maskSource: {instanceID: 0}
+    - serializedVersion: 16
+      name: action
+      takeName: Take 001
+      firstFrame: 120
+      lastFrame: 150
+      wrapMode: 2
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0

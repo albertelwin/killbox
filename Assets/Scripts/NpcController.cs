@@ -89,6 +89,9 @@ public class NpcController : MonoBehaviour {
 			if(path_agent != null) {
 				path_agent.runs_from_player = runs_from_player;
 			}
+			else {
+				nav_agent.enabled = false;
+			}
 		}
 
 		if(fracture != null) {
@@ -112,6 +115,7 @@ public class NpcController : MonoBehaviour {
 		emission = 0.0f;
 	}
 
+	//TODO: Update these guys somewhere else, this func is a perf hog!!
 	void Update() {
 		if(path_agent != null) {
 			Transform player2 = game_manager.player2_inst != null ? game_manager.player2_inst.transform : null;

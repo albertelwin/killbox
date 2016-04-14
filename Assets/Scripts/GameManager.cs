@@ -158,6 +158,10 @@ public class GameManager : MonoBehaviour {
 		Util.new_color(220, 126, 225),
 	};
 
+	public static GameManager get_inst() {
+		return GameObject.Find("GameManager").GetComponent<GameManager>();
+	}
+
 	static public IEnumerator set_world_brightness(GameManager game_manager, float from, float to, float d = 1.0f) {
 		float t = 0.0f;
 		while(t < 1.0f) {

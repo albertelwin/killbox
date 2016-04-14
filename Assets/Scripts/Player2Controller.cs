@@ -431,6 +431,7 @@ public class Player2Controller : MonoBehaviour {
 			}
 		}
 
+#if UNITY_EDITOR
 		if(game_manager.get_key_down(KeyCode.Alpha4)) {
 			camera_type = CameraType.ENDING;
 			camera_ref.position = game_manager.scenario.pos + Vector3.up * mesh_radius;
@@ -441,6 +442,7 @@ public class Player2Controller : MonoBehaviour {
 			camera_type = CameraType.ALIVE;
 			user_has_control = true;
 		}
+#endif
 
 		walk_sfx_volume_pos += Time.deltaTime / 0.1f;
 		walk_sfx_source.volume = Mathf.Lerp(walk_sfx_source.volume, walk_sfx_volume, walk_sfx_volume_pos);

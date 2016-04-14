@@ -1,40 +1,32 @@
 fileFormatVersion: 2
-guid: 5afeb12bb8ee9d14a90cd323caf8b28d
-timeCreated: 1460381338
+guid: f918877093f43b8449440ff060f53ddc
+timeCreated: 1460631191
 licenseType: Pro
 ModelImporter:
   serializedVersion: 18
   fileIDToRecycleName:
-    100000: ambientLight1
-    100002: farmer_body
-    100004: farmer_head
-    100006: farmer_root
+    100000: joint1
+    100002: joint2
+    100004: joint3
+    100006: left
     100008: //RootNode
-    100010: pointLight1
-    100012: pPlane1
-    100014: pSphere1
-    400000: ambientLight1
-    400002: farmer_body
-    400004: farmer_head
-    400006: farmer_root
+    100010: plant
+    100012: plant 1
+    400000: joint1
+    400002: joint2
+    400004: joint3
+    400006: left
     400008: //RootNode
-    400010: pointLight1
-    400012: pPlane1
-    400014: pSphere1
-    2300000: pPlane1
-    3300000: pPlane1
-    4300000: pSphere1
-    4300002: pPlane1
-    7400000: action
-    7400002: moving
-    7400004: idle
-    7400006: action
-    7400008: dying
+    400010: plant
+    400012: plant 1
+    4300000: plant
+    7400000: idle
+    7400002: hit
     9500000: //RootNode
     11100000: //RootNode
-    13700000: pSphere1
+    13700000: plant 1
   materials:
-    importMaterials: 0
+    importMaterials: 1
     materialName: 0
     materialSearch: 1
   animations:
@@ -54,52 +46,10 @@ ModelImporter:
     extraExposedTransformPaths: []
     clipAnimations:
     - serializedVersion: 16
-      name: moving
-      takeName: Take 001
-      firstFrame: 1350
-      lastFrame: 1400
-      wrapMode: 2
-      orientationOffsetY: 0
-      level: 0
-      cycleOffset: 0
-      loop: 0
-      loopTime: 0
-      loopBlend: 0
-      loopBlendOrientation: 0
-      loopBlendPositionY: 0
-      loopBlendPositionXZ: 0
-      keepOriginalOrientation: 0
-      keepOriginalPositionY: 1
-      keepOriginalPositionXZ: 0
-      heightFromFeet: 0
-      mirror: 0
-      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
-      curves: []
-      events: []
-      transformMask:
-      - path: 
-        weight: 1
-      - path: ambientLight1
-        weight: 1
-      - path: farmer_root
-        weight: 1
-      - path: farmer_root/farmer_body
-        weight: 1
-      - path: farmer_root/farmer_body/farmer_head
-        weight: 1
-      - path: pointLight1
-        weight: 1
-      - path: pPlane1
-        weight: 1
-      - path: pSphere1
-        weight: 1
-      maskType: 0
-      maskSource: {instanceID: 0}
-    - serializedVersion: 16
       name: idle
       takeName: Take 001
-      firstFrame: 301
-      lastFrame: 600
+      firstFrame: 1
+      lastFrame: 96
       wrapMode: 2
       orientationOffsetY: 0
       level: 0
@@ -121,28 +71,26 @@ ModelImporter:
       transformMask:
       - path: 
         weight: 1
-      - path: ambientLight1
+      - path: left
         weight: 1
-      - path: farmer_root
+      - path: plant
         weight: 1
-      - path: farmer_root/farmer_body
+      - path: plant/joint1
         weight: 1
-      - path: farmer_root/farmer_body/farmer_head
+      - path: plant/joint1/joint2
         weight: 1
-      - path: pointLight1
+      - path: plant/joint1/joint2/joint3
         weight: 1
-      - path: pPlane1
-        weight: 1
-      - path: pSphere1
+      - path: plant/plant 1
         weight: 1
       maskType: 0
       maskSource: {instanceID: 0}
     - serializedVersion: 16
-      name: action
+      name: hit
       takeName: Take 001
-      firstFrame: 1
-      lastFrame: 300
-      wrapMode: 2
+      firstFrame: 97
+      lastFrame: 120
+      wrapMode: 1
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
@@ -163,19 +111,17 @@ ModelImporter:
       transformMask:
       - path: 
         weight: 1
-      - path: ambientLight1
+      - path: left
         weight: 1
-      - path: farmer_root
+      - path: plant
         weight: 1
-      - path: farmer_root/farmer_body
+      - path: plant/joint1
         weight: 1
-      - path: farmer_root/farmer_body/farmer_head
+      - path: plant/joint1/joint2
         weight: 1
-      - path: pointLight1
+      - path: plant/joint1/joint2/joint3
         weight: 1
-      - path: pPlane1
-        weight: 1
-      - path: pSphere1
+      - path: plant/plant 1
         weight: 1
       maskType: 0
       maskSource: {instanceID: 0}
@@ -200,7 +146,7 @@ ModelImporter:
   tangentSpace:
     normalSmoothAngle: 60
     splitTangentsAcrossUV: 1
-    normalImportMode: 1
+    normalImportMode: 0
     tangentImportMode: 1
   importAnimation: 1
   copyAvatar: 0

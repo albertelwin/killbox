@@ -308,12 +308,12 @@ public static class Player1Util {
 						case "tutorial": {
 							Assert.is_true(cmd.input_count == 1);
 
-							Player1Console.push_tutorial_key_cmd(cmd_buf, "HOLD \"A\" TO LOOK LEFT\n", Player1Controller.ControlType.LOOK_LEFT, 1.8f, 0);
-							Player1Console.push_tutorial_key_cmd(cmd_buf, "HOLD \"D\" TO LOOK RIGHT\n", Player1Controller.ControlType.LOOK_RIGHT, 1.8f, 1);
-							Player1Console.push_tutorial_key_cmd(cmd_buf, "HOLD \"W\" TO LOOK UP\n", Player1Controller.ControlType.LOOK_UP, 1.8f, 2);
-							Player1Console.push_tutorial_key_cmd(cmd_buf, "HOLD \"S\" TO LOOK DOWN\n", Player1Controller.ControlType.LOOK_DOWN, 1.8f, 3);
-							Player1Console.push_tutorial_key_cmd(cmd_buf, "HOLD \"Q\" TO ZOOM IN\n", Player1Controller.ControlType.ZOOM_IN, 1.2f, 4);
-							Player1Console.push_tutorial_key_cmd(cmd_buf, "HOLD \"E\" TO ZOOM OUT\n", Player1Controller.ControlType.ZOOM_OUT, 1.2f, 5);
+							Player1Console.push_tutorial_key_cmd(cmd_buf, "CAM ROTATE LEFT: HOLD (A)\n", Player1Controller.ControlType.LOOK_LEFT, 1.8f, 0);
+							Player1Console.push_tutorial_key_cmd(cmd_buf, "CAM ROTATE RIGHT: HOLD (D)\n", Player1Controller.ControlType.LOOK_RIGHT, 1.8f, 1);
+							Player1Console.push_tutorial_key_cmd(cmd_buf, "CAM ROTATE UP: HOLD (W)\n", Player1Controller.ControlType.LOOK_UP, 1.8f, 2);
+							Player1Console.push_tutorial_key_cmd(cmd_buf, "CAM ROTATE DOWN: HOLD (S)\n", Player1Controller.ControlType.LOOK_DOWN, 1.8f, 3);
+							Player1Console.push_tutorial_key_cmd(cmd_buf, "CAM ZOOM IN: HOLD (I)\n", Player1Controller.ControlType.ZOOM_IN, 1.2f, 4);
+							Player1Console.push_tutorial_key_cmd(cmd_buf, "CAM ZOOM OUT: HOLD (O)\n", Player1Controller.ControlType.ZOOM_OUT, 1.2f, 5);
 
 							Player1Console.push_cmd(cmd_buf, Player1Console.CmdType.ENABLE_CONTROLS);
 
@@ -715,7 +715,7 @@ public class Player1Console {
 		}
 	}
 
-	public static Cmd push_user_str_cmd(CmdBuf cmd_buf, UserStrId str_id, int max_str_len, bool numeric_only = false, bool hide_str = false) {
+	public static Cmd push_user_str_cmd(CmdBuf cmd_buf, UserStrId str_id, int max_str_len, bool numeric_only = false, bool hide_str = false, float timeout = Mathf.Infinity) {
 		Assert.is_true(max_str_len > 0);
 		Assert.is_true(str_id != UserStrId.NONE);
 
@@ -724,6 +724,7 @@ public class Player1Console {
 		cmd.max_str_len = max_str_len;
 		cmd.numeric_only = numeric_only;
 		cmd.hide_str = hide_str;
+		cmd.duration = timeout;
 		return cmd;
 	}
 
@@ -765,9 +766,8 @@ public class Player1Console {
 	}
 
 	public static void push_fire_missile_cmd(CmdBuf cmd_buf) {
-		push_print_str_cmd(cmd_buf, "\nREADYING MISSILE...\n");
 		push_delay_cmd(cmd_buf);
-		push_print_str_cmd(cmd_buf, "\nMISSILE LAUNCHED\n\n");
+		push_print_str_cmd(cmd_buf, "\nLAUNCHED\n\n");
 		push_cmd(cmd_buf, CmdType.FIRE_MISSILE);
 		//TODO: Temp!!
 		push_wait_cmd(cmd_buf, 11.0f);
@@ -775,7 +775,7 @@ public class Player1Console {
 
 	public static void push_confirm_deaths_cmd(CmdBuf cmd_buf) {
 		//TODO: Time out!!
-		push_user_str_cmd(cmd_buf, UserStrId.DEATH_COUNT, 2, true);
+		push_user_str_cmd(cmd_buf, UserStrId.DEATH_COUNT, 2, true, false, 5.0f);
 
 		push_delay_cmd(cmd_buf);
 		push_print_str_cmd(cmd_buf, "\n");
@@ -922,6 +922,7 @@ public class Player1Console {
 		for(int i = 0; i < inst.user_str_table.Length; i++) {
 			inst.user_str_table[i] = "";
 		}
+		inst.user_str_table[(int)UserStrId.DEATH_COUNT] = "3";
 		inst.logged_user_details = false;
 
 		return inst;
@@ -1033,51 +1034,62 @@ public class Player1Console {
 					case CmdType.USER_STR: {
 						string str = inst.current_cmd_str;
 
-						string input_str = game_manager.get_input_str();
-						if(input_str.Length > 0) {
-							for(int i = 0; i < input_str.Length; i++) {
-								char input_char = input_str[i];
-								if(input_char == '\b') {
-									if(str.Length > 0) {
-										str = str.Substring(0, str.Length - 1);
-										inst.working_text_buffer = inst.working_text_buffer.Substring(0, inst.working_text_buffer.Length - 1);
-
-										Audio.play(game_manager.audio, Audio.Clip.CONSOLE_TYPING);
-									}
-								}
-								else {
-									if(Player1Util.is_new_line(input_char)) {
+						inst.current_cmd_time += time_left;
+						if(inst.current_cmd_time >= cmd.duration) {
+							time_left = inst.current_cmd_time - cmd.duration;
+							done = true;
+						}
+						else {
+							string input_str = game_manager.get_input_str();
+							if(input_str.Length > 0) {
+								for(int i = 0; i < input_str.Length; i++) {
+									char input_char = input_str[i];
+									if(input_char == '\b') {
 										if(str.Length > 0) {
-											inst.working_text_buffer += "\n";
+											str = str.Substring(0, str.Length - 1);
+											inst.working_text_buffer = inst.working_text_buffer.Substring(0, inst.working_text_buffer.Length - 1);
 
-											Assert.is_true(cmd.str_id != UserStrId.NONE);
-											inst.user_str_table[(int)cmd.str_id] = str;
-
-											done = true;
-											break;
+											Audio.play(game_manager.audio, Audio.Clip.CONSOLE_TYPING);
 										}
 									}
 									else {
-										if(str.Length < cmd.max_str_len) {
-											if(!cmd.numeric_only || (input_char >= '0' && input_char <= '9')) {
-												str += input_char;
-												if(cmd.hide_str) {
-													//TODO: Replace this with a better character??
-													inst.working_text_buffer += "*";
-												}
-												else {
-													inst.working_text_buffer += input_char;
-												}
+										if(Player1Util.is_new_line(input_char)) {
+											if(str.Length > 0) {
+												done = true;
+												break;
+											}
+										}
+										else {
+											if(str.Length < cmd.max_str_len) {
+												if(!cmd.numeric_only || (input_char >= '0' && input_char <= '9')) {
+													str += input_char;
+													if(cmd.hide_str) {
+														//TODO: Replace this with a better character??
+														inst.working_text_buffer += "*";
+													}
+													else {
+														inst.working_text_buffer += input_char;
+													}
 
-												Audio.play(game_manager.audio, Audio.Clip.CONSOLE_TYPING);
+													Audio.play(game_manager.audio, Audio.Clip.CONSOLE_TYPING);
+												}
 											}
 										}
 									}
 								}
-							}
 
-							inst.current_cmd_str = str;
-							inst.cursor_time = inst.last_cursor_time = 0.0f;
+								inst.current_cmd_str = str;
+								inst.cursor_time = inst.last_cursor_time = 0.0f;
+							}
+						}
+
+						if(done) {
+							inst.working_text_buffer += "\n";
+
+							if(str.Length > 0) {
+								Assert.is_true(cmd.str_id != UserStrId.NONE);
+								inst.user_str_table[(int)cmd.str_id] = str;
+							}
 						}
 
 						break;
@@ -1478,9 +1490,9 @@ public class Player1Controller : MonoBehaviour {
 		controls[(int)ControlType.LOOK_RIGHT] = Control.new_inst(KeyCode.D);
 		controls[(int)ControlType.LOOK_UP] = Control.new_inst(KeyCode.W);
 		controls[(int)ControlType.LOOK_DOWN] = Control.new_inst(KeyCode.S);
-		controls[(int)ControlType.ZOOM_IN] = Control.new_inst(KeyCode.Q);
-		controls[(int)ControlType.ZOOM_OUT] = Control.new_inst(KeyCode.E);
-		controls[(int)ControlType.TOGGLE_INFRARED] = Control.new_inst(KeyCode.I);
+		controls[(int)ControlType.ZOOM_IN] = Control.new_inst(KeyCode.I);
+		controls[(int)ControlType.ZOOM_OUT] = Control.new_inst(KeyCode.O);
+		controls[(int)ControlType.TOGGLE_INFRARED] = Control.new_inst(KeyCode.R);
 	}
 
 	public static void destroy(Player1Controller player) {

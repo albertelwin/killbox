@@ -81,12 +81,38 @@ public class MotionPath {
 		return node;
 	}
 
+	public static Vector3 get_start_pos(MotionPathController path) {
+		Vector3 pos = Vector3.zero;
+		if(path.start_node != null) {
+			Assert.is_true(path.start_node.transform.parent == path.transform);
+			pos = path.start_node.transform.position;
+		}
+		else {
+
+		}
+
+		return pos;
+	}
+
 	public static MotionPathAgent new_agent(Transform transform, NavMeshAgent nav, MotionPathController path) {
 		MotionPathAgent agent = new MotionPathAgent();
 		agent.transform = transform;
 		agent.nav = nav;
 
 		agent.path = path;
+
+		MotionPathNode start_node = null;
+		if(path.start_node) {
+			Assert.is_true(path.start_node.transform.parent == path.transform);
+			agent.saved_node_index = get_node_index(path, path.start_node, false);
+			start_node = path.start_node;
+		}
+		else {
+			start_node = get_node(path, 0, false);
+		}
+
+		agent.nav.Warp(start_node.transform.position);
+		agent.nav.SetDestination(start_node.transform.position);
 
 		agent.walk_speed = 2.0f;
 		agent.walk_accel = 8.0f;
@@ -214,6 +240,7 @@ public class MotionPath {
 
 public class MotionPathController : MonoBehaviour {
 	public float global_speed = 1.0f;
+	public MotionPathNode start_node = null;
 
 #if UNITY_EDITOR
 	//TODO: There must be a better way to do this!!
@@ -249,10 +276,10 @@ public class MotionPathController : MonoBehaviour {
 		}
 	}
 
-	public void draw_gizmos() {
+	public void draw_gizmos(float alpha) {
 		float gizmo_scale = 0.5f;
 
-		Gizmos.color = Util.new_color(Util.white, 0.5f);
+		Gizmos.color = Util.new_color(Util.white, alpha);
 
 		if(transform.childCount == 1) {
 			Vector3 pos = transform.GetChild(0).position + Vector3.up * gizmo_scale * 0.5f;
@@ -295,15 +322,18 @@ public class MotionPathController : MonoBehaviour {
 	}
 
 	void OnDrawGizmos() {
+		float alpha = 0.15f;
 		if(Selection.activeTransform != null) {
 			if(Selection.activeTransform.parent == transform) {
-				draw_gizmos();
+				alpha = 0.5f;
 			}
 		}
+
+		draw_gizmos(alpha);
 	}
 
 	void OnDrawGizmosSelected() {
-		draw_gizmos();
+		draw_gizmos(0.5f);
 	}
 #endif
 }

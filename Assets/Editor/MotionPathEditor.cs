@@ -40,9 +40,9 @@ public static class MotionPathUtil {
 	}
 
 	public static MotionPathNode add_node(MotionPathController path, Vector3 pos) {
-		Transform transform = Util.new_transform(path.transform, "Node", pos);
-		MotionPathNode node = transform.gameObject.AddComponent<MotionPathNode>();
-		return node;
+		Transform transform = Util.new_transform(path.transform, "Node");
+		transform.position = pos;
+		return transform.gameObject.AddComponent<MotionPathNode>();
 	}
 
 	public static void show_prefab_options(MotionPathController path) {
@@ -356,6 +356,7 @@ public class MotionPathLinksViewer : PopupWindowContent {
 [CanEditMultipleObjects]
 public class MotionPathControllerInspector : Editor {
 	public SerializedProperty global_speed;
+	public SerializedProperty start_node;
 
 	public Rect links_rect;
 
@@ -364,16 +365,8 @@ public class MotionPathControllerInspector : Editor {
 		GameObject game_object = new GameObject("MotionPath");
 		MotionPathController path = game_object.AddComponent<MotionPathController>();
 
-		int intial_node_count = 6;
-		for(int i = 0; i < intial_node_count; i++) {
-			float t = (float)i / (float)intial_node_count;
-
-			Vector3 pos = Vector3.zero;
-			pos.x = Mathf.Cos(t * MathExt.TAU) * 10.0f;
-			pos.z = Mathf.Sin(t * MathExt.TAU) * 10.0f;
-
-			MotionPathUtil.add_node(path, pos);
-		}
+		path.start_node = MotionPathUtil.add_node(path, Vector3.zero);
+		path.start_node.transform.localPosition = Vector3.zero;
 
 		Undo.RegisterCreatedObjectUndo(game_object, "Create " + game_object.name);
 		Selection.activeObject = game_object;
@@ -381,6 +374,7 @@ public class MotionPathControllerInspector : Editor {
 
 	public void OnEnable() {
 		global_speed = serializedObject.FindProperty("global_speed");
+		start_node = serializedObject.FindProperty("start_node");
 	}
 
 	public override void OnInspectorGUI() {
@@ -393,6 +387,18 @@ public class MotionPathControllerInspector : Editor {
 		EditorGUILayout.PropertyField(global_speed, new GUIContent("Global Speed"));
 
 		EditorGUILayout.Separator();
+
+		if(!path.start_node) {
+			GUI.enabled = false;
+		}
+
+		if(GUILayout.Button("View Start Node")) {
+			if(path.start_node) {
+				EditorGUIUtility.PingObject(path.start_node);
+			}
+		}
+
+		GUI.enabled = true;
 
 		int link_count = 0;
 		NpcController[] npcs = (NpcController[])Object.FindObjectsOfType(typeof(NpcController));
@@ -433,11 +439,6 @@ public class MotionPathControllerInspector : Editor {
 
 		if(Event.current.type == EventType.Repaint) {
 			links_rect = GUILayoutUtility.GetLastRect();
-		}
-
-		if(GUILayout.Button("Add Node")) {
-			MotionPathNode node = MotionPathUtil.add_node(path, Vector3.zero);
-			Selection.activeTransform = node.transform;
 		}
 
 		MotionPathUtil.show_prefab_options(path);
@@ -497,6 +498,17 @@ public class MotionPathNodeInspector : Editor {
 
 		MotionPathController path = node.transform.parent != null ? node.transform.parent.GetComponent<MotionPathController>() : null;
 		Assert.is_true(path != null);
+
+		if(path.start_node == node) {
+			GUI.enabled = false;
+		}
+
+		if(GUILayout.Button("Set As Start Node")) {
+			path.start_node = node;
+		}
+
+		GUI.enabled = true;
+
 		MotionPathUtil.show_prefab_options(path);
 
 		serializedObject.ApplyModifiedProperties();

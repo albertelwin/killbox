@@ -111,7 +111,7 @@ public class GameManager : MonoBehaviour {
 	static string game_type_player2 = "killbox_player2_server";
 	//TODO: Stable naming scheme!!
 	// static string game_name = "killbox_online_server";
-	static string game_name = "killbox_server___";
+	static string game_name = "killbox_server_____";
 
 	Camera menu_camera = null;
 	Camera pause_camera = null;
@@ -217,7 +217,7 @@ public class GameManager : MonoBehaviour {
 
 			int first_key_index = (int)KeyCode.A;
 			int last_key_index = (int)KeyCode.Z;
-			for(int i = first_key_index; i < last_key_index; i++) {
+			for(int i = first_key_index; i < (last_key_index + 1); i++) {
 				if(Input.GetKeyDown((KeyCode)i)) {
 					char character_code = (char)(first_char + (i - first_key_index));
 					input_str += character_code;

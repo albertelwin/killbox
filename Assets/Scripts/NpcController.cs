@@ -82,8 +82,6 @@ public class NpcController : MonoBehaviour {
 		if(nav_agent) {
 			nav_agent.enabled = true;
 			nav_agent.speed = 7.0f;
-			nav_agent.Warp(initial_pos);
-			nav_agent.SetDestination(initial_pos);
 
 			path_agent = motion_path ? MotionPath.new_agent(transform, nav_agent, motion_path) : null;
 			if(path_agent != null) {
@@ -101,8 +99,8 @@ public class NpcController : MonoBehaviour {
 		if(anim != null) {
 			anim.gameObject.SetActive(true);
 
-			if(anim["Take 001"] != null) {
-				anim["Take 001"].time = Random.Range(0.0f, anim["Take 001"].length);
+			if(anim["moving"] != null) {
+				anim["moving"].time = Random.Range(0.0f, anim["moving"].length);
 			}
 
 			anim.Play();

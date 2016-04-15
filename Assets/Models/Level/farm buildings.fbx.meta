@@ -1,0 +1,125 @@
+fileFormatVersion: 2
+guid: b2c957a9ba762a34abb555af6c28c238
+timeCreated: 1460721797
+licenseType: Pro
+ModelImporter:
+  serializedVersion: 18
+  fileIDToRecycleName:
+    100000: animal_feed
+    100002: building_1_wall
+    100004: building_2_red
+    100006: building_3
+    100008: building_3_wall
+    100010: building_4_blue
+    100012: building_5
+    100014: //RootNode
+    100016: farm_buildings
+    100018: feeding_area1
+    100020: fence
+    100022: water_well
+    400000: animal_feed
+    400002: building_1_wall
+    400004: building_2_red
+    400006: building_3
+    400008: building_3_wall
+    400010: building_4_blue
+    400012: building_5
+    400014: //RootNode
+    400016: farm_buildings
+    400018: feeding_area1
+    400020: fence
+    400022: water_well
+    2300000: animal_feed
+    2300002: building_1_wall
+    2300004: building_2_red
+    2300006: building_3
+    2300008: building_3_wall
+    2300010: building_4_blue
+    2300012: building_5
+    2300014: feeding_area1
+    2300016: fence
+    2300018: water_well
+    3300000: animal_feed
+    3300002: building_1_wall
+    3300004: building_2_red
+    3300006: building_3
+    3300008: building_3_wall
+    3300010: building_4_blue
+    3300012: building_5
+    3300014: feeding_area1
+    3300016: fence
+    3300018: water_well
+    4300000: building_5
+    4300002: building_3_wall
+    4300004: building_2_red
+    4300006: building_4_blue
+    4300008: feeding_area1
+    4300010: building_3
+    4300012: building_1_wall
+    4300014: fence
+    4300016: water_well
+    4300018: animal_feed
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    optimizeGameObjects: 0
+    motionNodeName: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    animationCompression: 1
+    animationRotationError: .5
+    animationPositionError: .5
+    animationScaleError: .5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 50
+    meshCompression: 0
+    addColliders: 0
+    importBlendShapes: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    splitTangentsAcrossUV: 1
+    normalImportMode: 0
+    tangentImportMode: 1
+  importAnimation: 0
+  copyAvatar: 0
+  humanDescription:
+    human: []
+    skeleton: []
+    armTwist: .5
+    foreArmTwist: .5
+    upperLegTwist: .5
+    legTwist: .5
+    armStretch: .0500000007
+    legStretch: .0500000007
+    feetSpacing: 0
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 0
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -276,7 +276,14 @@ public static class Player1Util {
 
 							Player1Console.push_delay_cmd(cmd_buf);
 
-							Player1Console.push_cmd(cmd_buf, Player1Console.CmdType.LOG_IN);
+							break;
+						}
+
+						case "chatter": {
+							Assert.is_true(cmd.input_count == 1);
+
+							Player1Console.push_cmd(cmd_buf, Player1Console.CmdType.CHATTER);
+
 							break;
 						}
 
@@ -430,6 +437,8 @@ public static class Player1Util {
 		renderer.reflectionProbeUsage = UnityEngine.Rendering.ReflectionProbeUsage.Off;
 		renderer.material = material;
 
+		Object.Destroy(transform.gameObject.GetComponent<Collider>());
+
 		return transform;
 	}
 }
@@ -468,7 +477,7 @@ public class Player1Console {
 
 		TUTORIAL_KEY,
 
-		LOG_IN,
+		CHATTER,
 		LOG_OFF,
 
 		SWITCH_ON_DISPLAY,
@@ -1107,7 +1116,7 @@ public class Player1Console {
 						break;
 					}
 
-					case CmdType.LOG_IN: {
+					case CmdType.CHATTER: {
 						// player1.audio_sources[0].Stop();
 						if(Settings.USE_MUSIC) {
 							player1.audio_sources[1].Play();
@@ -1807,7 +1816,8 @@ public class Player1Controller : MonoBehaviour {
 
 		yield return Util.wait_for_2000ms;
 
-		Vector3 missile_direction = main_camera.transform.forward;
+		// Vector3 missile_direction = main_camera.transform.forward;
+		Vector3 missile_direction = (game_manager.scenario.pos - main_camera.transform.position).normalized;
 		Vector3 missile_position = main_camera.transform.position - missile_direction * 4000.0f;
 		float missile_speed = Settings.USE_TRANSITIONS ? 100.0f : 1000.0f;
 		float missile_time = Mathf.Sqrt((2.0f * Vector3.Distance(missile_position, game_manager.scenario.pos)) / missile_speed);

@@ -82,13 +82,17 @@ public class GameManager : MonoBehaviour {
 		public TextMesh info_text;
 	}
 
+	public static string PREF_KEY_PLAY_COUNT = "killbox_play_count";
+
 	[System.NonSerialized] public NetworkView network_view;
 
 	public static bool splash_screen_closed = false;
 	public SplashScreen splash_screen;
 	public MainScreen main_screen;
 	public EndScreen end_screen;
-	[System.NonSerialized] public TextMesh log_text_mesh;
+
+	[System.NonSerialized] public TextMesh game_log;
+	[System.NonSerialized] public TextMesh network_log;
 
 	public Color player1_text_color = Color.green;
 	public Color player2_text_color = Color.red;
@@ -540,6 +544,7 @@ public class GameManager : MonoBehaviour {
 	}
 
 	public bool connected_to_another_player() {
+		//TODO: This makes a 40 byte allocation somehow??
 		return Network.connections.Length > 0;
 	}
 
@@ -588,6 +593,8 @@ public class GameManager : MonoBehaviour {
 				network_view.RPC("clear_scenario_type", RPCMode.Others);
 			}
 		}
+
+		game_log.gameObject.SetActive(false);
 
 		// if(!Settings.LAN_MODE && reset_persistent_state) {
 		// 	//TODO: Actually this should never happen!!
@@ -725,6 +732,10 @@ public class GameManager : MonoBehaviour {
 			menu_audio_source.volume = 0.0f;
 		}
 
+		PlayerPrefs.SetInt(PREF_KEY_PLAY_COUNT, PlayerPrefs.GetInt(PREF_KEY_PLAY_COUNT) + 1);
+		PlayerPrefs.Save();
+		game_log.gameObject.SetActive(false);
+
 		StartCoroutine(start_game(player_type));
 	}
 
@@ -790,12 +801,6 @@ public class GameManager : MonoBehaviour {
 		yield return null;
 	}
 
-	IEnumerator fade_in_players(PlayerType player_type) {
-
-
-		yield return null;
-	}
-
 	IEnumerator show_splash_screen() {
 		if(Settings.LAN_MODE && Settings.LAN_FORCE_CONNECTION) {
 			if(!connected_to_another_player() && persistent_player_type == PlayerType.NONE) {
@@ -811,18 +816,18 @@ public class GameManager : MonoBehaviour {
 					Network.Connect(Settings.LAN_SERVER_IP, Settings.LAN_SERVER_PORT);
 				}
 
-				log_text_mesh.gameObject.SetActive(true);
+				network_log.gameObject.SetActive(true);
 				string wait_str = "ESTABLISHING LAN CONNECTION";
 				int wait_index = 4;
 
 				while(!connected_to_another_player()) {
 					//TODO: Why does this crash on OSX??
 #if UNITY_EDITOR || !UNITY_STANDALONE_OSX
-					log_text_mesh.text += ".";
+					network_log.text += ".";
 
 					if(wait_index > 3) {
 						wait_index = 0;
-						log_text_mesh.text = wait_str;
+						network_log.text = wait_str;
 					}
 
 					wait_index++;
@@ -830,7 +835,7 @@ public class GameManager : MonoBehaviour {
 					yield return Util.wait_for_500ms;
 				}
 
-				log_text_mesh.gameObject.SetActive(false);
+				network_log.gameObject.SetActive(false);
 			}
 		}
 
@@ -1010,7 +1015,10 @@ public class GameManager : MonoBehaviour {
 		end_screen.play_button.gameObject.SetActive(false);
 		end_screen.info_button.gameObject.SetActive(false);
 
-		log_text_mesh = transform.Find("Camera/Log").GetComponent<TextMesh>();
+		game_log = transform.Find("Camera/GameLog").GetComponent<TextMesh>();
+		game_log.gameObject.SetActive(false);
+
+		network_log = transform.Find("Camera/NetworkLog").GetComponent<TextMesh>();
 
 		player1_prefab = ((GameObject)Resources.Load("Player1Prefab")).transform;
 		player2_prefab = ((GameObject)Resources.Load("Player2Prefab")).transform;
@@ -1103,8 +1111,7 @@ public class GameManager : MonoBehaviour {
 			Ray cursor_ray = move_cursor_(main_screen.cursor);
 			bool clicked = Input.GetKeyDown(KeyCode.Mouse0);
 
-			if(main_screen.player1_button.gameObject.activeSelf)
-			{
+			if(main_screen.player1_button.gameObject.activeSelf) {
 				bool ray_hit = Util.raycast_collider(main_screen.player1_button.GetComponent<Collider>(), cursor_ray);
 				if(ray_hit) {
 					main_screen.player1_text.color = Color.white;
@@ -1124,8 +1131,7 @@ public class GameManager : MonoBehaviour {
 				}
 			}
 
-			if(main_screen.player2_button.gameObject.activeSelf)
-			{
+			if(main_screen.player2_button.gameObject.activeSelf) {
 				bool ray_hit = Util.raycast_collider(main_screen.player2_button.GetComponent<Collider>(), cursor_ray);
 				if(ray_hit) {
 					player2_texture_flip_time += Time.deltaTime * player2_texture_flip_rate;
@@ -1163,6 +1169,23 @@ public class GameManager : MonoBehaviour {
 		//TODO: Test this!!
 		if(created_player) {
 			total_playing_time += Time.deltaTime;
+		}
+
+		if(Input.GetKey(KeyCode.LeftShift) && Input.GetKeyDown(KeyCode.Alpha0)) {
+			game_log.gameObject.SetActive(!game_log.gameObject.activeSelf);
+		}
+
+		if(game_log.gameObject.activeInHierarchy) {
+			float aspect_ratio = (float)Screen.width / (float)Screen.height;
+			game_log.transform.position = new Vector3(-0.57375f * aspect_ratio, game_log.transform.position.y, game_log.transform.position.z);
+
+			if(Input.GetKey(KeyCode.LeftShift) && Input.GetKeyDown(KeyCode.Backspace)) {
+				PlayerPrefs.DeleteKey(PREF_KEY_PLAY_COUNT);
+				PlayerPrefs.Save();
+			}
+
+			int play_count = PlayerPrefs.GetInt(PREF_KEY_PLAY_COUNT);
+			game_log.text = string.Format("PLAYS: {0}", play_count);
 		}
 
 		if(Input.GetKey(KeyCode.LeftShift) && Input.GetKey(KeyCode.Escape)) {

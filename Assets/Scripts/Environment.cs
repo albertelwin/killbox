@@ -59,6 +59,12 @@ public class Environment {
 		public Renderer shock_wave;
 	}
 
+	public struct Crater {
+		public Transform transform;
+		public Transform before;
+		public Transform after;
+	}
+
 	public Transform transform;
 
 	public Building[] buildings;
@@ -67,6 +73,8 @@ public class Environment {
 
 	static public float EXPLOSION_RADIUS = 10.0f;
 	public Explosion explosion;
+
+	public Crater crater;
 
 	public KillboxController killbox;
 
@@ -119,6 +127,16 @@ public class Environment {
 		env.explosion.shock_wave.transform.parent = env.explosion.transform;
 		env.explosion.shock_wave.name = "ShockWave";
 
+		//TODO: Handle multiple of these!!
+		env.crater.transform = transform.Find("Crater");
+		if(env.crater.transform != null) {
+			env.crater.before = env.crater.transform.Find("Before");
+			env.crater.before.gameObject.SetActive(true);
+
+			env.crater.after = env.crater.transform.Find("After");
+			env.crater.after.gameObject.SetActive(false);
+		}
+
 		env.killbox = transform.Find("Killbox").GetComponent<KillboxController>();
 
 		env.controls_hint = transform.Find("Controls").GetComponent<Renderer>();
@@ -150,6 +168,11 @@ public class Environment {
 		env.explosion.smoke.material.color = Util.black;
 		env.explosion.shock_wave.enabled = false;
 		env.explosion.shock_wave.material.color = Util.black;
+
+		if(env.crater.transform != null) {
+			env.crater.before.gameObject.SetActive(true);
+			env.crater.after.gameObject.SetActive(false);
+		}
 
 		Killbox.hide(env.killbox);
 
@@ -325,6 +348,11 @@ public class Environment {
 			}
 		}
 
+		if(env.crater.transform != null) {
+			env.crater.before.gameObject.SetActive(false);
+			env.crater.after.gameObject.SetActive(true);
+		}
+
 		for(int i = 0; i < env.npcs.Length; i++) {
 			NpcController npc = env.npcs[i];
 
@@ -365,6 +393,7 @@ public class Environment {
 				}
 
 				if(npc.nav_agent) {
+					npc.nav_agent.enabled = true;
 					npc.nav_agent.speed = 7.0f;
 					npc.nav_agent.SetDestination(safe_point.position);
 				}

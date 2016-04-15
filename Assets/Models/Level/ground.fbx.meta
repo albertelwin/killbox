@@ -1,0 +1,170 @@
+fileFormatVersion: 2
+guid: 31415c00aa8c6f842ac85dbfb21176fa
+timeCreated: 1460721340
+licenseType: Pro
+ModelImporter:
+  serializedVersion: 18
+  fileIDToRecycleName:
+    100000: bridge
+    100002: //RootNode
+    100004: ground6
+    100006: ground_etc
+    100008: river
+    100010: rock
+    100012: rock1
+    100014: rock10
+    100016: rock11
+    100018: rock12
+    100020: rock14
+    100022: rock16
+    100024: rock18
+    100026: rock2
+    100028: rock3
+    100030: rock4
+    100032: rock5
+    100034: rock6
+    100036: rock7
+    100038: rock8
+    100040: rock9
+    400000: bridge
+    400002: //RootNode
+    400004: ground6
+    400006: ground_etc
+    400008: river
+    400010: rock
+    400012: rock1
+    400014: rock10
+    400016: rock11
+    400018: rock12
+    400020: rock14
+    400022: rock16
+    400024: rock18
+    400026: rock2
+    400028: rock3
+    400030: rock4
+    400032: rock5
+    400034: rock6
+    400036: rock7
+    400038: rock8
+    400040: rock9
+    2300000: bridge
+    2300002: ground6
+    2300004: river
+    2300006: rock
+    2300008: rock1
+    2300010: rock10
+    2300012: rock11
+    2300014: rock12
+    2300016: rock14
+    2300018: rock16
+    2300020: rock18
+    2300022: rock2
+    2300024: rock3
+    2300026: rock4
+    2300028: rock5
+    2300030: rock6
+    2300032: rock7
+    2300034: rock8
+    2300036: rock9
+    3300000: bridge
+    3300002: ground6
+    3300004: river
+    3300006: rock
+    3300008: rock1
+    3300010: rock10
+    3300012: rock11
+    3300014: rock12
+    3300016: rock14
+    3300018: rock16
+    3300020: rock18
+    3300022: rock2
+    3300024: rock3
+    3300026: rock4
+    3300028: rock5
+    3300030: rock6
+    3300032: rock7
+    3300034: rock8
+    3300036: rock9
+    4300000: bridge
+    4300002: rock
+    4300004: rock1
+    4300006: rock2
+    4300008: rock3
+    4300010: rock4
+    4300012: rock5
+    4300014: rock6
+    4300016: rock7
+    4300018: rock8
+    4300020: rock9
+    4300022: rock10
+    4300024: rock11
+    4300026: ground6
+    4300028: river
+    4300030: rock12
+    4300032: rock14
+    4300034: rock16
+    4300036: rock18
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    optimizeGameObjects: 0
+    motionNodeName: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    animationCompression: 1
+    animationRotationError: .5
+    animationPositionError: .5
+    animationScaleError: .5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 50
+    meshCompression: 0
+    addColliders: 0
+    importBlendShapes: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    splitTangentsAcrossUV: 1
+    normalImportMode: 0
+    tangentImportMode: 1
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    human: []
+    skeleton: []
+    armTwist: .5
+    foreArmTwist: .5
+    upperLegTwist: .5
+    legTwist: .5
+    armStretch: .0500000007
+    legStretch: .0500000007
+    feetSpacing: 0
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 0
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

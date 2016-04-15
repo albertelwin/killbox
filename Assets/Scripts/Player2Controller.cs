@@ -464,7 +464,7 @@ public class Player2Controller : MonoBehaviour {
 				bool auto_fire = game_manager.total_playing_time > time_until_auto_fire;
 #if UNITY_EDITOR
 				auto_fire = false;
-				if(game_manager.get_key_down(KeyCode.Alpha0)) {
+				if(game_manager.get_key_down(KeyCode.Alpha1)) {
 					auto_fire = true;
 				}
 #endif

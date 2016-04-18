@@ -155,7 +155,11 @@ public class MotionPath {
 			agent.stop_time -= dt;
 			if(agent.stop_time < 0.0f) {
 				agent.stop_time = 0.0f;
+
 				agent.started = true;
+				// if(agent.prev_node != null && agent.prev_node.stop && agent.prev_node.stop_forever) {
+				// 	agent.started = false;
+				// }
 			}
 		}
 

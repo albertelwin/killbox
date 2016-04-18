@@ -2,6 +2,7 @@ Shader "Custom/Flat" {
     Properties {
         _Color ("Main Color", Color) = (1.0, 1.0, 1.0, 1.0)
         _Emission ("Emission", Float) = 0.0
+        _Temperature ("Temperature", Color) = (0.0, 0.0, 0.0, 1.0)
     }
 
     SubShader {
@@ -20,8 +21,10 @@ Shader "Custom/Flat" {
 
                 fixed4 _Color;
                 float _Emission;
+                fixed4 _Temperature;
 
-                uniform float _Brightness = 1.0;
+                uniform float _Brightness;
+                uniform float _InfraredAmount;
 
                 uniform float4 _LightColor0;
 
@@ -45,7 +48,10 @@ Shader "Custom/Flat" {
 
                 fixed4 frag(v2f i) : COLOR {
                     fixed atten = LIGHT_ATTENUATION(i);
-                    fixed4 color = (_Color * _LightColor0 * lerp(0.75, 1.0, atten) + _Color * _Emission + UNITY_LIGHTMODEL_AMBIENT) * _Brightness;
+                    fixed4 color = (_Color * _LightColor0 * lerp(0.75, 1.0, atten) + _Color * _Emission + UNITY_LIGHTMODEL_AMBIENT);
+
+                    color = lerp(color, _Temperature, _InfraredAmount);
+                    color *= _Brightness;
 
                     UNITY_APPLY_FOG(i.fogCoord, color);
                     return color;

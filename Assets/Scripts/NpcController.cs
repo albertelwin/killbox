@@ -56,14 +56,12 @@ public class NpcController : MonoBehaviour {
 		if(anim_transform != null) {
 			anim = anim_transform.GetComponent<Animation>();
 
-			for(int i = 0; i < anim_transform.childCount; i++) {
-				anim_renderer = anim_transform.GetChild(i).GetComponent<SkinnedMeshRenderer>();
-				if(anim_renderer != null) {
-					break;
-				}
-			}
+			Component[] skinned_mesh_renderers = anim_transform.GetComponentsInChildren(typeof(SkinnedMeshRenderer), true);
+			anim_renderer = (SkinnedMeshRenderer)skinned_mesh_renderers[0];
 
+			// anim_renderer = anim_transform.GetComponentsInChildren(typeof(SkinnedMeshRenderer), true)[0];
 			Assert.is_true(anim_renderer != null);
+
 			main_renderer = anim_renderer;
 		}
 		else {
@@ -121,9 +119,18 @@ public class NpcController : MonoBehaviour {
 
 			if(anim != null) {
 				if(path_agent.started) {
+					if(name == "Chicken") {
+						Debug.Log("MOVING");
+					}
+
 					anim.CrossFade("moving");
 				}
 				else if(path_agent.stopped && path_agent.prev_node != null) {
+
+					if(name == "Chicken") {
+						Debug.Log(path_agent.prev_node.stop_animation.ToString());
+					}
+
 					string next_anim = "idle";
 					switch(path_agent.prev_node.stop_animation) {
 						case MotionPathAnimationType.IDLE: {

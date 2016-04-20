@@ -17,6 +17,435 @@ ModelImporter:
     100018: feeding_area1
     100020: fence
     100022: water_well
+    100024: h1:building_1 house all door
+    100026: h1:building_1 house all window_1
+    100028: h1:building_1 house all window_2
+    100030: h1:building_1 house all window_3
+    100032: h1:house building_1 house all_cell
+    100034: h1:house building_1 house all_cell.001
+    100036: h1:house building_1 house all_cell.002
+    100038: h1:house building_1 house all_cell.004
+    100040: h1:house building_1 house all_cell.005
+    100042: h1:house building_1 house all_cell.006
+    100044: h1:house building_1 house all_cell.007
+    100046: h1:house building_1 house all_cell.008
+    100048: h1:house building_1 house all_cell.009
+    100050: h1:house building_1 house all_cell.010
+    100052: h1:house building_1 house all_cell.011
+    100054: h1:house building_1 house all_cell.012
+    100056: h1:house building_1 house all_cell.013
+    100058: h1:house building_1 house all_cell.014
+    100060: h1:house building_1 house all_cell.015
+    100062: h1:house building_1 house all_cell.016
+    100064: h1:house building_1 house all_cell.017
+    100066: h1:house building_1 house all_cell.018
+    100068: h1:house building_1 house all_cell.019
+    100070: h1:house building_1 house all_cell.021
+    100072: h1:house building_1 house all_cell.022
+    100074: h1:house building_1 house all_cell.024
+    100076: h1:house building_1 house all_cell.025
+    100078: h1:house building_1 house all_cell.026
+    100080: h1:house building_1 house all_cell.028
+    100082: h1:house building_1 house all_cell.029
+    100084: h1:house building_1 house all_cell.030
+    100086: h1:house building_1 house all_cell.031
+    100088: h1:house building_1 house all_cell.032
+    100090: h1:house building_1 house all_cell.033
+    100092: h1:house building_1 house all_cell.034
+    100094: h1:house building_1 house all_cell.036
+    100096: h1:house building_1 house all_cell.037
+    100098: h1:house building_1 house all_cell.038
+    100100: h1:house building_1 house all_cell.039
+    100102: h1:house building_1 house all_cell.040
+    100104: h1:house building_1 house all_cell.041
+    100106: h1:house building_1 house all_cell.043
+    100108: h1:house building_1 house all_cell.044
+    100110: h1:house building_1 house all_cell.045
+    100112: h1:house building_1 house all_cell.046
+    100114: h1:house building_1 house all_cell.047
+    100116: h1:house building_1 house all_cell.048
+    100118: h1:house building_1 house all_cell.049
+    100120: h1:house building_1 house all_cell.050
+    100122: h1:house building_1 house all_cell.051
+    100124: h1:house building_1 house all_cell.052
+    100126: h1:house building_1 house all_cell.053
+    100128: h1:house building_1 house all_cell.054
+    100130: h1:house building_1 house all_cell.055
+    100132: h1:house building_1 house all_cell.056
+    100134: h1:house building_1 house all_cell.057
+    100136: h1:house building_1 house all_cell.058
+    100138: h1:house building_1 house all_cell.059
+    100140: h1:house building_1 house all_cell.060
+    100142: h1:house building_1 house all_cell.061
+    100144: h1:house building_1 house all_cell.063
+    100146: h1:house building_1 house all_cell.064
+    100148: h1:house building_1 house all_cell.065
+    100150: h1:house building_1 house all_cell.066
+    100152: h1:house building_1 house all_cell.067
+    100154: h1:house building_1 house all_cell.068
+    100156: h1:house building_1 house all_cell.069
+    100158: h1:house building_1 house all_cell.070
+    100160: h1:house building_1 house all_cell.071
+    100162: h1:house building_1 house all_cell.072
+    100164: h1:house building_1 house all_cell.073
+    100166: h1:house building_1 house all_cell.074
+    100168: h1:house building_1 house all_cell.075
+    100170: h1:house building_1 house all_cell.076
+    100172: h1:house building_1 house all_cell.077
+    100174: h1:house building_1 house all_cell.078
+    100176: h1:house building_1 house all_cell.079
+    100178: h1:house building_1 house all_cell.080
+    100180: h1:house building_1 house all_cell.082
+    100182: h1:house building_1 house all_cell.083
+    100184: h1:house building_1 house all_cell.084
+    100186: h1:house building_1 house all_cell.085
+    100188: h1:house building_1 house all_cell.086
+    100190: h1:house building_1 house all_cell.087
+    100192: h1:house building_1 house all_cell.088
+    100194: h1:house building_1 house all_cell.089
+    100196: h1:house building_1 house all_cell.090
+    100198: h1:house building_1 house all_cell.091
+    100200: h1:house building_1 house all_cell.092
+    100202: h1:house building_1 house all_cell.093
+    100204: h1:house building_1 house all_cell.094
+    100206: h1:house building_1 house all_cell.096
+    100208: h1:house building_1 house all_cell.097
+    100210: h1:house building_1 house all_cell.098
+    100212: h1:house building_1 house all_cell.099
+    100214: h1:house building_1 house all_cell.100
+    100216: h1:house building_1 house all_cell.101
+    100218: h1:house building_1 house all_cell.102
+    100220: h1:house building_1 house all_cell.103
+    100222: h1:house building_1 house all_cell.104
+    100224: h1:house building_1 house all_cell.105
+    100226: h1:house building_1 house all_cell.106
+    100228: h1:house building_1 house all_cell.107
+    100230: h1:house building_1 house all_cell.108
+    100232: h1:house building_1 house all_cell.109
+    100234: h1:house building_1 house all_cell.110
+    100236: h1:house building_1 house all_cell.111
+    100238: h1:house building_1 house all_cell.112
+    100240: h1:house building_1 house all_cell.113
+    100242: h1:house building_1 house all_cell.114
+    100244: h1:house building_1 house all_cell.115
+    100246: h1:house building_1 house all_cell.116
+    100248: h1:house building_1 house all_cell.117
+    100250: h1:house building_1 house all_cell.118
+    100252: h1:house building_1 house all_cell.119
+    100254: h1:house building_1 house all_cell.120
+    100256: h1:house building_1 house all_cell.121
+    100258: h1:house building_1 house all_cell.122
+    100260: h1:house building_1 house all_cell.123
+    100262: h1:house building_1 house all_cell.124
+    100264: h1:house building_1 house all_cell.125
+    100266: h1:house building_1 house all_cell.126
+    100268: h1:house building_1 house all_cell.127
+    100270: h1:house building_1 house all_cell.128
+    100272: h1:house building_1 house all_cell.129
+    100274: h1:house building_1 house all_cell.130
+    100276: h1:house building_1 house all_cell.131
+    100278: h1:house building_1 house all_cell.134
+    100280: h1:house building_1 house all_cell.135
+    100282: h1:house building_1 house all_cell.136
+    100284: h1:house building_1 house all_cell.137
+    100286: h1:house building_1 house all_cell.138
+    100288: h1:house building_1 house all_cell.141
+    100290: h1:house building_1 house all_cell.142
+    100292: h1:house building_1 house all_cell.143
+    100294: h1:house building_1 house all_cell.144
+    100296: h1:house building_1 house all_cell.145
+    100298: h1:house building_1 house all_cell.146
+    100300: h1:house building_1 house all_cell.147
+    100302: h1:house building_1 house all_cell.148
+    100304: h1:house building_1 house all_cell.149
+    100306: h1:house building_1 house all_cell.150
+    100308: h1:house building_1 house all_cell.151
+    100310: h1:house building_1 house all_cell.152
+    100312: h1:house building_1 house all_cell.153
+    100314: h1:house building_1 house all_cell.154
+    100316: h1:house building_1 house all_cell.155
+    100318: h1:house building_1 house all_cell.156
+    100320: h1:house building_1 house all_cell.158
+    100322: h1:house building_1 house all_cell.159
+    100324: h1:house building_1 house all_cell.160
+    100326: h1:house building_1 house all_cell.161
+    100328: h1:house building_1 house all_cell.162
+    100330: h1:house building_1 house all_cell.163
+    100332: h1:house building_1 house all_cell.164
+    100334: h1:house building_1 house all_cell.165
+    100336: h1:house building_1 house all_cell.167
+    100338: h1:house building_1 house all_cell.168
+    100340: h1:house building_1 house all_cell.169
+    100342: h1:house building_1 house all_cell.170
+    100344: h1:house building_1 house all_cell.171
+    100346: h1:house building_1 house all_cell.172
+    100348: h1:house building_1 house all_cell.173
+    100350: h1:house building_1 house all_cell.174
+    100352: h1:house building_1 house all_cell.175
+    100354: h1:house building_1 house all_cell.177
+    100356: h1:house building_1 house all_cell.178
+    100358: h1:house building_1 house all_cell.179
+    100360: h1:house building_1 house all_cell.180
+    100362: h1:house building_1 house all_cell.182
+    100364: h1:house building_1 house all_cell.183
+    100366: h1:house building_1 house all_cell.184
+    100368: h1:house building_1 house all_cell.185
+    100370: h1:house building_1 house all_cell.187
+    100372: h1:house building_1 house all_cell.188
+    100374: h1:house building_1 house all_cell.189
+    100376: h1:house building_1 house all_cell.190
+    100378: h1:house building_1 house all_cell.191
+    100380: h1:house building_1 house all_cell.192
+    100382: h1:house building_1 house all_cell.193
+    100384: h1:house building_1 house all_cell.194
+    100386: h1:house building_1 house all_cell.195
+    100388: h1:house building_1 house all_cell.196
+    100390: h1:house building_1 house all_cell.200
+    100392: h1:house building_1 house all_cell.201
+    100394: h1:house building_1 house all_cell.202
+    100396: h1:house building_1 house all_cell.203
+    100398: h1:house building_1 house all_cell.204
+    100400: h1:house building_1 house all_cell.205
+    100402: h1:house building_1 house all_cell.206
+    100404: h1:house building_1 house all_cell.207
+    100406: h1:house building_1 house all_cell.208
+    100408: h1:house building_1 house all_cell.209
+    100410: h1:house building_1 house all_cell.210
+    100412: h1:house building_1 house all_cell.211
+    100414: h1:house building_1 house all_cell.212
+    100416: h1:house building_1 house all_cell.213
+    100418: h1:house building_1 house all_cell.214
+    100420: h1:house building_1 house all_cell.215
+    100422: h1:house building_1 house all_cell.216
+    100424: h1:house building_1 house all_cell.217
+    100426: h1:house building_1 house all_cell.218
+    100428: h1:house building_1 house all_cell.219
+    100430: h1:house building_1 house all_cell.220
+    100432: h1:house building_1 house all_cell.221
+    100434: h1:house building_1 house all_cell.222
+    100436: h1:house building_1 house all_cell.223
+    100438: h1:house building_1 house all_cell.225
+    100440: h1:house building_1 house all_cell.226
+    100442: h1:house building_1 house all_cell.227
+    100444: h1:house building_1 house all_cell.228
+    100446: h1:house building_1 house all_cell.229
+    100448: h1:house building_1 house all_cell.230
+    100450: h1:house building_1 house all_cell.231
+    100452: h1:house1
+    100454: h1:transform1
+    100456: h1:transform10
+    100458: h1:transform100
+    100460: h1:transform101
+    100462: h1:transform102
+    100464: h1:transform103
+    100466: h1:transform104
+    100468: h1:transform105
+    100470: h1:transform106
+    100472: h1:transform107
+    100474: h1:transform108
+    100476: h1:transform109
+    100478: h1:transform11
+    100480: h1:transform110
+    100482: h1:transform111
+    100484: h1:transform112
+    100486: h1:transform113
+    100488: h1:transform114
+    100490: h1:transform115
+    100492: h1:transform116
+    100494: h1:transform117
+    100496: h1:transform118
+    100498: h1:transform119
+    100500: h1:transform12
+    100502: h1:transform120
+    100504: h1:transform121
+    100506: h1:transform122
+    100508: h1:transform123
+    100510: h1:transform124
+    100512: h1:transform125
+    100514: h1:transform126
+    100516: h1:transform127
+    100518: h1:transform128
+    100520: h1:transform129
+    100522: h1:transform13
+    100524: h1:transform130
+    100526: h1:transform131
+    100528: h1:transform132
+    100530: h1:transform133
+    100532: h1:transform134
+    100534: h1:transform135
+    100536: h1:transform136
+    100538: h1:transform137
+    100540: h1:transform138
+    100542: h1:transform139
+    100544: h1:transform14
+    100546: h1:transform140
+    100548: h1:transform141
+    100550: h1:transform142
+    100552: h1:transform143
+    100554: h1:transform144
+    100556: h1:transform145
+    100558: h1:transform146
+    100560: h1:transform147
+    100562: h1:transform148
+    100564: h1:transform149
+    100566: h1:transform15
+    100568: h1:transform150
+    100570: h1:transform151
+    100572: h1:transform152
+    100574: h1:transform153
+    100576: h1:transform154
+    100578: h1:transform155
+    100580: h1:transform156
+    100582: h1:transform157
+    100584: h1:transform158
+    100586: h1:transform159
+    100588: h1:transform16
+    100590: h1:transform160
+    100592: h1:transform161
+    100594: h1:transform162
+    100596: h1:transform163
+    100598: h1:transform164
+    100600: h1:transform165
+    100602: h1:transform166
+    100604: h1:transform167
+    100606: h1:transform168
+    100608: h1:transform169
+    100610: h1:transform17
+    100612: h1:transform170
+    100614: h1:transform171
+    100616: h1:transform172
+    100618: h1:transform173
+    100620: h1:transform174
+    100622: h1:transform175
+    100624: h1:transform176
+    100626: h1:transform177
+    100628: h1:transform178
+    100630: h1:transform179
+    100632: h1:transform18
+    100634: h1:transform180
+    100636: h1:transform181
+    100638: h1:transform182
+    100640: h1:transform183
+    100642: h1:transform184
+    100644: h1:transform185
+    100646: h1:transform186
+    100648: h1:transform187
+    100650: h1:transform188
+    100652: h1:transform189
+    100654: h1:transform19
+    100656: h1:transform190
+    100658: h1:transform191
+    100660: h1:transform192
+    100662: h1:transform193
+    100664: h1:transform194
+    100666: h1:transform195
+    100668: h1:transform196
+    100670: h1:transform197
+    100672: h1:transform198
+    100674: h1:transform199
+    100676: h1:transform2
+    100678: h1:transform20
+    100680: h1:transform200
+    100682: h1:transform201
+    100684: h1:transform202
+    100686: h1:transform203
+    100688: h1:transform204
+    100690: h1:transform205
+    100692: h1:transform206
+    100694: h1:transform207
+    100696: h1:transform208
+    100698: h1:transform209
+    100700: h1:transform21
+    100702: h1:transform210
+    100704: h1:transform211
+    100706: h1:transform212
+    100708: h1:transform213
+    100710: h1:transform214
+    100712: h1:transform22
+    100714: h1:transform23
+    100716: h1:transform24
+    100718: h1:transform25
+    100720: h1:transform26
+    100722: h1:transform27
+    100724: h1:transform28
+    100726: h1:transform29
+    100728: h1:transform3
+    100730: h1:transform30
+    100732: h1:transform31
+    100734: h1:transform32
+    100736: h1:transform33
+    100738: h1:transform34
+    100740: h1:transform35
+    100742: h1:transform36
+    100744: h1:transform37
+    100746: h1:transform38
+    100748: h1:transform39
+    100750: h1:transform4
+    100752: h1:transform40
+    100754: h1:transform41
+    100756: h1:transform42
+    100758: h1:transform43
+    100760: h1:transform44
+    100762: h1:transform45
+    100764: h1:transform46
+    100766: h1:transform47
+    100768: h1:transform48
+    100770: h1:transform49
+    100772: h1:transform5
+    100774: h1:transform50
+    100776: h1:transform51
+    100778: h1:transform52
+    100780: h1:transform53
+    100782: h1:transform54
+    100784: h1:transform55
+    100786: h1:transform56
+    100788: h1:transform57
+    100790: h1:transform58
+    100792: h1:transform59
+    100794: h1:transform6
+    100796: h1:transform60
+    100798: h1:transform61
+    100800: h1:transform62
+    100802: h1:transform63
+    100804: h1:transform64
+    100806: h1:transform65
+    100808: h1:transform66
+    100810: h1:transform67
+    100812: h1:transform68
+    100814: h1:transform69
+    100816: h1:transform7
+    100818: h1:transform70
+    100820: h1:transform71
+    100822: h1:transform72
+    100824: h1:transform73
+    100826: h1:transform74
+    100828: h1:transform75
+    100830: h1:transform76
+    100832: h1:transform77
+    100834: h1:transform78
+    100836: h1:transform79
+    100838: h1:transform8
+    100840: h1:transform80
+    100842: h1:transform81
+    100844: h1:transform82
+    100846: h1:transform83
+    100848: h1:transform84
+    100850: h1:transform85
+    100852: h1:transform86
+    100854: h1:transform87
+    100856: h1:transform88
+    100858: h1:transform89
+    100860: h1:transform9
+    100862: h1:transform90
+    100864: h1:transform91
+    100866: h1:transform92
+    100868: h1:transform93
+    100870: h1:transform94
+    100872: h1:transform95
+    100874: h1:transform96
+    100876: h1:transform97
+    100878: h1:transform98
+    100880: h1:transform99
     400000: animal_feed
     400002: building_1_wall
     400004: building_2_red
@@ -29,6 +458,435 @@ ModelImporter:
     400018: feeding_area1
     400020: fence
     400022: water_well
+    400024: h1:building_1 house all door
+    400026: h1:building_1 house all window_1
+    400028: h1:building_1 house all window_2
+    400030: h1:building_1 house all window_3
+    400032: h1:house building_1 house all_cell
+    400034: h1:house building_1 house all_cell.001
+    400036: h1:house building_1 house all_cell.002
+    400038: h1:house building_1 house all_cell.004
+    400040: h1:house building_1 house all_cell.005
+    400042: h1:house building_1 house all_cell.006
+    400044: h1:house building_1 house all_cell.007
+    400046: h1:house building_1 house all_cell.008
+    400048: h1:house building_1 house all_cell.009
+    400050: h1:house building_1 house all_cell.010
+    400052: h1:house building_1 house all_cell.011
+    400054: h1:house building_1 house all_cell.012
+    400056: h1:house building_1 house all_cell.013
+    400058: h1:house building_1 house all_cell.014
+    400060: h1:house building_1 house all_cell.015
+    400062: h1:house building_1 house all_cell.016
+    400064: h1:house building_1 house all_cell.017
+    400066: h1:house building_1 house all_cell.018
+    400068: h1:house building_1 house all_cell.019
+    400070: h1:house building_1 house all_cell.021
+    400072: h1:house building_1 house all_cell.022
+    400074: h1:house building_1 house all_cell.024
+    400076: h1:house building_1 house all_cell.025
+    400078: h1:house building_1 house all_cell.026
+    400080: h1:house building_1 house all_cell.028
+    400082: h1:house building_1 house all_cell.029
+    400084: h1:house building_1 house all_cell.030
+    400086: h1:house building_1 house all_cell.031
+    400088: h1:house building_1 house all_cell.032
+    400090: h1:house building_1 house all_cell.033
+    400092: h1:house building_1 house all_cell.034
+    400094: h1:house building_1 house all_cell.036
+    400096: h1:house building_1 house all_cell.037
+    400098: h1:house building_1 house all_cell.038
+    400100: h1:house building_1 house all_cell.039
+    400102: h1:house building_1 house all_cell.040
+    400104: h1:house building_1 house all_cell.041
+    400106: h1:house building_1 house all_cell.043
+    400108: h1:house building_1 house all_cell.044
+    400110: h1:house building_1 house all_cell.045
+    400112: h1:house building_1 house all_cell.046
+    400114: h1:house building_1 house all_cell.047
+    400116: h1:house building_1 house all_cell.048
+    400118: h1:house building_1 house all_cell.049
+    400120: h1:house building_1 house all_cell.050
+    400122: h1:house building_1 house all_cell.051
+    400124: h1:house building_1 house all_cell.052
+    400126: h1:house building_1 house all_cell.053
+    400128: h1:house building_1 house all_cell.054
+    400130: h1:house building_1 house all_cell.055
+    400132: h1:house building_1 house all_cell.056
+    400134: h1:house building_1 house all_cell.057
+    400136: h1:house building_1 house all_cell.058
+    400138: h1:house building_1 house all_cell.059
+    400140: h1:house building_1 house all_cell.060
+    400142: h1:house building_1 house all_cell.061
+    400144: h1:house building_1 house all_cell.063
+    400146: h1:house building_1 house all_cell.064
+    400148: h1:house building_1 house all_cell.065
+    400150: h1:house building_1 house all_cell.066
+    400152: h1:house building_1 house all_cell.067
+    400154: h1:house building_1 house all_cell.068
+    400156: h1:house building_1 house all_cell.069
+    400158: h1:house building_1 house all_cell.070
+    400160: h1:house building_1 house all_cell.071
+    400162: h1:house building_1 house all_cell.072
+    400164: h1:house building_1 house all_cell.073
+    400166: h1:house building_1 house all_cell.074
+    400168: h1:house building_1 house all_cell.075
+    400170: h1:house building_1 house all_cell.076
+    400172: h1:house building_1 house all_cell.077
+    400174: h1:house building_1 house all_cell.078
+    400176: h1:house building_1 house all_cell.079
+    400178: h1:house building_1 house all_cell.080
+    400180: h1:house building_1 house all_cell.082
+    400182: h1:house building_1 house all_cell.083
+    400184: h1:house building_1 house all_cell.084
+    400186: h1:house building_1 house all_cell.085
+    400188: h1:house building_1 house all_cell.086
+    400190: h1:house building_1 house all_cell.087
+    400192: h1:house building_1 house all_cell.088
+    400194: h1:house building_1 house all_cell.089
+    400196: h1:house building_1 house all_cell.090
+    400198: h1:house building_1 house all_cell.091
+    400200: h1:house building_1 house all_cell.092
+    400202: h1:house building_1 house all_cell.093
+    400204: h1:house building_1 house all_cell.094
+    400206: h1:house building_1 house all_cell.096
+    400208: h1:house building_1 house all_cell.097
+    400210: h1:house building_1 house all_cell.098
+    400212: h1:house building_1 house all_cell.099
+    400214: h1:house building_1 house all_cell.100
+    400216: h1:house building_1 house all_cell.101
+    400218: h1:house building_1 house all_cell.102
+    400220: h1:house building_1 house all_cell.103
+    400222: h1:house building_1 house all_cell.104
+    400224: h1:house building_1 house all_cell.105
+    400226: h1:house building_1 house all_cell.106
+    400228: h1:house building_1 house all_cell.107
+    400230: h1:house building_1 house all_cell.108
+    400232: h1:house building_1 house all_cell.109
+    400234: h1:house building_1 house all_cell.110
+    400236: h1:house building_1 house all_cell.111
+    400238: h1:house building_1 house all_cell.112
+    400240: h1:house building_1 house all_cell.113
+    400242: h1:house building_1 house all_cell.114
+    400244: h1:house building_1 house all_cell.115
+    400246: h1:house building_1 house all_cell.116
+    400248: h1:house building_1 house all_cell.117
+    400250: h1:house building_1 house all_cell.118
+    400252: h1:house building_1 house all_cell.119
+    400254: h1:house building_1 house all_cell.120
+    400256: h1:house building_1 house all_cell.121
+    400258: h1:house building_1 house all_cell.122
+    400260: h1:house building_1 house all_cell.123
+    400262: h1:house building_1 house all_cell.124
+    400264: h1:house building_1 house all_cell.125
+    400266: h1:house building_1 house all_cell.126
+    400268: h1:house building_1 house all_cell.127
+    400270: h1:house building_1 house all_cell.128
+    400272: h1:house building_1 house all_cell.129
+    400274: h1:house building_1 house all_cell.130
+    400276: h1:house building_1 house all_cell.131
+    400278: h1:house building_1 house all_cell.134
+    400280: h1:house building_1 house all_cell.135
+    400282: h1:house building_1 house all_cell.136
+    400284: h1:house building_1 house all_cell.137
+    400286: h1:house building_1 house all_cell.138
+    400288: h1:house building_1 house all_cell.141
+    400290: h1:house building_1 house all_cell.142
+    400292: h1:house building_1 house all_cell.143
+    400294: h1:house building_1 house all_cell.144
+    400296: h1:house building_1 house all_cell.145
+    400298: h1:house building_1 house all_cell.146
+    400300: h1:house building_1 house all_cell.147
+    400302: h1:house building_1 house all_cell.148
+    400304: h1:house building_1 house all_cell.149
+    400306: h1:house building_1 house all_cell.150
+    400308: h1:house building_1 house all_cell.151
+    400310: h1:house building_1 house all_cell.152
+    400312: h1:house building_1 house all_cell.153
+    400314: h1:house building_1 house all_cell.154
+    400316: h1:house building_1 house all_cell.155
+    400318: h1:house building_1 house all_cell.156
+    400320: h1:house building_1 house all_cell.158
+    400322: h1:house building_1 house all_cell.159
+    400324: h1:house building_1 house all_cell.160
+    400326: h1:house building_1 house all_cell.161
+    400328: h1:house building_1 house all_cell.162
+    400330: h1:house building_1 house all_cell.163
+    400332: h1:house building_1 house all_cell.164
+    400334: h1:house building_1 house all_cell.165
+    400336: h1:house building_1 house all_cell.167
+    400338: h1:house building_1 house all_cell.168
+    400340: h1:house building_1 house all_cell.169
+    400342: h1:house building_1 house all_cell.170
+    400344: h1:house building_1 house all_cell.171
+    400346: h1:house building_1 house all_cell.172
+    400348: h1:house building_1 house all_cell.173
+    400350: h1:house building_1 house all_cell.174
+    400352: h1:house building_1 house all_cell.175
+    400354: h1:house building_1 house all_cell.177
+    400356: h1:house building_1 house all_cell.178
+    400358: h1:house building_1 house all_cell.179
+    400360: h1:house building_1 house all_cell.180
+    400362: h1:house building_1 house all_cell.182
+    400364: h1:house building_1 house all_cell.183
+    400366: h1:house building_1 house all_cell.184
+    400368: h1:house building_1 house all_cell.185
+    400370: h1:house building_1 house all_cell.187
+    400372: h1:house building_1 house all_cell.188
+    400374: h1:house building_1 house all_cell.189
+    400376: h1:house building_1 house all_cell.190
+    400378: h1:house building_1 house all_cell.191
+    400380: h1:house building_1 house all_cell.192
+    400382: h1:house building_1 house all_cell.193
+    400384: h1:house building_1 house all_cell.194
+    400386: h1:house building_1 house all_cell.195
+    400388: h1:house building_1 house all_cell.196
+    400390: h1:house building_1 house all_cell.200
+    400392: h1:house building_1 house all_cell.201
+    400394: h1:house building_1 house all_cell.202
+    400396: h1:house building_1 house all_cell.203
+    400398: h1:house building_1 house all_cell.204
+    400400: h1:house building_1 house all_cell.205
+    400402: h1:house building_1 house all_cell.206
+    400404: h1:house building_1 house all_cell.207
+    400406: h1:house building_1 house all_cell.208
+    400408: h1:house building_1 house all_cell.209
+    400410: h1:house building_1 house all_cell.210
+    400412: h1:house building_1 house all_cell.211
+    400414: h1:house building_1 house all_cell.212
+    400416: h1:house building_1 house all_cell.213
+    400418: h1:house building_1 house all_cell.214
+    400420: h1:house building_1 house all_cell.215
+    400422: h1:house building_1 house all_cell.216
+    400424: h1:house building_1 house all_cell.217
+    400426: h1:house building_1 house all_cell.218
+    400428: h1:house building_1 house all_cell.219
+    400430: h1:house building_1 house all_cell.220
+    400432: h1:house building_1 house all_cell.221
+    400434: h1:house building_1 house all_cell.222
+    400436: h1:house building_1 house all_cell.223
+    400438: h1:house building_1 house all_cell.225
+    400440: h1:house building_1 house all_cell.226
+    400442: h1:house building_1 house all_cell.227
+    400444: h1:house building_1 house all_cell.228
+    400446: h1:house building_1 house all_cell.229
+    400448: h1:house building_1 house all_cell.230
+    400450: h1:house building_1 house all_cell.231
+    400452: h1:house1
+    400454: h1:transform1
+    400456: h1:transform10
+    400458: h1:transform100
+    400460: h1:transform101
+    400462: h1:transform102
+    400464: h1:transform103
+    400466: h1:transform104
+    400468: h1:transform105
+    400470: h1:transform106
+    400472: h1:transform107
+    400474: h1:transform108
+    400476: h1:transform109
+    400478: h1:transform11
+    400480: h1:transform110
+    400482: h1:transform111
+    400484: h1:transform112
+    400486: h1:transform113
+    400488: h1:transform114
+    400490: h1:transform115
+    400492: h1:transform116
+    400494: h1:transform117
+    400496: h1:transform118
+    400498: h1:transform119
+    400500: h1:transform12
+    400502: h1:transform120
+    400504: h1:transform121
+    400506: h1:transform122
+    400508: h1:transform123
+    400510: h1:transform124
+    400512: h1:transform125
+    400514: h1:transform126
+    400516: h1:transform127
+    400518: h1:transform128
+    400520: h1:transform129
+    400522: h1:transform13
+    400524: h1:transform130
+    400526: h1:transform131
+    400528: h1:transform132
+    400530: h1:transform133
+    400532: h1:transform134
+    400534: h1:transform135
+    400536: h1:transform136
+    400538: h1:transform137
+    400540: h1:transform138
+    400542: h1:transform139
+    400544: h1:transform14
+    400546: h1:transform140
+    400548: h1:transform141
+    400550: h1:transform142
+    400552: h1:transform143
+    400554: h1:transform144
+    400556: h1:transform145
+    400558: h1:transform146
+    400560: h1:transform147
+    400562: h1:transform148
+    400564: h1:transform149
+    400566: h1:transform15
+    400568: h1:transform150
+    400570: h1:transform151
+    400572: h1:transform152
+    400574: h1:transform153
+    400576: h1:transform154
+    400578: h1:transform155
+    400580: h1:transform156
+    400582: h1:transform157
+    400584: h1:transform158
+    400586: h1:transform159
+    400588: h1:transform16
+    400590: h1:transform160
+    400592: h1:transform161
+    400594: h1:transform162
+    400596: h1:transform163
+    400598: h1:transform164
+    400600: h1:transform165
+    400602: h1:transform166
+    400604: h1:transform167
+    400606: h1:transform168
+    400608: h1:transform169
+    400610: h1:transform17
+    400612: h1:transform170
+    400614: h1:transform171
+    400616: h1:transform172
+    400618: h1:transform173
+    400620: h1:transform174
+    400622: h1:transform175
+    400624: h1:transform176
+    400626: h1:transform177
+    400628: h1:transform178
+    400630: h1:transform179
+    400632: h1:transform18
+    400634: h1:transform180
+    400636: h1:transform181
+    400638: h1:transform182
+    400640: h1:transform183
+    400642: h1:transform184
+    400644: h1:transform185
+    400646: h1:transform186
+    400648: h1:transform187
+    400650: h1:transform188
+    400652: h1:transform189
+    400654: h1:transform19
+    400656: h1:transform190
+    400658: h1:transform191
+    400660: h1:transform192
+    400662: h1:transform193
+    400664: h1:transform194
+    400666: h1:transform195
+    400668: h1:transform196
+    400670: h1:transform197
+    400672: h1:transform198
+    400674: h1:transform199
+    400676: h1:transform2
+    400678: h1:transform20
+    400680: h1:transform200
+    400682: h1:transform201
+    400684: h1:transform202
+    400686: h1:transform203
+    400688: h1:transform204
+    400690: h1:transform205
+    400692: h1:transform206
+    400694: h1:transform207
+    400696: h1:transform208
+    400698: h1:transform209
+    400700: h1:transform21
+    400702: h1:transform210
+    400704: h1:transform211
+    400706: h1:transform212
+    400708: h1:transform213
+    400710: h1:transform214
+    400712: h1:transform22
+    400714: h1:transform23
+    400716: h1:transform24
+    400718: h1:transform25
+    400720: h1:transform26
+    400722: h1:transform27
+    400724: h1:transform28
+    400726: h1:transform29
+    400728: h1:transform3
+    400730: h1:transform30
+    400732: h1:transform31
+    400734: h1:transform32
+    400736: h1:transform33
+    400738: h1:transform34
+    400740: h1:transform35
+    400742: h1:transform36
+    400744: h1:transform37
+    400746: h1:transform38
+    400748: h1:transform39
+    400750: h1:transform4
+    400752: h1:transform40
+    400754: h1:transform41
+    400756: h1:transform42
+    400758: h1:transform43
+    400760: h1:transform44
+    400762: h1:transform45
+    400764: h1:transform46
+    400766: h1:transform47
+    400768: h1:transform48
+    400770: h1:transform49
+    400772: h1:transform5
+    400774: h1:transform50
+    400776: h1:transform51
+    400778: h1:transform52
+    400780: h1:transform53
+    400782: h1:transform54
+    400784: h1:transform55
+    400786: h1:transform56
+    400788: h1:transform57
+    400790: h1:transform58
+    400792: h1:transform59
+    400794: h1:transform6
+    400796: h1:transform60
+    400798: h1:transform61
+    400800: h1:transform62
+    400802: h1:transform63
+    400804: h1:transform64
+    400806: h1:transform65
+    400808: h1:transform66
+    400810: h1:transform67
+    400812: h1:transform68
+    400814: h1:transform69
+    400816: h1:transform7
+    400818: h1:transform70
+    400820: h1:transform71
+    400822: h1:transform72
+    400824: h1:transform73
+    400826: h1:transform74
+    400828: h1:transform75
+    400830: h1:transform76
+    400832: h1:transform77
+    400834: h1:transform78
+    400836: h1:transform79
+    400838: h1:transform8
+    400840: h1:transform80
+    400842: h1:transform81
+    400844: h1:transform82
+    400846: h1:transform83
+    400848: h1:transform84
+    400850: h1:transform85
+    400852: h1:transform86
+    400854: h1:transform87
+    400856: h1:transform88
+    400858: h1:transform89
+    400860: h1:transform9
+    400862: h1:transform90
+    400864: h1:transform91
+    400866: h1:transform92
+    400868: h1:transform93
+    400870: h1:transform94
+    400872: h1:transform95
+    400874: h1:transform96
+    400876: h1:transform97
+    400878: h1:transform98
+    400880: h1:transform99
     2300000: animal_feed
     2300002: building_1_wall
     2300004: building_2_red

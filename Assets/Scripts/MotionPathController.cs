@@ -19,6 +19,7 @@ public class MotionPathAgent {
 	public MotionPathNode node;
 	public MotionPathNode prev_node;
 	public int saved_node_index;
+	public float node_time;
 
 	public Vector3 target_pos;
 	public bool reversed;
@@ -143,6 +144,8 @@ public class MotionPath {
 		}
 
 		agent.saved_node_index = MotionPath.wrap_node_index(agent.path, node_index + 1);
+
+		agent.node_time = 0.0f;
 	}
 
 	public static void move_agent(MotionPathAgent agent, float dt, Transform player2, bool first_hit) {
@@ -151,17 +154,12 @@ public class MotionPath {
 		agent.stopped = false;
 		agent.started = false;
 
-		if(agent.stop_time > 0.0f) {
-			agent.stop_time -= dt;
-			if(agent.stop_time < 0.0f) {
-				agent.stop_time = 0.0f;
-
-				agent.started = true;
-				// if(agent.prev_node != null && agent.prev_node.stop && agent.prev_node.stop_forever) {
-				// 	agent.started = false;
-				// }
-			}
+		float new_node_time = agent.node_time + dt;
+		if(agent.node_time < agent.stop_time && new_node_time >= agent.stop_time) {
+			agent.started = true;
 		}
+
+		agent.node_time = new_node_time;
 
 		agent.run_time -= dt;
 		if(agent.run_time < 0.0f) {
@@ -172,16 +170,15 @@ public class MotionPath {
 			if(!agent.node) {
 				agent.saved_node_index = MotionPath.wrap_node_index(agent.path, agent.saved_node_index);
 				agent.node = MotionPath.get_node(agent.path, agent.saved_node_index, agent.reversed);
+				agent.node_time = 0.0f;
+				agent.stop_time = 0.0f;
 				agent.started = true;
 			}
 			else {
-				bool should_reverse = false;
 				if(agent.runs_from_player && player2 != null && Vector3.Distance(agent.transform.position, player2.position) <= 2.5f) {
 					if(!agent.in_player_radius) {
 						agent.entered_player_radius = true;
 						agent.run_time = 3.0f;
-						//TODO: Only reverse if the player was facing the agent!!
-						// should_reverse = true;
 					}
 
 					agent.in_player_radius = true;
@@ -192,18 +189,16 @@ public class MotionPath {
 
 				//TODO: Calculate this from velocity/distance/etc.!!
 				float min_dist = Mathf.Max(agent.nav.speed * 0.5f, 1.0f);
-				if(agent.nav.remainingDistance <= min_dist) {
+				if(agent.nav.remainingDistance <= min_dist && agent.node_time >= agent.stop_time) {
+					agent.stop_time = 0.0f;
 					if(agent.node.stop) {
-						agent.stop_time = agent.node.stop_time;
+						agent.stop_time = agent.node.stop_forever ? Mathf.Infinity : agent.node.stop_time;
 						if(agent.stop_time > 0.0f) {
 							agent.stopped = true;
 						}
 					}
 
 					MotionPath.set_agent_next_node(agent, agent.node.flip_direction);
-				}
-				else if(should_reverse) {
-					MotionPath.set_agent_next_node(agent, true);
 				}
 			}
 
@@ -218,11 +213,13 @@ public class MotionPath {
 				if(!agent.prev_node.stop) {
 					agent.stop_time = 0.0f;
 				}
-				else {
-					if(agent.prev_node.stop_forever || agent.stop_time > 0.0f) {
-						speed_modifier = 0.0f;
-					}
-				}
+			}
+			else {
+				agent.stop_time = 0.0f;
+			}
+
+			if(agent.node_time < agent.stop_time) {
+				speed_modifier = 0.0f;
 			}
 
 			if(agent.target_pos != agent.node.transform.position) {

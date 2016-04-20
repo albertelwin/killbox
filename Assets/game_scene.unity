@@ -1216,6 +1216,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffa11f2c31065e44b9eaa99a4e097c6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  type: 0
   motion_path: {fileID: 0}
   runs_from_player: 0
 --- !u!195 &6737742
@@ -2890,7 +2891,7 @@ Prefab:
   m_IsPrefabParent: 0
 --- !u!4 &82162215 stripped
 Transform:
-  m_PrefabParentObject: {fileID: 450062, guid: a844648b2ca59a94eaa52f55d2a9fafe, type: 2}
+  m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 82162214}
 --- !u!1 &90516483
 GameObject:
@@ -5295,6 +5296,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffa11f2c31065e44b9eaa99a4e097c6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  type: 0
   motion_path: {fileID: 0}
   runs_from_player: 0
 --- !u!195 &216008497
@@ -8316,6 +8318,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffa11f2c31065e44b9eaa99a4e097c6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  type: 0
   motion_path: {fileID: 0}
   runs_from_player: 0
 --- !u!195 &376644371
@@ -9891,6 +9894,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffa11f2c31065e44b9eaa99a4e097c6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  type: 0
   motion_path: {fileID: 0}
   runs_from_player: 0
 --- !u!195 &437183611
@@ -13218,6 +13222,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffa11f2c31065e44b9eaa99a4e097c6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  type: 0
   motion_path: {fileID: 0}
   runs_from_player: 0
 --- !u!195 &541772509
@@ -15432,6 +15437,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffa11f2c31065e44b9eaa99a4e097c6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  type: 0
   motion_path: {fileID: 0}
   runs_from_player: 0
 --- !u!195 &599803406
@@ -16751,6 +16757,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffa11f2c31065e44b9eaa99a4e097c6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  type: 0
   motion_path: {fileID: 0}
   runs_from_player: 0
 --- !u!195 &632363252
@@ -18022,6 +18029,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffa11f2c31065e44b9eaa99a4e097c6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  type: 0
   motion_path: {fileID: 0}
   runs_from_player: 0
 --- !u!195 &638647856
@@ -20302,6 +20310,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffa11f2c31065e44b9eaa99a4e097c6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  type: 0
   motion_path: {fileID: 1118394121}
   runs_from_player: 0
 --- !u!195 &748976689
@@ -21002,6 +21011,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   global_speed: 1
+  start_node: {fileID: 0}
 --- !u!1 &810648138 stripped
 GameObject:
   m_PrefabParentObject: {fileID: 199916, guid: a844648b2ca59a94eaa52f55d2a9fafe, type: 2}
@@ -22003,6 +22013,10 @@ Prefab:
     - {fileID: 11495526, guid: a844648b2ca59a94eaa52f55d2a9fafe, type: 2}
   m_ParentPrefab: {fileID: 100100000, guid: a844648b2ca59a94eaa52f55d2a9fafe, type: 2}
   m_IsPrefabParent: 0
+--- !u!4 &816550984 stripped
+Transform:
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 816550983}
 --- !u!1 &819352952
 GameObject:
   m_ObjectHideFlags: 0
@@ -25315,6 +25329,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffa11f2c31065e44b9eaa99a4e097c6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  type: 0
   motion_path: {fileID: 0}
   runs_from_player: 0
 --- !u!195 &975961778
@@ -26586,6 +26601,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffa11f2c31065e44b9eaa99a4e097c6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  type: 0
   motion_path: {fileID: 0}
   runs_from_player: 0
 --- !u!195 &989671743
@@ -28286,6 +28302,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffa11f2c31065e44b9eaa99a4e097c6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  type: 0
   motion_path: {fileID: 0}
   runs_from_player: 0
 --- !u!195 &1026015399
@@ -31209,6 +31226,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffa11f2c31065e44b9eaa99a4e097c6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  type: 0
   motion_path: {fileID: 0}
   runs_from_player: 0
 --- !u!195 &1146869390
@@ -34690,6 +34708,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffa11f2c31065e44b9eaa99a4e097c6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  type: 0
   motion_path: {fileID: 1203280567}
   runs_from_player: 0
 --- !u!195 &1374481196
@@ -36499,6 +36518,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffa11f2c31065e44b9eaa99a4e097c6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  type: 0
   motion_path: {fileID: 0}
   runs_from_player: 0
 --- !u!195 &1424514425
@@ -38255,6 +38275,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffa11f2c31065e44b9eaa99a4e097c6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  type: 0
   motion_path: {fileID: 0}
   runs_from_player: 0
 --- !u!195 &1492322786
@@ -39667,6 +39688,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffa11f2c31065e44b9eaa99a4e097c6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  type: 0
   motion_path: {fileID: 801492639}
   runs_from_player: 1
 --- !u!195 &1503800432
@@ -41946,6 +41968,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffa11f2c31065e44b9eaa99a4e097c6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  type: 0
   motion_path: {fileID: 0}
   runs_from_player: 0
 --- !u!195 &1609548327
@@ -43439,6 +43462,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffa11f2c31065e44b9eaa99a4e097c6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  type: 0
   motion_path: {fileID: 2026364280}
   runs_from_player: 1
 --- !u!195 &1631000257
@@ -45470,6 +45494,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffa11f2c31065e44b9eaa99a4e097c6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  type: 0
   motion_path: {fileID: 0}
   runs_from_player: 0
 --- !u!195 &1664947799
@@ -47202,6 +47227,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffa11f2c31065e44b9eaa99a4e097c6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  type: 0
   motion_path: {fileID: 0}
   runs_from_player: 0
 --- !u!195 &1720285270
@@ -48521,8 +48547,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
-  - {fileID: 1762028345}
-  - {fileID: 2081116435}
+  - {fileID: 816550984}
+  - {fileID: 2081116436}
   - {fileID: 82162215}
   - {fileID: 1495384311}
   - {fileID: 1496157305}
@@ -52066,6 +52092,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffa11f2c31065e44b9eaa99a4e097c6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  type: 0
   motion_path: {fileID: 0}
   runs_from_player: 0
 --- !u!195 &1974955831
@@ -53868,6 +53895,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffa11f2c31065e44b9eaa99a4e097c6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  type: 0
   motion_path: {fileID: 0}
   runs_from_player: 0
 --- !u!195 &2020445361
@@ -54186,6 +54214,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   global_speed: 1
+  start_node: {fileID: 0}
 --- !u!1 &2029128056
 GameObject:
   m_ObjectHideFlags: 0
@@ -55628,6 +55657,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffa11f2c31065e44b9eaa99a4e097c6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  type: 0
   motion_path: {fileID: 1837458309}
   runs_from_player: 0
 --- !u!195 &2041790827
@@ -57407,6 +57437,10 @@ Prefab:
 --- !u!4 &2081116435 stripped
 Transform:
   m_PrefabParentObject: {fileID: 450062, guid: a844648b2ca59a94eaa52f55d2a9fafe, type: 2}
+  m_PrefabInternal: {fileID: 2081116434}
+--- !u!4 &2081116436 stripped
+Transform:
+  m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 2081116434}
 --- !u!1001 &2081628385
 Prefab:

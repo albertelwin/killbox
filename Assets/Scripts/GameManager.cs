@@ -121,8 +121,10 @@ public class GameManager : MonoBehaviour {
 	public static PlayerType persistent_player_type = PlayerType.NONE;
 	public static ScenarioType persistent_scenario_type = ScenarioType.NONE;
 
-	public static float drone_height = 160.0f;
-	public static float drone_radius = 60.0f;
+	// public static float drone_height = 160.0f;
+	// public static float drone_radius = 60.0f;
+	public static float drone_height = 240.0f;
+	public static float drone_radius = 90.0f;
 
 	[System.NonSerialized] public PlayerType player_type = PlayerType.NONE;
 	[System.NonSerialized] public ConnectionType connection_type = ConnectionType.NONE;
@@ -520,7 +522,7 @@ public class GameManager : MonoBehaviour {
 				env.controls_hidden = true;
 
 				QualitySettings.shadowCascades = 0;
-				Environment.apply_look(this, env, Environment.Look.PLAYER1_POV);
+				QualitySettings.shadowDistance = 400.0f;
 			}
 			else {
 				Cursor.lockState = CursorLockMode.Locked;
@@ -538,8 +540,10 @@ public class GameManager : MonoBehaviour {
 				}
 
 				QualitySettings.shadowCascades = 4;
-				Environment.apply_look(this, env, Environment.Look.PLAYER2_POV);
+				QualitySettings.shadowDistance = 140.0f;
 			}
+
+			Environment.apply_pov(this, env, player_type);
 		}
 	}
 

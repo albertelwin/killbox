@@ -12,11 +12,6 @@ public enum ScenarioType {
 }
 
 public class Environment {
-	public enum Look {
-		PLAYER1_POV,
-		PLAYER2_POV,
-	}
-
 	public class FractureCell {
 		public Transform transform;
 		public Rigidbody rigidbody;
@@ -47,9 +42,15 @@ public class Environment {
 
 	public class Building {
 		public Transform transform;
-		public Renderer renderer;
-		public Collider collider;
+		public Transform mesh;
+		public Transform post_fracture_mesh;
 		public Fracture fracture;
+	}
+
+	public struct Animal {
+		public Transform transform;
+		public Animation anim;
+		public Vector3 initial_pos;
 	}
 
 	public class Explosion {
@@ -68,10 +69,13 @@ public class Environment {
 	public Transform transform;
 
 	public Building[] buildings;
+	public Animal[] animals;
 	public Collectable[] collectables;
 	public NpcController[] npcs;
 
-	static public float EXPLOSION_RADIUS = 10.0f;
+	public Foliage foliage;
+
+	public static float EXPLOSION_RADIUS = 10.0f;
 	public Explosion explosion;
 
 	public Crater crater;
@@ -81,7 +85,7 @@ public class Environment {
 	public Renderer controls_hint;
 	public bool controls_hidden;
 
-	public Look look;
+	public PlayerType pov;
 
 	public static Environment new_inst(GameManager game_manager, Transform transform) {
 		Environment env = new Environment();
@@ -92,8 +96,12 @@ public class Environment {
 		for(int i = 0; i < buildings_parent.childCount; i++) {
 			Building building = new Building();
 			building.transform = buildings_parent.GetChild(i);
-			building.renderer = building.transform.GetComponent<Renderer>();
-		building.collider = building.transform.GetComponent<Collider>();
+			building.mesh = building.transform.Find("Mesh");
+
+			building.post_fracture_mesh = building.transform.Find("PostFractureMesh");
+			if(building.post_fracture_mesh) {
+				building.post_fracture_mesh.gameObject.SetActive(false);
+			}
 
 			Transform fractured_mesh = building.transform.Find("FracturedMesh");
 			if(fractured_mesh != null) {
@@ -101,6 +109,20 @@ public class Environment {
 			}
 
 			env.buildings[i] = building;
+		}
+
+		Transform animals_parent = transform.Find("Animals");
+		env.animals = new Animal[animals_parent.childCount];
+		for(int i = 0; i < env.animals.Length; i++) {
+			Animal animal = new Animal();
+			animal.transform = animals_parent.GetChild(i);
+			animal.anim = animal.transform.GetComponent<Animation>();
+			Assert.is_true(animal.anim != null);
+			animal.initial_pos = animal.transform.position;
+
+			Util.offset_first_anim(animal.anim);
+
+			env.animals[i] = animal;
 		}
 
 		Transform collectables_parent = transform.Find("Collectables");
@@ -115,9 +137,11 @@ public class Environment {
 			env.npcs[i] = npcs_parent.GetChild(i).GetComponent<NpcController>();
 		}
 
+		env.foliage = Foliage.new_inst(game_manager, transform.Find("Foliage"));
+
 		env.explosion = new Explosion();
-		env.explosion.transform = transform.Find("Explosion");
-		env.explosion.audio_source = env.explosion.transform.GetComponent<AudioSource>();
+		env.explosion.transform = Util.new_transform(transform, "Explosion");
+		env.explosion.audio_source = env.explosion.transform.gameObject.AddComponent<AudioSource>();
 		env.explosion.smoke = ((Transform)Object.Instantiate(game_manager.explosion_prefab, Vector3.zero, Quaternion.identity)).GetComponent<Renderer>();
 		env.explosion.smoke.enabled = false;
 		env.explosion.smoke.transform.parent = env.explosion.transform;
@@ -149,11 +173,21 @@ public class Environment {
 		for(int i = 0; i < env.buildings.Length; i++) {
 			Building building = env.buildings[i];
 
-			building.renderer.enabled = true;
-			building.collider.enabled = true;
+			building.mesh.gameObject.SetActive(true);
+
+			if(building.post_fracture_mesh != null) {
+				building.post_fracture_mesh.gameObject.SetActive(false);
+			}
+
 			if(building.fracture != null) {
 				remove_fracture(building.fracture);
 			}
+		}
+
+		for(int i = 0; i < env.animals.Length; i++) {
+			Animal animal = env.animals[i];
+			animal.transform.position = animal.initial_pos;
+			animal.anim.Stop();
 		}
 
 		for(int i = 0; i < env.npcs.Length; i++) {
@@ -163,6 +197,8 @@ public class Environment {
 		for(int i = 0; i < env.collectables.Length; i++) {
 			Collectable.reset(env.collectables[i]);
 		}
+
+		Foliage.on_reset(env.foliage);
 
 		env.explosion.smoke.enabled = false;
 		env.explosion.smoke.material.color = Util.black;
@@ -184,46 +220,46 @@ public class Environment {
 	public static void update(GameManager game_manager, Environment env) {
 		Killbox.update(env.killbox);
 
+		for(int i = 0; i < env.npcs.Length; i++) {
+			NpcController.update(game_manager, env.npcs[i]);
+		}
+
 		for(int i = 0; i < env.collectables.Length; i++) {
 			Collectable.update(game_manager, env.collectables[i]);
 		}
+
+		Foliage.update(game_manager, env.foliage);
 	}
 
-	public static string get_material_look_id(Look look) {
-		string id = "default";
-		switch(look) {
-			case Look.PLAYER2_POV: {
-				id = "alive";
-				break;
-			}
-		}
-
-		return id;
+	public static string get_pov_material_id(PlayerType pov) {
+		return pov == PlayerType.PLAYER1 ? "default" : "alive";
 	}
 
-	public static void apply_look(GameManager game_manager, Environment env, Look new_look) {
-		if(env.look != new_look) {
-			env.look = new_look;
+	public static void apply_pov(GameManager game_manager, Environment env, PlayerType pov) {
+		if(env.pov != pov) {
+			env.pov = pov;
 
 			int last_seed = Random.seed;
 			//TODO: Pick a better seed??
 			Random.seed = 1234;
 
-			string material_id = get_material_look_id(env.look);
+			string material_id = get_pov_material_id(env.pov);
 			Material npc_material = Resources.Load("npc_" + material_id + "_mat") as Material;
 
 			for(int i = 0; i < env.npcs.Length; i++) {
 				NpcController npc = env.npcs[i];
-				npc.renderer_.material = npc_material;
-				if(npc.anim_renderer != null) {
-					npc.anim_renderer.material = npc_material;
-				}
-
-				if(env.look == Look.PLAYER2_POV) {
-					npc.color_index = Util.random_index(game_manager.npc_color_pool.Length);
-					npc.renderer_.material.color = game_manager.npc_color_pool[npc.color_index];
+				if(npc.type == NpcType.HUMAN) {
+					npc.renderer_.material = npc_material;
 					if(npc.anim_renderer != null) {
-						npc.anim_renderer.material.color = npc.renderer_.material.color;
+						npc.anim_renderer.material = npc_material;
+					}
+
+					if(env.pov == PlayerType.PLAYER2) {
+						npc.color_index = Util.random_index(game_manager.npc_color_pool.Length);
+						npc.renderer_.material.color = game_manager.npc_color_pool[npc.color_index];
+						if(npc.anim_renderer != null) {
+							npc.anim_renderer.material.color = npc.renderer_.material.color;
+						}
 					}
 				}
 			}
@@ -328,25 +364,37 @@ public class Environment {
 	public static void play_explosion(GameManager game_manager, MonoBehaviour player, Environment env, Vector3 hit_pos) {
 		play_explosion_(player, env, hit_pos);
 
-		float fracture_force = 400.0f;
+		float force = 400.0f;
 		if(game_manager.first_missile_hit) {
-			fracture_force *= 3.0f;
+			force *= 3.0f;
 		}
 
 		for(int i = 0; i < env.buildings.Length; i++) {
 			Building building = env.buildings[i];
 
-			Vector3 point_on_bounds = building.collider.ClosestPointOnBounds(hit_pos);
-			if(Vector3.Distance(hit_pos, point_on_bounds) < EXPLOSION_RADIUS) {
-				//TODO: Only do this if the building can be fractured??
-				building.renderer.enabled = false;
-				building.collider.enabled = false;
+			// Vector3 point_on_bounds = building.collider.ClosestPointOnBounds(hit_pos);
+			// if(Vector3.Distance(hit_pos, point_on_bounds) < EXPLOSION_RADIUS) {
+			// 	//TODO: Only do this if the building can be fractured??
+			// 	building.renderer.enabled = false;
+			// 	building.collider.enabled = false;
 
-				if(building.fracture != null) {
-					apply_fracture(building.fracture, hit_pos, fracture_force);
+			// 	if(building.fracture != null) {
+			// 		apply_fracture(building.fracture, hit_pos, force);
+			// 	}
+			// }
+
+			if(building.fracture != null) {
+				building.mesh.gameObject.SetActive(false);
+
+				if(building.post_fracture_mesh) {
+					building.post_fracture_mesh.gameObject.SetActive(true);
 				}
+
+				apply_fracture(building.fracture, hit_pos, force);
 			}
 		}
+
+		Foliage.on_explosion(env.foliage, hit_pos);
 
 		if(env.crater.transform != null) {
 			env.crater.before.gameObject.SetActive(false);
@@ -355,49 +403,7 @@ public class Environment {
 
 		for(int i = 0; i < env.npcs.Length; i++) {
 			NpcController npc = env.npcs[i];
-
-			Vector3 point_on_bounds = npc.collider_.ClosestPointOnBounds(hit_pos);
-			if(Vector3.Distance(hit_pos, point_on_bounds) < EXPLOSION_RADIUS) {
-				npc.renderer_.enabled = false;
-				npc.collider_.enabled = false;
-				if(npc.nav_agent) {
-					npc.nav_agent.enabled = false;
-				}
-
-				if(npc.anim != null) {
-					npc.anim.gameObject.SetActive(false);
-				}
-
-				if(npc.fracture != null) {
-					apply_fracture(npc.fracture, hit_pos, fracture_force);
-				}
-			}
-			else {
-				if(npc.anim != null) {
-					npc.anim.Stop();
-					npc.anim.gameObject.SetActive(false);
-
-					npc.renderer_.enabled = true;
-				}
-
-				Transform safe_point = null;
-				float shortest_distance = Mathf.Infinity;
-				for(int ii = 0; ii < game_manager.scenario.safe_points.childCount; ii++) {
-					Transform safe_point_transform = game_manager.scenario.safe_points.GetChild(ii);
-
-					float dist = Vector3.Distance(npc.transform.position, safe_point_transform.position);
-					if(dist < shortest_distance) {
-						shortest_distance = dist;
-						safe_point = safe_point_transform;
-					}
-				}
-
-				if(npc.nav_agent) {
-					npc.nav_agent.enabled = true;
-					npc.nav_agent.speed = 7.0f;
-					npc.nav_agent.SetDestination(safe_point.position);
-				}
-			}
+			NpcController.on_explosion(game_manager, npc, hit_pos, force);
 		}
 
 		game_manager.first_missile_hit = true;

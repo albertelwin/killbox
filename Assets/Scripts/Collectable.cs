@@ -25,7 +25,7 @@ public class Collectable {
 		collectable.particle_system = transform.GetComponent<ParticleSystem>();
 		collectable.audio_source = transform.GetComponent<AudioSource>();
 		collectable.audio_source.loop = false;
-		
+
 		collectable.initial_pos = transform.position;
 		collectable.rnd_offset = Random.value * Util.TAU;
 
@@ -48,7 +48,7 @@ public class Collectable {
 
 			if(emit_particles) {
 				collectable.particle_system.Emit(collectable.particle_system.maxParticles);
-			}			
+			}
 		}
 	}
 

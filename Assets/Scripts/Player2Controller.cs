@@ -76,10 +76,6 @@ public class Player2Controller : MonoBehaviour {
 	bool second_missile_fired = false;
 	bool fade_out_triggered = false;
 
-	Vector3[] explosion_chain_points;
-	int explosion_chain_index;
-	float time_since_last_explosion;
-
 	[RPC]
 	public void missile_fired(Vector3 position, Vector3 direction, float time) {
 		if(first_missile_fired == false) {
@@ -326,7 +322,7 @@ public class Player2Controller : MonoBehaviour {
 		renderer_ = anim_renderer;
 		collider_ = mesh.GetComponent<Collider>();
 
-		string material_id = Environment.get_material_look_id(game_manager.env.look);
+		string material_id = Environment.get_pov_material_id(game_manager.env.pov);
 		Material material = (Material)Resources.Load("other_" + material_id + "_mat");
 		mesh_renderer.material = material;
 		anim_renderer.material = material;
@@ -361,6 +357,7 @@ public class Player2Controller : MonoBehaviour {
 
 		camera_.gameObject.SetActive(is_local_inst && game_manager.player_type == PlayerType.PLAYER2);
 		if(camera_.gameObject.activeSelf) {
+			camera_ref.transform.localPosition = new Vector3(0.0f, mesh_radius, 0.0f);
 			camera_ref.transform.parent = null;
 
 			audio_sources = new AudioSource[2];
@@ -390,47 +387,9 @@ public class Player2Controller : MonoBehaviour {
 		else {
 			enabled = false;
 		}
-
-		time_since_last_explosion = 0.0f;
-		explosion_chain_index = 0;
-
-		int explosion_count = 5;
-		float dist_between_explosions = 500.0f;
-		explosion_chain_points = new Vector3[explosion_count];
-		for(int i = 0; i < explosion_count; i++) {
-			Vector3 offset = Vector3.right * dist_between_explosions * ((explosion_count - 1) - i);
-			explosion_chain_points[i] = game_manager.scenario.pos + offset;
-		}
-
-		if(game_manager.scenario.type != ScenarioType.CAR) {
-			explosion_chain_index = explosion_chain_points.Length;
-		}
 	}
 
 	void Update() {
-		if(!game_manager.first_missile_hit) {
-			//TODO: Move this into the scenario??
-			if(explosion_chain_index < explosion_chain_points.Length) {
-				time_since_last_explosion += Time.deltaTime;
-				if(time_since_last_explosion > 10.0f) {
-					time_since_last_explosion = 0.0f;
-
-					Vector3 hit_pos = explosion_chain_points[explosion_chain_index++];
-					if(explosion_chain_index == explosion_chain_points.Length) {
-						missile_fired(Vector3.up * GameManager.drone_height + game_manager.scenario.pos, -Vector3.up, 1.0f);
-					}
-					else {
-						Environment.play_explosion_(this, game_manager.env, hit_pos);
-
-						AudioSource exp_source = game_manager.env.explosion.audio_source;
-						//TODO: Explosion w/o birds clip!!
-						exp_source.clip = Audio.get_random_clip(game_manager.audio, Audio.Clip.EXPLOSION);
-						exp_source.Play();
-					}
-				}
-			}
-		}
-
 #if UNITY_EDITOR
 		if(game_manager.get_key_down(KeyCode.Alpha4)) {
 			camera_type = CameraType.ENDING;
@@ -464,7 +423,7 @@ public class Player2Controller : MonoBehaviour {
 				bool auto_fire = game_manager.total_playing_time > time_until_auto_fire;
 #if UNITY_EDITOR
 				auto_fire = false;
-				if(game_manager.get_key_down(KeyCode.Alpha1)) {
+				if(game_manager.get_key_down(KeyCode.Alpha2)) {
 					auto_fire = true;
 				}
 #endif

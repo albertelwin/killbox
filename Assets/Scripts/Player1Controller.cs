@@ -953,6 +953,13 @@ public class Player1Console {
 			float time_left = Time.deltaTime;
 			inst.cursor_time += Time.deltaTime;
 
+			bool skip = false;
+#if UNITY_EDITOR
+			if(game_manager.get_key_down(KeyCode.Alpha1)) {
+				skip = true;
+			}
+#endif
+
 			while(time_left > 0.0f && inst.current_cmd_index < inst.cmd_buf.elem_count) {
 				Cmd cmd = inst.cmd_buf.elems[inst.current_cmd_index];
 				bool done = false;
@@ -1234,6 +1241,14 @@ public class Player1Console {
 						break;
 					}
 				}
+
+#if UNITY_EDITOR
+				//TODO: Make skipping a first class citizen!!
+				if(game_manager.get_key(KeyCode.Alpha1)) {
+					done = true;
+					time_left = 0.0f;
+				}
+#endif
 
 				if(done) {
 					inst.current_cmd_index = inst.next_cmd_index;
@@ -1725,6 +1740,7 @@ public class Player1Controller : MonoBehaviour {
 			camera_zoom += Time.deltaTime * zoom_speed;
 		}
 
+#if UNITY_EDITOR
 		Control toggle_infrared = controls[(int)ControlType.TOGGLE_INFRARED];
 		if(toggle_infrared.enabled && game_manager.get_key_down(toggle_infrared.key)) {
 			infrared_mode = !infrared_mode;
@@ -1735,6 +1751,7 @@ public class Player1Controller : MonoBehaviour {
 				ui_text_meshes[i].color = ui_color;
 			}
 		}
+#endif
 
 		camera_xy.y = Mathf.Clamp(camera_xy.y, -60.0f, 20.0f);
 

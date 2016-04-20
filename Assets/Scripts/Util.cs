@@ -182,6 +182,16 @@ public static class Util {
 		return new Vector3(vec.x, vec.y, vec.z);
 	}
 
+	public static AnimationState get_first_anim_state(Animation anim) {
+		//TODO: Can we rely on this??
+		return anim[anim.clip.name];
+	}
+
+	public static void offset_first_anim(Animation anim) {
+		AnimationState first_anim = get_first_anim_state(anim);
+		first_anim.time = Random.Range(0.0f, first_anim.length);
+	}
+
 	public static IEnumerator lerp_local_scale(Transform transform, Vector3 from, Vector3 to, float d = 1.0f) {
 		transform.localScale = from;
 

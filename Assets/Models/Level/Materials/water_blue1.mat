@@ -7,10 +7,10 @@ Material:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: water_blue1
-  m_Shader: {fileID: 4800000, guid: 0881e35595b7b484ab80afb8366412d6, type: 3}
+  m_Shader: {fileID: 4800000, guid: 2687f707f94047042ab43e4fddf0fcd1, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 5
-  m_CustomRenderQueue: 2000
+  m_CustomRenderQueue: 3001
   stringTagMap: {}
   m_SavedProperties:
     serializedVersion: 2
@@ -140,3 +140,15 @@ Material:
         first:
           name: _Color
         second: {r: .134499997, g: .5, b: .485940427, a: 1}
+      data:
+        first:
+          name: _Temperature
+        second: {r: 0, g: 0, b: 0, a: 1}
+      data:
+        first:
+          name: _Wave
+        second: {r: .200000003, g: .100000001, b: 1, a: .5}
+      data:
+        first:
+          name: _Spec
+        second: {r: .100000001, g: 32, b: 0, a: 0}

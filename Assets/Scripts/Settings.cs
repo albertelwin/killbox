@@ -5,7 +5,7 @@ public static class Settings {
 	public static bool QUALITY_LEVEL_SETTINGS = true;
 
 	public static bool INSTALLATION_BUILD = true;
-	public static PlayerType START_PLAYER_ONLY = PlayerType.NONE;
+	public static PlayerType START_PLAYER_ONLY = PlayerType.PLAYER2;
 
 	public static bool LAN_MODE = false;
 	public static bool LAN_SERVER_MACHINE = false;
@@ -15,8 +15,8 @@ public static class Settings {
 	public static bool FORCE_OFFLINE_MODE = true;
 
 	public static bool USE_MUSIC = true;
-	public static bool USE_SPLASH = false;
-	public static bool USE_TRANSITIONS = false;
+	public static bool USE_SPLASH = true;
+	public static bool USE_TRANSITIONS = true;
 	public static bool USE_DEATH_VIEW = true;
 	public static bool USE_KILLBOX_ANIMATION = false;
 	public static bool USE_DAY_NIGHT_CYCLE = false;

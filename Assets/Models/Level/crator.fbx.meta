@@ -1,6 +1,6 @@
 fileFormatVersion: 2
 guid: db584628dabb51e44a2856a68b968f37
-timeCreated: 1460721342
+timeCreated: 1461117415
 licenseType: Pro
 ModelImporter:
   serializedVersion: 18
@@ -62,7 +62,7 @@ ModelImporter:
     splitTangentsAcrossUV: 1
     normalImportMode: 0
     tangentImportMode: 1
-  importAnimation: 0
+  importAnimation: 1
   copyAvatar: 0
   humanDescription:
     human: []

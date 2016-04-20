@@ -1,6 +1,6 @@
 fileFormatVersion: 2
 guid: bc56a3b5de405074e9f3c1bcc9c56a32
-timeCreated: 1460721341
+timeCreated: 1461117288
 licenseType: Pro
 ModelImporter:
   serializedVersion: 18
@@ -17,29 +17,36 @@ ModelImporter:
     100018: tree13
     100020: tree14
     100022: tree15
-    100024: tree16
-    100026: tree17
-    100028: tree18
-    100030: tree19
-    100032: tree2
-    100034: tree20
-    100036: tree21
-    100038: tree22
-    100040: tree23
-    100042: tree24
-    100044: tree25
-    100046: tree26
-    100048: tree27
-    100050: tree28
-    100052: tree3
+    100024: tree2
+    100026: tree27
+    100028: tree28
+    100030: tree29
+    100032: tree3
+    100034: tree30
+    100036: tree31
+    100038: tree32
+    100040: tree33
+    100042: tree34
+    100044: tree35
+    100046: tree36
+    100048: tree37
+    100050: tree38
+    100052: tree39
     100054: tree4
-    100056: tree5
-    100058: tree6
-    100060: tree7
-    100062: tree8
-    100064: tree9
-    100066: //RootNode
-    100068: trees_etc
+    100056: tree40
+    100058: tree41
+    100060: tree42
+    100062: tree43
+    100064: tree44
+    100066: tree45
+    100068: tree46
+    100070: tree47
+    100072: tree48
+    100074: tree6
+    100076: tree7
+    100078: tree9
+    100080: //RootNode
+    100082: trees_etc
     400000: big_tree
     400002: bush
     400004: flower
@@ -52,29 +59,36 @@ ModelImporter:
     400018: tree13
     400020: tree14
     400022: tree15
-    400024: tree16
-    400026: tree17
-    400028: tree18
-    400030: tree19
-    400032: tree2
-    400034: tree20
-    400036: tree21
-    400038: tree22
-    400040: tree23
-    400042: tree24
-    400044: tree25
-    400046: tree26
-    400048: tree27
-    400050: tree28
-    400052: tree3
+    400024: tree2
+    400026: tree27
+    400028: tree28
+    400030: tree29
+    400032: tree3
+    400034: tree30
+    400036: tree31
+    400038: tree32
+    400040: tree33
+    400042: tree34
+    400044: tree35
+    400046: tree36
+    400048: tree37
+    400050: tree38
+    400052: tree39
     400054: tree4
-    400056: tree5
-    400058: tree6
-    400060: tree7
-    400062: tree8
-    400064: tree9
-    400066: //RootNode
-    400068: trees_etc
+    400056: tree40
+    400058: tree41
+    400060: tree42
+    400062: tree43
+    400064: tree44
+    400066: tree45
+    400068: tree46
+    400070: tree47
+    400072: tree48
+    400074: tree6
+    400076: tree7
+    400078: tree9
+    400080: //RootNode
+    400082: trees_etc
     2300000: big_tree
     2300002: bush
     2300004: flower
@@ -87,27 +101,34 @@ ModelImporter:
     2300018: tree13
     2300020: tree14
     2300022: tree15
-    2300024: tree16
-    2300026: tree17
-    2300028: tree18
-    2300030: tree19
-    2300032: tree2
-    2300034: tree20
-    2300036: tree21
-    2300038: tree22
-    2300040: tree23
-    2300042: tree24
-    2300044: tree25
-    2300046: tree26
-    2300048: tree27
-    2300050: tree28
-    2300052: tree3
+    2300024: tree2
+    2300026: tree27
+    2300028: tree28
+    2300030: tree29
+    2300032: tree3
+    2300034: tree30
+    2300036: tree31
+    2300038: tree32
+    2300040: tree33
+    2300042: tree34
+    2300044: tree35
+    2300046: tree36
+    2300048: tree37
+    2300050: tree38
+    2300052: tree39
     2300054: tree4
-    2300056: tree5
-    2300058: tree6
-    2300060: tree7
-    2300062: tree8
-    2300064: tree9
+    2300056: tree40
+    2300058: tree41
+    2300060: tree42
+    2300062: tree43
+    2300064: tree44
+    2300066: tree45
+    2300068: tree46
+    2300070: tree47
+    2300072: tree48
+    2300074: tree6
+    2300076: tree7
+    2300078: tree9
     3300000: big_tree
     3300002: bush
     3300004: flower
@@ -120,60 +141,74 @@ ModelImporter:
     3300018: tree13
     3300020: tree14
     3300022: tree15
-    3300024: tree16
-    3300026: tree17
-    3300028: tree18
-    3300030: tree19
-    3300032: tree2
-    3300034: tree20
-    3300036: tree21
-    3300038: tree22
-    3300040: tree23
-    3300042: tree24
-    3300044: tree25
-    3300046: tree26
-    3300048: tree27
-    3300050: tree28
-    3300052: tree3
+    3300024: tree2
+    3300026: tree27
+    3300028: tree28
+    3300030: tree29
+    3300032: tree3
+    3300034: tree30
+    3300036: tree31
+    3300038: tree32
+    3300040: tree33
+    3300042: tree34
+    3300044: tree35
+    3300046: tree36
+    3300048: tree37
+    3300050: tree38
+    3300052: tree39
     3300054: tree4
-    3300056: tree5
-    3300058: tree6
-    3300060: tree7
-    3300062: tree8
-    3300064: tree9
+    3300056: tree40
+    3300058: tree41
+    3300060: tree42
+    3300062: tree43
+    3300064: tree44
+    3300066: tree45
+    3300068: tree46
+    3300070: tree47
+    3300072: tree48
+    3300074: tree6
+    3300076: tree7
+    3300078: tree9
     4300000: tree
     4300002: tree1
     4300004: tree2
     4300006: tree3
     4300008: tree4
-    4300010: tree5
-    4300012: tree6
-    4300014: tree7
-    4300016: tree8
-    4300018: tree9
-    4300020: tree10
-    4300022: tree11
-    4300024: tree12
-    4300026: tree13
-    4300028: tree14
-    4300030: tree15
-    4300032: tree16
-    4300034: tree17
-    4300036: big_tree
-    4300038: grass
-    4300040: bush
-    4300042: flower
-    4300044: tree18
-    4300046: tree19
-    4300048: tree20
-    4300050: tree21
-    4300052: tree22
-    4300054: tree23
-    4300056: tree24
-    4300058: tree25
-    4300060: tree26
-    4300062: tree27
-    4300064: tree28
+    4300010: tree6
+    4300012: tree7
+    4300014: tree9
+    4300016: tree10
+    4300018: tree11
+    4300020: tree12
+    4300022: tree13
+    4300024: tree14
+    4300026: tree15
+    4300028: big_tree
+    4300030: grass
+    4300032: bush
+    4300034: flower
+    4300036: tree27
+    4300038: tree28
+    4300040: tree29
+    4300042: tree30
+    4300044: tree31
+    4300046: tree32
+    4300048: tree33
+    4300050: tree34
+    4300052: tree35
+    4300054: tree36
+    4300056: tree37
+    4300058: tree38
+    4300060: tree39
+    4300062: tree40
+    4300064: tree41
+    4300066: tree42
+    4300068: tree43
+    4300070: tree44
+    4300072: tree45
+    4300074: tree46
+    4300076: tree47
+    4300078: tree48
   materials:
     importMaterials: 1
     materialName: 0
@@ -216,8 +251,8 @@ ModelImporter:
     normalSmoothAngle: 60
     splitTangentsAcrossUV: 1
     normalImportMode: 0
-    tangentImportMode: 0
-  importAnimation: 0
+    tangentImportMode: 1
+  importAnimation: 1
   copyAvatar: 0
   humanDescription:
     human: []

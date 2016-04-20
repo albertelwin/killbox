@@ -6,7 +6,7 @@ Material:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: building_blue
+  m_Name: OOOMG_h1_building_beigh_1
   m_Shader: {fileID: 4800000, guid: 8fb1ae191d58805468d06c7bb479d2c6, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 5

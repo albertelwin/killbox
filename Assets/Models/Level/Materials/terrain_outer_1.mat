@@ -6,11 +6,11 @@ Material:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: water_blue
-  m_Shader: {fileID: 4800000, guid: 0881e35595b7b484ab80afb8366412d6, type: 3}
+  m_Name: terrain_outer_1
+  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
   m_ShaderKeywords: 
   m_LightmapFlags: 5
-  m_CustomRenderQueue: 2000
+  m_CustomRenderQueue: -1
   stringTagMap: {}
   m_SavedProperties:
     serializedVersion: 2
@@ -127,10 +127,6 @@ Material:
         first:
           name: _Metallic
         second: 0
-      data:
-        first:
-          name: _Emission
-        second: 0
     m_Colors:
       data:
         first:
@@ -139,8 +135,4 @@ Material:
       data:
         first:
           name: _Color
-        second: {r: .135110289, g: .360294104, b: .347047985, a: 1}
-      data:
-        first:
-          name: _Temperature
-        second: {r: 0, g: 0, b: 0, a: 1}
+        second: {r: .369264007, g: .39199999, b: .372761935, a: 1}

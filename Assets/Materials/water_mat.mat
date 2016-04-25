@@ -130,16 +130,16 @@ Material:
         second: 0
       data:
         first:
+          name: _Spec
+        second: 32
+      data:
+        first:
           name: _Amplitude
         second: .100000001
       data:
         first:
           name: _Speed
         second: 1
-      data:
-        first:
-          name: _Spec
-        second: 32
     m_Colors:
       data:
         first:
@@ -148,23 +148,23 @@ Material:
       data:
         first:
           name: _Color
-        second: {r: .392913014, g: .794420958, b: .879000008, a: .621999979}
+        second: {r: .392913014, g: .794420958, b: .879000008, a: .746999979}
       data:
         first:
           name: _Temperature
         second: {r: 0, g: 0, b: 0, a: 1}
       data:
         first:
-          name: _Amplitude
-        second: {r: .100000001, g: .0199999996, b: 1, a: .400000006}
+          name: _Wave
+        second: {r: .200000003, g: .0399999991, b: 1, a: .600000024}
       data:
         first:
           name: _Spec
         second: {r: .200000003, g: 64, b: 0, a: 0}
       data:
         first:
-          name: _Wave
-        second: {r: .200000003, g: .0399999991, b: 1, a: .600000024}
+          name: _Amplitude
+        second: {r: .100000001, g: .0199999996, b: 1, a: .400000006}
       data:
         first:
           name: _Direction

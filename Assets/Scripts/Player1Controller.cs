@@ -225,16 +225,6 @@ public static class Player1Util {
 							break;
 						}
 
-						case "yes_no": {
-							Assert.is_true(cmd.input_count == 3);
-							Assert.is_true(cmd.inputs[1].type == ParsedCmdInputType.STR);
-							Assert.is_true(cmd.inputs[2].type == ParsedCmdInputType.STR);
-
-							Player1Console.push_yes_no_cmd(cmd_buf, get_cmd_input_branch(cmd.inputs[1]), get_cmd_input_branch(cmd.inputs[2]));
-
-							break;
-						}
-
 						case "wait": {
 							Assert.is_true(cmd.input_count == 2);
 							Assert.is_true(cmd.inputs[1].type == ParsedCmdInputType.NUM);
@@ -394,12 +384,6 @@ public static class Player1Util {
 					break;
 				}
 
-				case Player1Console.CmdType.YES_NO: {
-					cmd.next_index = find_branch_cmd_index(cmd_buf, cmd.str);
-					cmd.next_index2 = find_branch_cmd_index(cmd_buf, cmd.str2);
-					break;
-				}
-
 				case Player1Console.CmdType.WAIT_KEY: {
 					if(cmd.str != "") {
 						cmd.next_index = find_branch_cmd_index(cmd_buf, cmd.str);
@@ -466,7 +450,6 @@ public class Player1Console {
 		NOOP,
 
 		GO_TO,
-		YES_NO,
 
 		COMMIT_STR,
 		PRINT_STR,
@@ -635,13 +618,6 @@ public class Player1Console {
 	public static Cmd push_go_to_cmd(CmdBuf cmd_buf, string name) {
 		Cmd cmd = push_cmd(cmd_buf, CmdType.GO_TO);
 		cmd.str = name;
-		return cmd;
-	}
-
-	public static Cmd push_yes_no_cmd(CmdBuf cmd_buf, string yes, string no) {
-		Cmd cmd = push_cmd(cmd_buf, CmdType.YES_NO);
-		cmd.str = yes;
-		cmd.str2 = no;
 		return cmd;
 	}
 
@@ -955,7 +931,7 @@ public class Player1Console {
 
 			bool skip = false;
 #if UNITY_EDITOR
-			if(game_manager.get_key_down(KeyCode.Alpha1)) {
+			if(game_manager.get_key(KeyCode.Alpha1)) {
 				skip = true;
 			}
 #endif
@@ -980,25 +956,6 @@ public class Player1Console {
 						}
 
 						done = true;
-						break;
-					}
-
-					case CmdType.YES_NO: {
-						int next_index = -1;
-						if(game_manager.get_key_down(KeyCode.Y)) {
-							next_index = cmd.next_index;
-							Assert.is_true(next_index > -1);
-						}
-						else if(game_manager.get_key_down(KeyCode.N)) {
-							next_index = cmd.next_index2;
-							Assert.is_true(next_index > -1);
-						}
-
-						if(next_index > -1) {
-							inst.next_cmd_index = next_index;
-							done = true;
-						}
-
 						break;
 					}
 
@@ -1033,6 +990,18 @@ public class Player1Console {
 							time_left = inst.current_cmd_time;
 							done = true;
 						}
+						else if(skip) {
+							for(int i = inst.current_cmd_str_it; i < str.Length; i++) {
+								char char_ = str[inst.current_cmd_str_it++];
+								inst.working_text_buffer += char_;
+								if(Player1Util.is_new_line(char_)) {
+									break;
+								}
+							}
+
+							time_left = 0.0f;
+							done = true;
+						}
 
 						inst.cursor_time = inst.last_cursor_time = 0.0f;
 						break;
@@ -1044,6 +1013,10 @@ public class Player1Console {
 						inst.current_cmd_time += time_left;
 						if(inst.current_cmd_time >= cmd.duration) {
 							time_left = inst.current_cmd_time - cmd.duration;
+							done = true;
+						}
+						else if(skip) {
+							time_left = 0.0f;
 							done = true;
 						}
 						else {
@@ -1113,6 +1086,11 @@ public class Player1Console {
 							inst.cursor_time = inst.last_cursor_time = 0.0f;
 						}
 
+						if(skip) {
+							time_left = 0.0f;
+							done = true;
+						}
+
 						break;
 					}
 
@@ -1130,6 +1108,11 @@ public class Player1Console {
 
 								done = true;
 							}
+						}
+
+						if(skip) {
+							time_left = 0.0f;
+							done = true;
 						}
 
 						break;
@@ -1189,13 +1172,21 @@ public class Player1Console {
 							if(inst.current_cmd_time >= cmd.duration) {
 								time_left = inst.current_cmd_time - cmd.duration;
 								done = true;
-
-								for(int i = 0; i < player1.controls.Length; i++) {
-									player1.controls[i].enabled = false;
-								}
 							}
 
 							inst.cursor_time = inst.last_cursor_time = 0.0f;
+						}
+
+						if(skip) {
+							set_loading_bar_progress(inst.current_cmd_item, 1.0f);
+							time_left = 0.0f;
+							done = true;
+						}
+
+						if(done) {
+							for(int i = 0; i < player1.controls.Length; i++) {
+								player1.controls[i].enabled = false;
+							}
 						}
 
 						break;
@@ -1241,14 +1232,6 @@ public class Player1Console {
 						break;
 					}
 				}
-
-#if UNITY_EDITOR
-				//TODO: Make skipping a first class citizen!!
-				if(game_manager.get_key(KeyCode.Alpha1)) {
-					done = true;
-					time_left = 0.0f;
-				}
-#endif
 
 				if(done) {
 					inst.current_cmd_index = inst.next_cmd_index;

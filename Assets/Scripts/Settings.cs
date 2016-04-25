@@ -5,7 +5,6 @@ public static class Settings {
 	public static bool QUALITY_LEVEL_SETTINGS = true;
 
 	public static bool INSTALLATION_BUILD = true;
-	public static PlayerType START_PLAYER_ONLY = PlayerType.PLAYER2;
 
 	public static bool LAN_MODE = false;
 	public static bool LAN_SERVER_MACHINE = false;

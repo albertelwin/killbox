@@ -880,43 +880,47 @@ public class GameManager : MonoBehaviour {
 			end_screen.transform.gameObject.SetActive(false);
 
 			main_screen.cursor.gameObject.SetActive(false);
+
 			main_screen.player1_helmet.material.color = Util.black_no_alpha;
+			main_screen.player1_head.material.color = player1_text_color;
 			main_screen.player1_body.material.color = Util.black_no_alpha;
 			main_screen.player1_text.color = Util.black_no_alpha;
+
+			main_screen.player2_head.material.color = player2_text_color;
 			main_screen.player2_body.material.color = Util.black_no_alpha;
 			main_screen.player2_text.color = Util.black_no_alpha;
 
-			PlayerType menu_player = Settings.INSTALLATION_BUILD ? Settings.START_PLAYER_ONLY : PlayerType.NONE;
+			PlayerType menu_player = PlayerType.NONE;
 			if(Settings.LAN_MODE) {
 				menu_player = Settings.LAN_SERVER_MACHINE ? PlayerType.PLAYER1 : PlayerType.PLAYER2;
 			}
 
-			if(Settings.USE_TRANSITIONS) {
-				if(menu_player == PlayerType.NONE) {
+			if(menu_player == PlayerType.NONE) {
+				if(Settings.USE_TRANSITIONS) {
 					main_screen.player1_head.material.color = Util.new_color(player1_text_color, 0.0f);
 					main_screen.player2_head.material.color = Util.new_color(player2_text_color, 0.0f);
 
 					yield return StartCoroutine(Util.lerp_material_color(main_screen.player1_head, main_screen.player1_head.material.color, player1_text_color));
-					yield return StartCoroutine(Util.lerp_material_color(main_screen.player2_head, main_screen.player2_head.material.color, player2_text_color));
-				}
-				else if(menu_player == PlayerType.PLAYER1) {
-					main_screen.player2_button.gameObject.SetActive(false);
-					main_screen.player1_button.localPosition = Vector3.zero;
-
-					main_screen.player1_head.material.color = Util.new_color(player1_text_color, 0.0f);
-					yield return StartCoroutine(Util.lerp_material_color(main_screen.player1_head, main_screen.player1_head.material.color, player1_text_color));
-				}
-				else {
-					main_screen.player1_button.gameObject.SetActive(false);
-					main_screen.player2_button.localPosition = Vector3.zero;
-
-					main_screen.player2_head.material.color = Util.new_color(player2_text_color, 0.0f);
 					yield return StartCoroutine(Util.lerp_material_color(main_screen.player2_head, main_screen.player2_head.material.color, player2_text_color));
 				}
 			}
+			else if(menu_player == PlayerType.PLAYER1) {
+				main_screen.player2_button.gameObject.SetActive(false);
+				main_screen.player1_button.localPosition = Vector3.zero;
+
+				if(Settings.USE_TRANSITIONS) {
+					main_screen.player1_head.material.color = Util.new_color(player1_text_color, 0.0f);
+					yield return StartCoroutine(Util.lerp_material_color(main_screen.player1_head, main_screen.player1_head.material.color, player1_text_color));
+				}
+			}
 			else {
-				main_screen.player1_head.material.color = player1_text_color;
-				main_screen.player2_head.material.color = player2_text_color;
+				main_screen.player1_button.gameObject.SetActive(false);
+				main_screen.player2_button.localPosition = Vector3.zero;
+
+				if(Settings.USE_TRANSITIONS) {
+					main_screen.player2_head.material.color = Util.new_color(player2_text_color, 0.0f);
+					yield return StartCoroutine(Util.lerp_material_color(main_screen.player2_head, main_screen.player2_head.material.color, player2_text_color));
+				}
 			}
 
 			splash_screen_closed = true;

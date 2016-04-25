@@ -121,6 +121,7 @@ public class Environment {
 			animal.initial_pos = animal.transform.position;
 
 			Util.offset_first_anim(animal.anim);
+			animal.anim.Play();
 
 			env.animals[i] = animal;
 		}
@@ -187,7 +188,10 @@ public class Environment {
 		for(int i = 0; i < env.animals.Length; i++) {
 			Animal animal = env.animals[i];
 			animal.transform.position = animal.initial_pos;
+
 			animal.anim.Stop();
+			Util.offset_first_anim(animal.anim);
+			animal.anim.Play();
 		}
 
 		for(int i = 0; i < env.npcs.Length; i++) {
@@ -402,8 +406,7 @@ public class Environment {
 		}
 
 		for(int i = 0; i < env.npcs.Length; i++) {
-			NpcController npc = env.npcs[i];
-			NpcController.on_explosion(game_manager, npc, hit_pos, force);
+			NpcController.on_explosion(game_manager, env.npcs[i], hit_pos, force);
 		}
 
 		game_manager.first_missile_hit = true;

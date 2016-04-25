@@ -6,8 +6,8 @@ Material:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: water_blue
-  m_Shader: {fileID: 4800000, guid: 0881e35595b7b484ab80afb8366412d6, type: 3}
+  m_Name: phong2
+  m_Shader: {fileID: 4800000, guid: 8fb1ae191d58805468d06c7bb479d2c6, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 5
   m_CustomRenderQueue: 2000
@@ -139,7 +139,7 @@ Material:
       data:
         first:
           name: _Color
-        second: {r: .135110289, g: .360294104, b: .347047985, a: 1}
+        second: {r: .5, g: .5, b: .5, a: 1}
       data:
         first:
           name: _Temperature

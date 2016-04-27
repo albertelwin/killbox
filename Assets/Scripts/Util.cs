@@ -37,8 +37,9 @@ public static class Util {
 	public static YieldInstruction wait_for_40ms = new WaitForSeconds(0.04f);
 	public static YieldInstruction wait_for_60ms = new WaitForSeconds(0.06f);
 	public static YieldInstruction wait_for_500ms = new WaitForSeconds(0.5f);
-	public static YieldInstruction wait_for_1000ms = new WaitForSeconds(1.0f);
-	public static YieldInstruction wait_for_2000ms = new WaitForSeconds(2.0f);
+	public static YieldInstruction wait_for_1s = new WaitForSeconds(1.0f);
+	public static YieldInstruction wait_for_2s = new WaitForSeconds(2.0f);
+	public static YieldInstruction wait_for_4s = new WaitForSeconds(4.0f);
 
 	public static KeyValue[] numeric_key_chars = new KeyValue[] {
 		KeyValue.new_inst(KeyCode.Keypad0, '0'),

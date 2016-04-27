@@ -208,7 +208,7 @@ public class Player2Controller : MonoBehaviour {
 		user_has_control = false;
 		camera_fade.alpha = 1.0f;
 
-		yield return Util.wait_for_2000ms;
+		yield return Util.wait_for_2s;
 
 		camera_type = CameraType.ENDING;
 		camera_ref.position = game_manager.scenario.pos + Vector3.up * mesh_radius;
@@ -530,21 +530,22 @@ public class Player2Controller : MonoBehaviour {
 				camera_.transform.localPosition += camera_shake_offset;
 
 				//TODO: Fix camera clipping!!
-				// RaycastHit hit_info;
-				// if(Physics.Raycast(camera_ref.position, camera_offset.normalized, out hit_info, camera_offset.magnitude)) {
-				// 	bool inside_collider = true;
-				// 	// RaycastHit[] hit_array = Physics.RaycastAll(camera_.transform.position, camera_.transform.forward, camera_dist);
-				// 	// for(int i = 0; i < hit_array.Length; i++) {
-				// 	// 	if(hit_array[i].collider == hit_info.collider) {
-				// 	// 		inside_collider = false;
-				// 	// 		break;
-				// 	// 	}
-				// 	// }
+				RaycastHit hit_info;
+				if(Physics.Raycast(camera_ref.position, camera_offset.normalized, out hit_info, camera_offset.magnitude)) {
+					bool inside_collider = true;
+					// RaycastHit[] hit_array = Physics.RaycastAll(camera_.transform.position, camera_.transform.forward, camera_dist);
+					// for(int i = 0; i < hit_array.Length; i++) {
+					// 	if(hit_array[i].collider == hit_info.collider) {
+					// 		inside_collider = false;
+					// 		break;
+					// 	}
+					// }
 
-				// 	if(inside_collider) {
-				// 		camera_.transform.position = hit_info.point;
-				// 	}
-				// }
+					if(inside_collider) {
+						Vector3 near_offset = camera_.nearClipPlane * camera_offset.normalized;
+						camera_.transform.position = hit_info.point + near_offset;
+					}
+				}
 
 				break;
 			}

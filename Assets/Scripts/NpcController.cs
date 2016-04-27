@@ -171,11 +171,13 @@ public class NpcController : MonoBehaviour {
 				float distance_to_player = Vector3.Distance(closest_point, player2.position);
 
 				if(!npc.activated && distance_to_player < ACTIVAITON_DIST) {
-					npc.audio_source.clip = Audio.get_random_clip(game_manager.audio, Audio.Clip.NPC);
-					npc.audio_source.Play();
+					if(npc.type == NpcType.HUMAN) {
+						npc.audio_source.clip = Audio.get_random_clip(game_manager.audio, Audio.Clip.NPC);
+						npc.audio_source.Play();
 
-					if(npc.particle_system != null) {
-						npc.particle_system.Emit(npc.particle_system.maxParticles);
+						if(npc.particle_system != null) {
+							npc.particle_system.Emit(npc.particle_system.maxParticles);
+						}
 					}
 
 					npc.activated = true;
@@ -187,10 +189,6 @@ public class NpcController : MonoBehaviour {
 			else {
 				npc.activated = false;
 			}
-		}
-
-		if(npc.main_renderer == null) {
-			Debug.Log("ughhhhhhhh", npc);
 		}
 
 		npc.emission = Mathf.Lerp(npc.emission, npc.activated ? 0.5f : 0.0f, Time.deltaTime * 8.0f);

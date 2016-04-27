@@ -1119,10 +1119,7 @@ public class Player1Console {
 					}
 
 					case CmdType.CHATTER: {
-						// player1.audio_sources[0].Stop();
-						if(Settings.USE_MUSIC) {
-							player1.audio_sources[1].Play();
-						}
+						player1.audio_sources[1].Play();
 
 						done = true;
 						break;
@@ -1595,8 +1592,6 @@ public class Player1Controller : MonoBehaviour {
 			audio_sources[i] = source;
 		}
 
-		audio_sources[0].Play();
-
 		if(game_manager.network_player2_inst != null) {
 			game_manager.network_player2_inst.renderer_.enabled = true;
 			game_manager.network_player2_inst.collider_.enabled = true;
@@ -1606,7 +1601,7 @@ public class Player1Controller : MonoBehaviour {
 
 		console_ = Player1Console.new_inst(console_transform);
 		console_.enabled = false;
-		StartCoroutine(start_console_delayed());
+		StartCoroutine(start_console());
 	}
 
 	public IEnumerator fire_missile_() {
@@ -1655,10 +1650,15 @@ public class Player1Controller : MonoBehaviour {
 		yield return null;
 	}
 
-	IEnumerator start_console_delayed() {
+	IEnumerator start_console() {
 		camera_fade.alpha = 1.0f;
+
+		audio_sources[0].volume = 0.0f;
+		audio_sources[0].Play();
+
 		if(Settings.USE_TRANSITIONS) {
-			yield return new WaitForSeconds(4.9f);
+			StartCoroutine(Util.lerp_audio_volume(audio_sources[0], 0.0f, 3.0f));
+			yield return Util.wait_for_4s;
 		}
 
 		console_.enabled = true;
@@ -1826,7 +1826,7 @@ public class Player1Controller : MonoBehaviour {
 	public IEnumerator fire_missile() {
 		firing_missile = true;
 
-		yield return Util.wait_for_2000ms;
+		yield return Util.wait_for_2s;
 
 		// Vector3 missile_direction = main_camera.transform.forward;
 		Vector3 missile_direction = (game_manager.scenario.pos - main_camera.transform.position).normalized;

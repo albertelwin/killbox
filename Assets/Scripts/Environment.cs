@@ -359,10 +359,13 @@ public class Environment {
 	}
 
 	public static void play_explosion_(MonoBehaviour player, Environment env, Vector3 hit_pos) {
-		env.explosion.transform.position = hit_pos;
+		// env.explosion.transform.position = hit_pos;
 
-		player.StartCoroutine(play_explosion_smoke(player, env.explosion.smoke));
-		player.StartCoroutine(play_explosion_shock_wave(env.explosion.shock_wave));
+		// player.StartCoroutine(play_explosion_smoke(player, env.explosion.smoke));
+		// player.StartCoroutine(play_explosion_shock_wave(env.explosion.shock_wave));
+
+		Transform explosion_prefab = ((GameObject)Resources.Load("ExplosionPrefab_")).transform;
+		Transform explosion = (Transform)Object.Instantiate(explosion_prefab, hit_pos, Quaternion.identity);
 	}
 
 	public static void play_explosion(GameManager game_manager, MonoBehaviour player, Environment env, Vector3 hit_pos) {

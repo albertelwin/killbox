@@ -13,9 +13,8 @@ public static class Settings {
 	public static bool LAN_FORCE_CONNECTION = true;
 	public static bool FORCE_OFFLINE_MODE = true;
 
-	public static bool USE_MUSIC = true;
-	public static bool USE_SPLASH = true;
-	public static bool USE_TRANSITIONS = true;
+	public static bool USE_SPLASH = false;
+	public static bool USE_TRANSITIONS = false;
 	public static bool USE_DEATH_VIEW = true;
 	public static bool USE_KILLBOX_ANIMATION = false;
 	public static bool USE_DAY_NIGHT_CYCLE = false;

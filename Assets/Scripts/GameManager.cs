@@ -289,7 +289,7 @@ public class GameManager : MonoBehaviour {
 			end_screen.passage0.color = Util.white_no_alpha;
 			end_screen.passage1.color = Util.white_no_alpha;
 
-			yield return Util.wait_for_2000ms;
+			yield return Util.wait_for_2s;
 
 			yield return StartCoroutine(Util.lerp_text_alpha(end_screen.passage0, 1.0f));
 			yield return new WaitForSeconds(3.0f);
@@ -328,7 +328,7 @@ public class GameManager : MonoBehaviour {
 		//NOTE: We never want to show info screen in an installation build!!
 		if(!Settings.INSTALLATION_BUILD && show_info) {
 			//TODO: Network disconnect here!!
-			yield return Util.wait_for_1000ms;
+			yield return Util.wait_for_1s;
 
 			end_screen.play_button.gameObject.SetActive(true);
 			end_screen.play_circle.material.color = Util.white_no_alpha;
@@ -399,7 +399,7 @@ public class GameManager : MonoBehaviour {
 				yield return StartCoroutine(Util.lerp_material_color(end_screen.play_circle, end_screen.play_circle.material.color, Util.white_no_alpha, fade_duration));
 				yield return StartCoroutine(Util.lerp_material_color(end_screen.info_circle, end_screen.info_circle.material.color, Util.white_no_alpha));
 
-				yield return Util.wait_for_1000ms;
+				yield return Util.wait_for_1s;
 
 				end_screen.info.gameObject.SetActive(true);
 				end_screen.info.color = Util.white_no_alpha;
@@ -436,7 +436,7 @@ public class GameManager : MonoBehaviour {
 				yield return StartCoroutine(Util.lerp_material_color(end_screen.play_circle, end_screen.play_circle.material.color, Util.white_no_alpha));
 			}
 
-			yield return Util.wait_for_1000ms;
+			yield return Util.wait_for_1s;
 		}
 
 		game_over(show_info);

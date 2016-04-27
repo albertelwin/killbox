@@ -44,89 +44,6 @@ public static class MotionPathUtil {
 		transform.position = pos;
 		return transform.gameObject.AddComponent<MotionPathNode>();
 	}
-
-	public static void show_prefab_options(MotionPathController path) {
-		GameObject prefab = (GameObject)PrefabUtility.GetPrefabParent(path.gameObject);
-
-		EditorGUILayout.Separator();
-		EditorGUILayout.LabelField("Prefab Options");
-
-		GUILayout.BeginHorizontal();
-
-		if(prefab == null) {
-			GUI.enabled = false;
-		}
-
-		if(GUILayout.Button("View")) {
-			EditorGUIUtility.PingObject(prefab);
-		}
-
-		GUI.enabled = true;
-
-		bool can_save = false;
-		if(prefab) {
-			PropertyModification[] changes = PrefabUtility.GetPropertyModifications(path.gameObject);
-			int ignored_change_count = 8;
-
-			if(changes != null && changes.Length > ignored_change_count) {
-				can_save = true;
-
-				// for(int change_index = ignored_change_count; change_index < changes.Length; change_index++) {
-				// 	PropertyModification change = changes[change_index];
-				// 	Debug.Log(change.propertyPath);
-				// }
-			}
-
-			if(!can_save) {
-				for(int child_index = 0; child_index < path.transform.childCount; child_index++) {
-					Transform child = path.transform.GetChild(child_index);
-
-					PropertyModification[] child_changes = PrefabUtility.GetPropertyModifications(child.gameObject);
-					if(child_changes == null) {
-						can_save = true;
-						break;
-					}
-				}
-			}
-		}
-		else {
-			can_save = true;
-		}
-
-		if(!can_save) {
-			GUI.enabled = false;
-		}
-
-		if(GUILayout.Button("Save")) {
-			if(prefab) {
-				prefab = PrefabUtility.ReplacePrefab(path.gameObject, prefab, ReplacePrefabOptions.ConnectToPrefab);
-			}
-			else {
-				string folder = "Assets/Prefabs/Motion Paths";
-
-				//TODO: This could potientially get very slow!!
-				string prefab_name = path.name;
-				int suffix = 0;
-				while(true) {
-					string guid = AssetDatabase.AssetPathToGUID(string.Format("{0}/{1}.prefab", folder, prefab_name));
-					if(guid == "") {
-						break;
-					}
-					else {
-						suffix++;
-						prefab_name = path.name + suffix;
-					}
-				}
-
-				path.name = prefab_name;
-				prefab = PrefabUtility.CreatePrefab(string.Format("{0}/{1}.prefab", folder, prefab_name), path.gameObject, ReplacePrefabOptions.ConnectToPrefab);
-			}
-		}
-
-		GUI.enabled = true;
-
-		GUILayout.EndHorizontal();
-	}
 }
 
 [InitializeOnLoad]
@@ -135,7 +52,6 @@ public class MotionPathEditor {
 
 	Transform selected_node;
 	Transform duplicated_node;
-	Transform modified_path;
 
 	static MotionPathEditor() {
 		if(inst == null) {
@@ -166,34 +82,10 @@ public class MotionPathEditor {
 						duplicated_node = null;
 					}
 
-					if(modified_path) {
-						Assert.is_true(!EditorApplication.isPlaying);
-
-						//TODO: Do we always want to overwrite the prefab on delete??
-						GameObject prefab = (GameObject)PrefabUtility.GetPrefabParent(modified_path.gameObject);
-						Assert.is_true(prefab != null);
-						prefab = PrefabUtility.ReplacePrefab(modified_path.gameObject, prefab, ReplacePrefabOptions.ConnectToPrefab);
-
-						modified_path = null;
-					}
-
 					break;
 				}
 
 				case EventType.ValidateCommand: {
-					if(evt.commandName == "SoftDelete") {
-						MotionPathSelection selection = MotionPathUtil.get_selection();
-						if(selection != null && selection.type == MotionPathSelectionType.NODE) {
-							GameObject prefab = (GameObject)PrefabUtility.GetPrefabParent(selection.path.gameObject);
-							if(prefab) {
-								PrefabUtility.DisconnectPrefabInstance(selection.path.gameObject);
-							}
-						}
-					}
-					else if(evt.commandName == "UndoRedoPerformed") {
-						//TODO: Is there any way to know what was undone/redone??
-					}
-
 					break;
 				}
 
@@ -212,14 +104,6 @@ public class MotionPathEditor {
 									}
 
 									selected_node = path.GetChild(prev_index);
-								}
-
-								if(!EditorApplication.isPlaying) {
-									//TODO: Nodes being deleted from multiple paths
-									GameObject prefab = (GameObject)PrefabUtility.GetPrefabParent(selection.path.gameObject);
-									if(prefab) {
-										modified_path = selection.path.transform;
-									}
 								}
 							}
 						}
@@ -441,8 +325,6 @@ public class MotionPathControllerInspector : Editor {
 			links_rect = GUILayoutUtility.GetLastRect();
 		}
 
-		MotionPathUtil.show_prefab_options(path);
-
 		serializedObject.ApplyModifiedProperties();
 	}
 }
@@ -508,8 +390,6 @@ public class MotionPathNodeInspector : Editor {
 		}
 
 		GUI.enabled = true;
-
-		MotionPathUtil.show_prefab_options(path);
 
 		serializedObject.ApplyModifiedProperties();
 	}

@@ -82,7 +82,31 @@ public class GameManager : MonoBehaviour {
 		public TextMesh info_text;
 	}
 
+	public class PauseScreen {
+		public Transform transform;
+		public GameObject game_object;
+
+		public Camera camera;
+
+		public Transform menu;
+		public TextMesh continue_button;
+		public TextMesh menu_button;
+		public TextMesh exit_button;
+
+		public Transform installation_menu;
+		public TextMesh installation_continue_button;
+		public TextMesh installation_restart_button;
+		public TextMesh installation_text;
+
+		public bool active;
+		public float time;
+		public float time_since_last_response;
+	}
+
 	public static string PREF_KEY_PLAY_COUNT = "killbox_play_count";
+
+	public static float AUTO_PAUSE_TIME = 120.0f;
+	public static float AUTO_RESTART_FROM_PAUSED_TIME = 30.0f;
 
 	[System.NonSerialized] public NetworkView network_view;
 
@@ -90,6 +114,7 @@ public class GameManager : MonoBehaviour {
 	public SplashScreen splash_screen;
 	public MainScreen main_screen;
 	public EndScreen end_screen;
+	public PauseScreen pause_screen;
 
 	[System.NonSerialized] public TextMesh game_log;
 	[System.NonSerialized] public TextMesh network_log;
@@ -114,8 +139,6 @@ public class GameManager : MonoBehaviour {
 	static string game_name = "killbox_server_____";
 
 	Camera menu_camera = null;
-	Camera pause_camera = null;
-
 	AudioSource menu_audio_source = null;
 
 	public static PlayerType persistent_player_type = PlayerType.NONE;
@@ -130,7 +153,6 @@ public class GameManager : MonoBehaviour {
 	[System.NonSerialized] public ConnectionType connection_type = ConnectionType.NONE;
 	[System.NonSerialized] public bool created_player = false;
 	[System.NonSerialized] public float total_playing_time = 0.0f;
-	[System.NonSerialized] public bool paused = false;
 	[System.NonSerialized] public bool first_missile_hit = false;
 	[System.NonSerialized] public bool showing_stats = false;
 
@@ -207,7 +229,7 @@ public class GameManager : MonoBehaviour {
 
 	public string get_input_str() {
 		string input_str = "";
-		if(!paused) {
+		if(!pause_screen.active) {
 #if UNITY_STANDALONE_OSX
 			//NOTE: Input.inputString doesn't work on Mac, bug in Unity :(
 			bool shift_modifier = false;
@@ -243,21 +265,72 @@ public class GameManager : MonoBehaviour {
 #else
 			input_str = Input.inputString;
 #endif
+
+			if(input_str.Length > 0) {
+				pause_screen.time_since_last_response = 0.0f;
+			}
 		}
 
 		return input_str;
 	}
 
 	public bool get_key(KeyCode key_code) {
-		return paused ? false : Input.GetKey(key_code);
+		bool val = false;
+		if(!pause_screen.active) {
+			val = Input.GetKey(key_code);
+			if(val) {
+				pause_screen.time_since_last_response = 0.0f;
+			}
+		}
+
+		return val;
 	}
 
 	public bool get_key_down(KeyCode key_code) {
-		return paused ? false : Input.GetKeyDown(key_code);
+		bool val = false;
+		if(!pause_screen.active) {
+			val = Input.GetKeyDown(key_code);
+			if(val) {
+				pause_screen.time_since_last_response = 0.0f;
+			}
+		}
+
+		return val;
 	}
 
 	public float get_axis(string axis_id) {
-		return paused ? 0.0f : Input.GetAxis(axis_id);
+		float val = 0.0f;
+		if(!pause_screen.active) {
+			val = Input.GetAxis(axis_id);
+			if(val != 0.0f) {
+				pause_screen.time_since_last_response = 0.0f;
+			}
+		}
+
+		return val;
+	}
+
+	public static void set_pause(GameManager game_manager, bool pause) {
+		if(pause) {
+			if(!game_manager.pause_screen.active) {
+				game_manager.pause_screen.game_object.SetActive(true);
+				game_manager.pause_screen.active = true;
+				game_manager.pause_screen.time = 0.0f;
+				game_manager.pause_screen.time_since_last_response = 0.0f;
+			}
+
+			Cursor.lockState = CursorLockMode.None;
+			Cursor.visible = true;
+		}
+		else {
+			game_manager.pause_screen.game_object.SetActive(false);
+			game_manager.pause_screen.active = false;
+			game_manager.pause_screen.time = 0.0f;
+			game_manager.pause_screen.time_since_last_response = 0.0f;
+
+			Cursor.lockState = CursorLockMode.Locked;
+			Cursor.visible = false;
+		}
 	}
 
 	public void show_stats(Camera camera) {
@@ -279,11 +352,7 @@ public class GameManager : MonoBehaviour {
 			end_screen.transform.gameObject.SetActive(true);
 
 			showing_stats = true;
-			paused = false;
-			pause_camera.gameObject.SetActive(false);
-
-			Cursor.lockState = CursorLockMode.Locked;
-			Cursor.visible = false;
+			set_pause(this, false);
 
 			end_screen.hint.color = Util.white_no_alpha;
 			end_screen.passage0.color = Util.white_no_alpha;
@@ -449,6 +518,8 @@ public class GameManager : MonoBehaviour {
 		float hit_distance;
 		if(screen_plane.Raycast(cursor_ray, out hit_distance)) {
 			cursor.position = cursor_ray.GetPoint(hit_distance);
+			//TODO: Depth hack!!
+			cursor.position -= Vector3.forward * 0.001f;
 		}
 
 		return cursor_ray;
@@ -560,9 +631,6 @@ public class GameManager : MonoBehaviour {
 	}
 
 	public void game_over(bool reset_persistent_state = false) {
-		Cursor.lockState = CursorLockMode.None;
-		Cursor.visible = false;
-
 		if(reset_persistent_state) {
 			persistent_player_type = PlayerType.NONE;
 			persistent_scenario_type = ScenarioType.NONE;
@@ -588,7 +656,6 @@ public class GameManager : MonoBehaviour {
 		connection_type = ConnectionType.NONE;
 		created_player = false;
 		total_playing_time = 0.0f;
-		paused = false;
 		first_missile_hit = false;
 		showing_stats = false;
 
@@ -599,17 +666,11 @@ public class GameManager : MonoBehaviour {
 		}
 
 		game_log.gameObject.SetActive(false);
+		set_pause(this, false);
+		menu_camera.gameObject.SetActive(true);
 
-		// if(!Settings.LAN_MODE && reset_persistent_state) {
-		// 	//TODO: Actually this should never happen!!
-		// 	Application.LoadLevel(0);
-		// }
-		// else {
-			pause_camera.gameObject.SetActive(false);
-			menu_camera.gameObject.SetActive(true);
-
-			StartCoroutine(show_splash_screen());
-		// }
+		//TODO: We should really only be doing this when the game is completely over!!
+		StartCoroutine(show_splash_screen());
 	}
 
 	void OnServerInitialized() {
@@ -974,8 +1035,6 @@ public class GameManager : MonoBehaviour {
 		network_view = GetComponent<NetworkView>();
 
 		menu_camera = transform.Find("Camera").GetComponent<Camera>();
-		pause_camera = transform.Find("PauseCamera").GetComponent<Camera>();
-
 		menu_audio_source = GetComponent<AudioSource>();
 
 		splash_screen = new SplashScreen();
@@ -1022,6 +1081,28 @@ public class GameManager : MonoBehaviour {
 		end_screen.cursor.gameObject.SetActive(false);
 		end_screen.play_button.gameObject.SetActive(false);
 		end_screen.info_button.gameObject.SetActive(false);
+
+		pause_screen = new PauseScreen();
+		pause_screen.transform = transform.Find("PauseCamera");
+		pause_screen.game_object = pause_screen.transform.gameObject;
+		pause_screen.camera = pause_screen.transform.GetComponent<Camera>();
+
+		pause_screen.menu = pause_screen.transform.Find("Menu");
+		pause_screen.continue_button = pause_screen.menu.Find("Continue").GetComponent<TextMesh>();
+		pause_screen.menu_button = pause_screen.menu.Find("Menu").GetComponent<TextMesh>();
+		pause_screen.exit_button = pause_screen.menu.Find("Exit").GetComponent<TextMesh>();
+
+		pause_screen.installation_menu = pause_screen.transform.Find("InstallationMenu");
+		pause_screen.installation_continue_button = pause_screen.installation_menu.Find("Continue").GetComponent<TextMesh>();
+		pause_screen.installation_restart_button = pause_screen.installation_menu.Find("Restart").GetComponent<TextMesh>();
+		pause_screen.installation_text = pause_screen.installation_menu.Find("Text").GetComponent<TextMesh>();
+
+		pause_screen.active = false;
+		pause_screen.time = 0.0f;
+		pause_screen.time_since_last_response = 0.0f;
+		pause_screen.menu.gameObject.SetActive(!Settings.INSTALLATION_BUILD);
+		pause_screen.installation_menu.gameObject.SetActive(Settings.INSTALLATION_BUILD);
+		pause_screen.installation_text.text = "";
 
 		game_log = transform.Find("Camera/GameLog").GetComponent<TextMesh>();
 		game_log.gameObject.SetActive(false);
@@ -1203,32 +1284,9 @@ public class GameManager : MonoBehaviour {
 			// if(Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.JoystickButton9)) {
 			if(Input.GetKeyDown(KeyCode.Escape)) {
 				if(player_type != PlayerType.NONE && created_player && !showing_stats) {
-					if(paused) {
-						paused = false;
-						pause_camera.gameObject.SetActive(false);
-
-						Cursor.lockState = CursorLockMode.Locked;
-						Cursor.visible = false;
-					}
-					else {
-						paused = true;
-						pause_camera.gameObject.SetActive(true);
-
-						Cursor.lockState = CursorLockMode.None;
-						Cursor.visible = true;
-					}
+					set_pause(this, !pause_screen.active);
 				}
 				else {
-#if UNITY_EDITOR
-					if(Cursor.lockState == CursorLockMode.None) {
-						Cursor.lockState = CursorLockMode.Locked;
-						Cursor.visible = false;
-					}
-					else {
-						Cursor.lockState = CursorLockMode.None;
-						Cursor.visible = true;
-					}
-#endif
 					if(!Settings.INSTALLATION_BUILD) {
 						Application.Quit();
 					}
@@ -1241,42 +1299,69 @@ public class GameManager : MonoBehaviour {
 		Cursor.visible = true;
 #endif
 
-		if(paused) {
-			Ray mouse_ray = pause_camera.ScreenPointToRay(Input.mousePosition);
+		if(pause_screen.active) {
+			pause_screen.time += Time.deltaTime;
 
-			Transform btn_cont = pause_camera.transform.Find("Cont");
-			Transform btn_menu = pause_camera.transform.Find("Menu");
-			Transform btn_exit = pause_camera.transform.Find("Exit");
+			Ray mouse_ray = pause_screen.camera.ScreenPointToRay(Input.mousePosition);
 
-			Color text_color = Util.new_color(Util.white, 0.5f);
-			Color cont_text_color = text_color;
-			Color menu_text_color = text_color;
-			Color exit_text_color = text_color;
+			Color active_color = Util.white;
+			Color inactive_color = Util.new_color(Util.white, 0.5f);
 
-			RaycastHit hit_info;
-			if(Physics.Raycast(mouse_ray, out hit_info, 2.0f)) {
-				Transform button = hit_info.collider.transform.parent;
-				if(button == btn_cont) {
-					cont_text_color = Color.white;
+			TextMesh continue_button = pause_screen.continue_button;
+			TextMesh menu_button = pause_screen.menu_button;
+			TextMesh exit_button = pause_screen.exit_button;
 
-					if(Input.GetKeyDown(KeyCode.Mouse0)) {
-						paused = false;
-						pause_camera.gameObject.SetActive(false);
+			if(Settings.INSTALLATION_BUILD) {
+				continue_button = pause_screen.installation_continue_button;
+				menu_button = pause_screen.installation_restart_button;
+				exit_button = null;
 
-						Cursor.lockState = CursorLockMode.Locked;
-						Cursor.visible = false;
+				float time_remaining = AUTO_RESTART_FROM_PAUSED_TIME - pause_screen.time;
+				if(time_remaining < 15.0f) {
+					pause_screen.installation_text.text = "RESTARTING IN " + ((int)time_remaining + 1);
+
+					int dot_count = (int)(pause_screen.time * 4.0f) % 4;
+					for(int i = 0; i < dot_count; i++) {
+						pause_screen.installation_text.text += ".";
 					}
-				}
-				else if(button == btn_menu) {
-					menu_text_color = Color.white;
 
-					if(Input.GetKeyDown(KeyCode.Mouse0)) {
+					if(time_remaining <= 0.0f) {
 						game_over(true);
 					}
 				}
-				else if(button == btn_exit) {
-					if(!Settings.INSTALLATION_BUILD) {
-						exit_text_color = Color.white;
+				else {
+					pause_screen.installation_text.text = "";
+				}
+
+				pause_screen.installation_text.color = active_color;
+			}
+
+			continue_button.color = inactive_color;
+			menu_button.color = inactive_color;
+			if(exit_button) {
+				exit_button.color = inactive_color;
+			}
+
+			if(pause_screen.active) {
+				RaycastHit hit_info;
+				if(Physics.Raycast(mouse_ray, out hit_info, 2.0f)) {
+					Transform button = hit_info.collider.transform.parent;
+					if(button == continue_button.transform) {
+						continue_button.color = active_color;
+
+						if(Input.GetKeyDown(KeyCode.Mouse0)) {
+							set_pause(this, false);
+						}
+					}
+					else if(button == menu_button.transform) {
+						menu_button.color = active_color;
+
+						if(Input.GetKeyDown(KeyCode.Mouse0)) {
+							game_over(true);
+						}
+					}
+					else if(button == exit_button.transform && exit_button != null) {
+						exit_button.color = active_color;
 
 						if(Input.GetKey(KeyCode.Mouse0)) {
 							Application.Quit();
@@ -1284,15 +1369,17 @@ public class GameManager : MonoBehaviour {
 					}
 				}
 			}
-
-			if(Settings.INSTALLATION_BUILD) {
-				exit_text_color = Util.new_color(Util.white, 0.25f);
-			}
-
-			btn_cont.GetComponent<TextMesh>().color = cont_text_color;
-			btn_menu.GetComponent<TextMesh>().color = menu_text_color;
-			btn_exit.GetComponent<TextMesh>().color = exit_text_color;
 		}
+		else {
+			if(created_player) {
+				pause_screen.time_since_last_response += Time.deltaTime;
+				if(pause_screen.time_since_last_response >= AUTO_PAUSE_TIME) {
+					set_pause(this, true);
+				}
+			}
+		}
+
+		// Debug.Log(pause_screen.time_since_last_response.ToString());
 	}
 
 	void OnRenderObject() {

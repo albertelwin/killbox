@@ -1,16 +1,25 @@
 
 /* TODO ✓
 
-Water rendering -> https://en.wikipedia.org/wiki/Schlick%27s_approximation
+DOING:
 
-Camera smoothstep t -> 3t² - 2t³
-Optimise pilot view (clear -> render camera feeds -> render ui)
-Dynamic pilot audio
+TODO:
+	Target npc type
+	React motion path
+	Optimise pilot view (clear -> render camera feeds -> render ui)
+	Camera clipping
+	Fix intrusive firewall pop-up
+	Log death count and session time
+	Dump password/kills/etc. to Google Drive
+	Load scene async
 
-Camera clipping
-Fix intrusive firewall pop-up
-Dump password/kills/etc. to Google Drive
-Load scene async
+DONE:
+	Interrupt stop event on player react with npc
+	Remove Mesh from NPC
+	Remove walk speed etc. from MotionPathAgent
+	Remove game dependencies from move_agent
+	Use StringBuilder in console
+	Remove birds
 
 */
 
@@ -179,12 +188,6 @@ public class GameManager : MonoBehaviour {
 	[System.NonSerialized] public Transform player2_prefab = null;
 	[System.NonSerialized] public Transform missile_prefab = null;
 	[System.NonSerialized] public Transform explosion_prefab = null;
-
-	[System.NonSerialized] public Color[] npc_color_pool = {
-		Util.new_color(47, 147, 246),
-		Util.new_color(51, 203, 152),
-		Util.new_color(220, 126, 225),
-	};
 
 	public static GameManager get_inst() {
 		return GameObject.Find("GameManager").GetComponent<GameManager>();
@@ -358,7 +361,7 @@ public class GameManager : MonoBehaviour {
 			end_screen.passage0.color = Util.white_no_alpha;
 			end_screen.passage1.color = Util.white_no_alpha;
 
-			yield return Util.wait_for_2s;
+			yield return Util.wait_for_1s;
 
 			yield return StartCoroutine(Util.lerp_text_alpha(end_screen.passage0, 1.0f));
 			yield return new WaitForSeconds(3.0f);
@@ -1163,27 +1166,6 @@ public class GameManager : MonoBehaviour {
 		}
 
 		Environment.update(this, env);
-
-		if(Settings.USE_DAY_NIGHT_CYCLE) {
-			float length_of_day_secs = 30.0f;
-			time_of_day += Time.deltaTime / length_of_day_secs;
-			if(time_of_day >= 1.0f) {
-				time_of_day = 0.0f;
-			}
-
-			float pos_x = Mathf.Cos(time_of_day * Util.TAU);
-			float pos_y = Mathf.Sin(time_of_day * Util.TAU);
-
-			sun.transform.position = new Vector3(pos_x, pos_y, -1.0f);
-			sun.transform.forward = Vector3.zero - sun.transform.position;
-
-			bool is_day_time = time_of_day < 0.5f;
-
-			sun.enabled = is_day_time;
-			sun.shadowStrength = is_day_time ? 1.0f : 0.0f;
-			//TODO: Need a color gradient here!!
-			// RenderSettings.ambientLight = is_day_time ? Util.day : Util.night;
-		}
 
 		float menu_sfx_volume = 0.0f;
 

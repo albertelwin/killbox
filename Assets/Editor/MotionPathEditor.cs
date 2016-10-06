@@ -2,50 +2,6 @@
 using UnityEditor;
 using UnityEngine;
 
-public enum MotionPathSelectionType {
-	PATH,
-	NODE,
-}
-
-public class MotionPathSelection {
-	public MotionPathSelectionType type;
-
-	public MotionPathController path;
-	public MotionPathNode node;
-}
-
-public static class MotionPathUtil {
-	public static MotionPathSelection get_selection() {
-		MotionPathSelection selection = null;
-
-		if(Selection.activeTransform) {
-			MotionPathController path = Selection.activeTransform.GetComponent<MotionPathController>();
-			if(path) {
-				selection = new MotionPathSelection();
-				selection.type = MotionPathSelectionType.PATH;
-				selection.path = path;
-			}
-			else if(Selection.activeTransform.parent) {
-				path = Selection.activeTransform.parent.GetComponent<MotionPathController>();
-				if(path) {
-					selection = new MotionPathSelection();
-					selection.type = MotionPathSelectionType.NODE;
-					selection.path = path;
-					selection.node = Selection.activeTransform.GetComponent<MotionPathNode>();
-				}
-			}
-		}
-
-		return selection;
-	}
-
-	public static MotionPathNode add_node(MotionPathController path, Vector3 pos) {
-		Transform transform = Util.new_transform(path.transform, "Node");
-		transform.position = pos;
-		return transform.gameObject.AddComponent<MotionPathNode>();
-	}
-}
-
 [InitializeOnLoad]
 public class MotionPathEditor {
 	public static MotionPathEditor inst;
@@ -146,12 +102,13 @@ public class MotionPathEditor {
 				min_t = hit_info.distance;
 			}
 
-			//TODO: This needs to stay in sync with the boz gizmo!!
-			Vector3 min = new Vector3(-0.25f, 0.0f,-0.25f);
-			Vector3 max = new Vector3( 0.25f, 0.5f, 0.25f);
-
 			for(int i = 0; i < path.transform.childCount; i++) {
 				Transform node = path.transform.GetChild(i);
+				float size = MotionPathUtil.get_node_gizmo_size(node, true);
+				float half_size = size * 0.5f;
+
+				Vector3 min = new Vector3(-half_size, 0.0f,-half_size);
+				Vector3 max = new Vector3( half_size, size, half_size);
 
 				float t;
 				if(MathExt.ray_box_intersect(node.position + min, node.position + max, mouse_ray, out t)) {
@@ -338,7 +295,6 @@ public class MotionPathNodeInspector : Editor {
 	public SerializedProperty flip_direction;
 
 	public SerializedProperty stop;
-	public SerializedProperty stop_forever;
 	public SerializedProperty stop_time;
 	public SerializedProperty stop_animation;
 
@@ -349,7 +305,6 @@ public class MotionPathNodeInspector : Editor {
 		flip_direction = serializedObject.FindProperty("flip_direction");
 
 		stop = serializedObject.FindProperty("stop");
-		stop_forever = serializedObject.FindProperty("stop_forever");
 		stop_time = serializedObject.FindProperty("stop_time");
 		stop_animation = serializedObject.FindProperty("stop_animation");
 	}
@@ -370,11 +325,7 @@ public class MotionPathNodeInspector : Editor {
 
 		EditorGUILayout.PropertyField(stop, new GUIContent("Stop"));
 		if(stop.boolValue) {
-			EditorGUILayout.PropertyField(stop_forever, new GUIContent("  Forever"));
-			if(!stop_forever.boolValue) {
-				EditorGUILayout.PropertyField(stop_time, new GUIContent("  Time"));
-			}
-
+			EditorGUILayout.PropertyField(stop_time, new GUIContent("  Time"));
 			EditorGUILayout.PropertyField(stop_animation, new GUIContent("  Animation"));
 		}
 

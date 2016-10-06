@@ -252,20 +252,7 @@ public class Environment {
 
 			for(int i = 0; i < env.npcs.Length; i++) {
 				NpcController npc = env.npcs[i];
-				if(npc.type == NpcType.HUMAN) {
-					npc.renderer_.material = npc_material;
-					if(npc.anim_renderer != null) {
-						npc.anim_renderer.material = npc_material;
-					}
-
-					if(env.pov == PlayerType.PLAYER2) {
-						npc.color_index = Util.random_index(game_manager.npc_color_pool.Length);
-						npc.renderer_.material.color = game_manager.npc_color_pool[npc.color_index];
-						if(npc.anim_renderer != null) {
-							npc.anim_renderer.material.color = npc.renderer_.material.color;
-						}
-					}
-				}
+				NpcController.on_pov_change(npc, pov, npc_material);
 			}
 
 			Material player2_material = Resources.Load("other_" + material_id + "_mat") as Material;
@@ -361,11 +348,11 @@ public class Environment {
 	public static void play_explosion_(MonoBehaviour player, Environment env, Vector3 hit_pos) {
 		env.explosion.transform.position = hit_pos;
 
-		player.StartCoroutine(play_explosion_smoke(player, env.explosion.smoke));
-		player.StartCoroutine(play_explosion_shock_wave(env.explosion.shock_wave));
+		// player.StartCoroutine(play_explosion_smoke(player, env.explosion.smoke));
+		// player.StartCoroutine(play_explosion_shock_wave(env.explosion.shock_wave));
 
-		// Transform explosion_prefab = ((GameObject)Resources.Load("ExplosionPrefab_")).transform;
-		// Transform explosion = (Transform)Object.Instantiate(explosion_prefab, hit_pos, Quaternion.identity);
+		Transform explosion_prefab = ((GameObject)Resources.Load("ExplosionPrefab_")).transform;
+		Transform explosion = (Transform)Object.Instantiate(explosion_prefab, hit_pos, Quaternion.identity);
 	}
 
 	public static void play_explosion(GameManager game_manager, MonoBehaviour player, Environment env, Vector3 hit_pos) {

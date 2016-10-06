@@ -10,7 +10,6 @@ public class MotionPathNode : MonoBehaviour {
 	public bool flip_direction = false;
 
 	public bool stop = false;
-	public bool stop_forever = false;
 	public float stop_time = 1.0f;
 	public MotionPathAnimationType stop_animation = MotionPathAnimationType.IDLE;
 

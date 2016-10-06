@@ -298,12 +298,15 @@ public static class Player1Util {
 						case "tutorial": {
 							Assert.is_true(cmd.input_count == 1);
 
-							Player1Console.push_tutorial_key_cmd(cmd_buf, "CAM ROTATE LEFT: HOLD (A)\n", Player1Controller.ControlType.LOOK_LEFT, 1.8f, 0);
-							Player1Console.push_tutorial_key_cmd(cmd_buf, "CAM ROTATE RIGHT: HOLD (D)\n", Player1Controller.ControlType.LOOK_RIGHT, 1.8f, 1);
-							Player1Console.push_tutorial_key_cmd(cmd_buf, "CAM ROTATE UP: HOLD (W)\n", Player1Controller.ControlType.LOOK_UP, 1.8f, 2);
-							Player1Console.push_tutorial_key_cmd(cmd_buf, "CAM ROTATE DOWN: HOLD (S)\n", Player1Controller.ControlType.LOOK_DOWN, 1.8f, 3);
-							Player1Console.push_tutorial_key_cmd(cmd_buf, "CAM ZOOM IN: HOLD (I)\n", Player1Controller.ControlType.ZOOM_IN, 1.2f, 4);
-							Player1Console.push_tutorial_key_cmd(cmd_buf, "CAM ZOOM OUT: HOLD (O)\n", Player1Controller.ControlType.ZOOM_OUT, 1.2f, 5);
+							float look_time = 2.5f;
+							float zoom_time = 2.0f;
+
+							Player1Console.push_tutorial_key_cmd(cmd_buf, "CAM ROTATE LEFT: HOLD (A)\n", Player1Controller.ControlType.LOOK_LEFT, look_time, 0);
+							Player1Console.push_tutorial_key_cmd(cmd_buf, "CAM ROTATE RIGHT: HOLD (D)\n", Player1Controller.ControlType.LOOK_RIGHT, look_time, 1);
+							Player1Console.push_tutorial_key_cmd(cmd_buf, "CAM ROTATE UP: HOLD (W)\n", Player1Controller.ControlType.LOOK_UP, look_time, 2);
+							Player1Console.push_tutorial_key_cmd(cmd_buf, "CAM ROTATE DOWN: HOLD (S)\n", Player1Controller.ControlType.LOOK_DOWN, look_time, 3);
+							Player1Console.push_tutorial_key_cmd(cmd_buf, "CAM ZOOM IN: HOLD (J)\n", Player1Controller.ControlType.ZOOM_IN, zoom_time, 4);
+							Player1Console.push_tutorial_key_cmd(cmd_buf, "CAM ZOOM OUT: HOLD (K)\n", Player1Controller.ControlType.ZOOM_OUT, zoom_time, 5);
 
 							Player1Console.push_cmd(cmd_buf, Player1Console.CmdType.ENABLE_CONTROLS);
 
@@ -441,6 +444,7 @@ public class Player1Console {
 
 		//NOTE: TEXT_MESH
 		public TextMesh text_mesh;
+		public Renderer text_mesh_renderer;
 
 		//NOTE: LOAGING_BAR
 		public Transform bar;
@@ -549,7 +553,7 @@ public class Player1Console {
 
 	public float width;
 
-	public string working_text_buffer;
+	public StringBuilder str_builder;
 
 	public Transform text_mesh_prefab;
 
@@ -829,6 +833,7 @@ public class Player1Console {
 		item.height = height;
 		item.type = ItemType.TEXT_MESH;
 		item.text_mesh = text_mesh;
+		item.text_mesh_renderer = text_mesh.GetComponent<Renderer>();
 		push_back_item(inst, item);
 		return item;
 	}
@@ -874,7 +879,7 @@ public class Player1Console {
 
 		inst.width = 0.28125f * ((float)Screen.width / (float)Screen.height);
 
-		inst.working_text_buffer = "";
+		inst.str_builder = new StringBuilder();
 
 		inst.text_mesh_prefab = ((GameObject)Resources.Load("TextMeshPrefab")).transform;
 
@@ -882,7 +887,7 @@ public class Player1Console {
 		inst.item_count = 0;
 		inst.item_head_index = 0;
 
-		push_text_mesh(inst, inst.working_text_buffer);
+		push_text_mesh(inst, "");
 
 		inst.cursor_time = 0.0f;
 		inst.last_cursor_time = -0.5f;
@@ -916,7 +921,10 @@ public class Player1Console {
 			string pass = inst.user_str_table[(int)UserStrId.PASSWORD];
 
 			if(user != null && user != "" && pass != null && pass != "") {
-				string details_str = "username: " + user + ", password: " + pass + "\n";
+				System.DateTime date = System.DateTime.Now;
+				System.Globalization.CultureInfo locale = new System.Globalization.CultureInfo("en-GB");
+
+				string details_str = string.Format("{0} - username: {1}, password: {2}\n", date.ToString(locale), user, pass);
 				Debug.Log(details_str);
 #if !UNITY_EDITOR && UNITY_STANDALONE_WIN
 				System.IO.File.AppendAllText(Application.dataPath + "/passwords.txt", details_str);
@@ -962,7 +970,7 @@ public class Player1Console {
 					}
 
 					case CmdType.COMMIT_STR: {
-						inst.working_text_buffer += cmd.str;
+						inst.str_builder.Append(cmd.str);
 
 						if(cmd.play_audio) {
 							Audio.play(game_manager.audio, Audio.Clip.CONSOLE_TYPING);
@@ -981,7 +989,7 @@ public class Player1Console {
 						inst.current_cmd_time -= chars_to_print * SECS_PER_CHAR;
 
 						for(int i = 0; i < chars_to_print; i++) {
-							inst.working_text_buffer += str[inst.current_cmd_str_it++];
+							inst.str_builder.Append(str[inst.current_cmd_str_it++]);
 						}
 
 						if(chars_to_print > 0) {
@@ -995,7 +1003,7 @@ public class Player1Console {
 						else if(skip) {
 							for(int i = inst.current_cmd_str_it; i < str.Length; i++) {
 								char char_ = str[inst.current_cmd_str_it++];
-								inst.working_text_buffer += char_;
+								inst.str_builder.Append(char_);
 								if(Player1Util.is_new_line(char_)) {
 									break;
 								}
@@ -1029,7 +1037,7 @@ public class Player1Console {
 									if(input_char == '\b') {
 										if(str.Length > 0) {
 											str = str.Substring(0, str.Length - 1);
-											inst.working_text_buffer = inst.working_text_buffer.Substring(0, inst.working_text_buffer.Length - 1);
+											inst.str_builder.Remove(inst.str_builder.Length - 1, 1);
 
 											Audio.play(game_manager.audio, Audio.Clip.CONSOLE_TYPING);
 										}
@@ -1045,13 +1053,7 @@ public class Player1Console {
 											if(str.Length < cmd.max_str_len) {
 												if(!cmd.numeric_only || (input_char >= '0' && input_char <= '9')) {
 													str += input_char;
-													if(cmd.hide_str) {
-														//TODO: Replace this with a better character??
-														inst.working_text_buffer += "*";
-													}
-													else {
-														inst.working_text_buffer += input_char;
-													}
+													inst.str_builder.Append(cmd.hide_str ? '*' : input_char);
 
 													Audio.play(game_manager.audio, Audio.Clip.CONSOLE_TYPING);
 												}
@@ -1066,7 +1068,7 @@ public class Player1Console {
 						}
 
 						if(done) {
-							inst.working_text_buffer += "\n";
+							inst.str_builder.Append('\n');
 
 							if(str.Length > 0) {
 								Assert.is_true(cmd.str_id != UserStrId.NONE);
@@ -1245,46 +1247,42 @@ public class Player1Console {
 
 				Item tail_item = get_tail_item(inst);
 
-				string working_buffer = inst.working_text_buffer;
+				for(int i = 0; i < inst.str_builder.Length; i++) {
+					char c = inst.str_builder[i];
 
-				for(int i = 0; i < working_buffer.Length; i++) {
-					char char_ = working_buffer[i];
-
-					if(Player1Util.is_new_line(char_)) {
-						tail_item.text_mesh.text = working_buffer.Substring(0, i);
-						tail_item = push_text_mesh(inst, "");
-
-						working_buffer = working_buffer.Substring(i + 1);
-						i = -1;
+					int new_line_index = -1;
+					if(Player1Util.is_new_line(c)) {
+						new_line_index = i;
 					}
 					else {
-						tail_item.text_mesh.text = working_buffer.Substring(0, i);
+						tail_item.text_mesh.text = inst.str_builder.ToString(0, i);
 
-						Renderer renderer = tail_item.text_mesh.GetComponent<Renderer>();
-						float width = renderer.bounds.size.x;
-
+						float width = tail_item.text_mesh_renderer.bounds.size.x;
 						if(width >= inst.width) {
 							int word_start_index = 0;
 							for(int j = i - 1; j >= 0; j--) {
-								if(working_buffer[j] == ' ') {
+								if(inst.str_builder[j] == ' ') {
 									word_start_index = j;
 									break;
 								}
 							}
 
 							if(word_start_index != 0) {
-								tail_item.text_mesh.text = working_buffer.Substring(0, word_start_index);
-								tail_item = push_text_mesh(inst, "");
-
-								working_buffer = working_buffer.Substring(word_start_index + 1);
-								i = -1;
+								new_line_index = word_start_index;
 							}
 						}
 					}
+
+					if(new_line_index != -1) {
+						tail_item.text_mesh.text = inst.str_builder.ToString(0, new_line_index);
+						tail_item = push_text_mesh(inst, "");
+
+						inst.str_builder.Remove(0, new_line_index + 1);
+						i = -1;
+					}
 				}
 
-				inst.working_text_buffer = working_buffer;
-				tail_item.text_mesh.text = inst.working_text_buffer;
+				tail_item.text_mesh.text = inst.str_builder.ToString();
 
 				if(is_cursor_on(inst.cursor_time)) {
 					tail_item.text_mesh.text += CURSOR_STR;
@@ -1459,6 +1457,7 @@ public class Player1Controller : MonoBehaviour {
 	[System.NonSerialized] public Player1Console console_;
 
 	[System.NonSerialized] public AudioSource[] audio_sources;
+	[System.NonSerialized] public AudioSource flash_audio_source;
 
 	public static void set_marker_color(Marker marker, Color color, Color ir_color) {
 		marker.color = color;
@@ -1499,8 +1498,8 @@ public class Player1Controller : MonoBehaviour {
 		controls[(int)ControlType.LOOK_RIGHT] = Control.new_inst(KeyCode.D);
 		controls[(int)ControlType.LOOK_UP] = Control.new_inst(KeyCode.W);
 		controls[(int)ControlType.LOOK_DOWN] = Control.new_inst(KeyCode.S);
-		controls[(int)ControlType.ZOOM_IN] = Control.new_inst(KeyCode.I);
-		controls[(int)ControlType.ZOOM_OUT] = Control.new_inst(KeyCode.O);
+		controls[(int)ControlType.ZOOM_IN] = Control.new_inst(KeyCode.J);
+		controls[(int)ControlType.ZOOM_OUT] = Control.new_inst(KeyCode.K);
 		controls[(int)ControlType.TOGGLE_INFRARED] = Control.new_inst(KeyCode.R);
 	}
 
@@ -1598,6 +1597,7 @@ public class Player1Controller : MonoBehaviour {
 			Transform occluder = ui_camera.transform.Find("Occluder");
 			occluder.localPosition = new Vector3(0.0f, occluder_pos_y * adjusted_aspect_ratio_y, 0.5f);
 			occluder.localScale = new Vector3(2.0f, 1.0f, 1.0f) * adjusted_aspect_ratio_y;
+			occluder.gameObject.SetActive(false);
 		}
 
 		audio_sources = new AudioSource[2];
@@ -1795,6 +1795,7 @@ public class Player1Controller : MonoBehaviour {
 		camera_zoom = Mathf.Clamp(camera_zoom, min_fov - zero_fov, max_fov - zero_fov);
 		main_camera.fieldOfView = Mathf.Lerp(main_camera.fieldOfView, zero_fov + camera_zoom, Time.smoothDeltaTime * 8.0f);
 
+		//TODO: This string manipulation allocates 3kb+ per frame!!
 		{
 			float pos_x = transform.position.x + 40.0f;
 			float pos_z = transform.position.z + 40.0f;

@@ -193,6 +193,12 @@ public static class Util {
 		first_anim.time = Random.Range(0.0f, first_anim.length);
 	}
 
+	public static void cross_fade_anim(Animation anim, string clip_name) {
+		if(anim[clip_name] != null) {
+			anim.CrossFade(clip_name);
+		}
+	}
+
 	public static IEnumerator lerp_local_scale(Transform transform, Vector3 from, Vector3 to, float d = 1.0f) {
 		transform.localScale = from;
 

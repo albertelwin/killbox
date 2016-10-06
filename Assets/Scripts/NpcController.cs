@@ -5,20 +5,18 @@ using System.Collections;
 public enum NpcType {
 	HUMAN,
 	ANIMAL,
+	BIRD,
 }
 
 //TODO: Remove awake/update/etc.!!
 public class NpcController : MonoBehaviour {
-	[System.NonSerialized] public Renderer renderer_;
 	[System.NonSerialized] public Collider collider_;
 	[System.NonSerialized] public Animation anim;
-	[System.NonSerialized] public Renderer anim_renderer;
+	[System.NonSerialized] public Renderer renderer_;
 	[System.NonSerialized] public AudioSource audio_source;
 	[System.NonSerialized] public ParticleSystem particle_system;
 
 	public NpcType type = NpcType.HUMAN;
-
-	Renderer main_renderer;
 
 	[System.NonSerialized] public Environment.Fracture fracture;
 
@@ -36,18 +34,14 @@ public class NpcController : MonoBehaviour {
 	bool activated;
 	float emission;
 
-	void Awake() {
-		Transform mesh = transform.Find("Mesh");
-		if(mesh != null) {
-			mesh.gameObject.SetActive(true);
+	[System.NonSerialized] public static Color[] COLOR_POOL = {
+		Util.new_color(47, 147, 246),
+		Util.new_color(51, 203, 152),
+		Util.new_color(220, 126, 225),
+	};
 
-			renderer_ = mesh.GetComponent<Renderer>();
-			collider_ = mesh.GetComponent<Collider>();
-		}
-		else {
-			renderer_ = GetComponent<Renderer>();
-			collider_ = GetComponent<Collider>();
-		}
+	void Awake() {
+		collider_ = transform.Find("Collider").GetComponent<Collider>();
 
 		nav_agent = GetComponent<NavMeshAgent>();
 		audio_source = GetComponent<AudioSource>();
@@ -64,13 +58,11 @@ public class NpcController : MonoBehaviour {
 
 			Component[] skinned_mesh_renderers = anim_transform.GetComponentsInChildren(typeof(SkinnedMeshRenderer), true);
 			Assert.is_true(skinned_mesh_renderers != null && skinned_mesh_renderers.Length == 1);
-			anim_renderer = (SkinnedMeshRenderer)skinned_mesh_renderers[0];
-			Assert.is_true(anim_renderer != null);
-
-			main_renderer = anim_renderer;
+			renderer_ = (SkinnedMeshRenderer)skinned_mesh_renderers[0];
+			Assert.is_true(renderer_ != null);
 		}
 		else {
-			main_renderer = renderer_;
+			Assert.invalid_path();
 		}
 
 		initial_pos = transform.position;
@@ -79,7 +71,6 @@ public class NpcController : MonoBehaviour {
 	public void Start() {
 		transform.position = initial_pos;
 
-		renderer_.enabled = true;
 		collider_.enabled = true;
 
 		if(nav_agent) {
@@ -87,10 +78,7 @@ public class NpcController : MonoBehaviour {
 			nav_agent.speed = 7.0f;
 
 			path_agent = motion_path ? MotionPath.new_agent(transform, nav_agent, motion_path) : null;
-			if(path_agent != null) {
-				path_agent.runs_from_player = runs_from_player;
-			}
-			else {
+			if(path_agent == null) {
 				nav_agent.enabled = false;
 			}
 		}
@@ -99,74 +87,20 @@ public class NpcController : MonoBehaviour {
 			Environment.remove_fracture(fracture);
 		}
 
-		if(anim != null) {
-			anim.gameObject.SetActive(true);
-
-			Util.offset_first_anim(anim);
-			anim.Play();
-
-			renderer_.enabled = false;
-		}
+		anim.gameObject.SetActive(true);
+		Util.offset_first_anim(anim);
+		anim.Play();
 
 		activated = false;
 		emission = 0.0f;
 	}
 
 	public static void update(GameManager game_manager, NpcController npc) {
-		MotionPathAgent path_agent = npc.path_agent;
-		if(path_agent != null) {
-			Transform player2 = game_manager.player2_inst != null ? game_manager.player2_inst.transform : null;
-			MotionPath.move_agent(path_agent, Time.deltaTime, player2, game_manager.first_missile_hit);
-
-			if(npc.anim != null) {
-				if(path_agent.started) {
-					npc.anim.CrossFade("moving");
-				}
-				else if(path_agent.stopped && path_agent.prev_node != null) {
-					string next_anim = "idle";
-					switch(path_agent.prev_node.stop_animation) {
-						case MotionPathAnimationType.IDLE: {
-							next_anim = "idle";
-							break;
-						}
-
-						case MotionPathAnimationType.MOVING: {
-							next_anim = "moving";
-							break;
-						}
-
-						case MotionPathAnimationType.ACTION: {
-							next_anim = "action";
-							break;
-						}
-					}
-
-					if(npc.anim[next_anim] != null) {
-						npc.anim.CrossFade(next_anim);
-					}
-				}
-			}
-
-			if(path_agent.entered_player_radius) {
-				if(npc.type == NpcType.HUMAN) {
-					npc.color_index++;
-					if(npc.color_index >= game_manager.npc_color_pool.Length) {
-						npc.color_index = 0;
-					}
-
-					npc.renderer_.material.color = game_manager.npc_color_pool[npc.color_index];
-					if(npc.anim_renderer != null) {
-						npc.anim_renderer.material.color = npc.renderer_.material.color;
-					}
-				}
-			}
-		}
-
-		//TODO: Collapse this!!
+		bool entered_player_radius = false;
 		if(game_manager.player2_inst != null) {
 			Transform player2 = game_manager.player2_inst.transform;
 
-			if(game_manager.player_type == PlayerType.PLAYER2 && game_manager.first_missile_hit == false) {
+			if(game_manager.player_type == PlayerType.PLAYER2 && !game_manager.first_missile_hit) {
 				Vector3 closest_point = npc.collider_.ClosestPointOnBounds(player2.position);
 				float distance_to_player = Vector3.Distance(closest_point, player2.position);
 
@@ -178,8 +112,15 @@ public class NpcController : MonoBehaviour {
 						if(npc.particle_system != null) {
 							npc.particle_system.Emit(npc.particle_system.maxParticles);
 						}
+
+						npc.color_index++;
+						if(npc.color_index >= COLOR_POOL.Length) {
+							npc.color_index = 0;
+						}
+						npc.renderer_.material.color = COLOR_POOL[npc.color_index];
 					}
 
+					entered_player_radius = true;
 					npc.activated = true;
 				}
 				else if(npc.activated && distance_to_player > ACTIVAITON_DIST) {
@@ -191,39 +132,61 @@ public class NpcController : MonoBehaviour {
 			}
 		}
 
+		MotionPathAgent path_agent = npc.path_agent;
+		if(path_agent != null) {
+			if(!game_manager.first_missile_hit) {
+				MotionPath.move_agent(path_agent, Time.deltaTime, entered_player_radius && npc.runs_from_player);
+			}
+
+			if(path_agent.started) {
+				Util.cross_fade_anim(npc.anim, "moving");
+			}
+			else if(path_agent.stopped && path_agent.prev_node != null) {
+				switch(path_agent.prev_node.stop_animation) {
+					case MotionPathAnimationType.IDLE: {
+						Util.cross_fade_anim(npc.anim, "idle");
+						break;
+					}
+
+					case MotionPathAnimationType.MOVING: {
+						Util.cross_fade_anim(npc.anim, "moving");
+						break;
+					}
+
+					case MotionPathAnimationType.ACTION: {
+						Util.cross_fade_anim(npc.anim, "action");
+						break;
+					}
+				}
+			}
+		}
+
 		npc.emission = Mathf.Lerp(npc.emission, npc.activated ? 0.5f : 0.0f, Time.deltaTime * 8.0f);
-		npc.main_renderer.material.SetFloat("_Emission", npc.emission);
+		npc.renderer_.material.SetFloat("_Emission", npc.emission);
 	}
 
 	public static void on_explosion(GameManager game_manager, NpcController npc, Vector3 hit_pos, float force) {
 		Vector3 point_on_bounds = npc.collider_.ClosestPointOnBounds(hit_pos);
 		if(Vector3.Distance(hit_pos, point_on_bounds) < Environment.EXPLOSION_RADIUS) {
-			npc.renderer_.enabled = false;
 			npc.collider_.enabled = false;
-			if(npc.nav_agent) {
-				npc.nav_agent.enabled = false;
-			}
-
-			if(npc.anim != null) {
-				npc.anim.gameObject.SetActive(false);
-			}
+			npc.anim.gameObject.SetActive(false);
 
 			if(npc.fracture != null) {
 				Environment.apply_fracture(npc.fracture, hit_pos, force);
 			}
+
+			//TODO: Seperate npc type for targets!!
+			Assert.is_true(npc.nav_agent == null);
+			npc.path_agent = null;
 		}
 		else {
 			if(npc.type == NpcType.HUMAN) {
-				if(npc.anim != null) {
-					npc.anim.Stop();
-					npc.anim.gameObject.SetActive(false);
-					npc.renderer_.enabled = true;
-				}
+				Util.cross_fade_anim(npc.anim, "moving");
 
 				Transform safe_point = null;
 				float shortest_distance = Mathf.Infinity;
-				for(int ii = 0; ii < game_manager.scenario.safe_points.childCount; ii++) {
-					Transform safe_point_transform = game_manager.scenario.safe_points.GetChild(ii);
+				for(int index = 0; index < game_manager.scenario.safe_points.childCount; index++) {
+					Transform safe_point_transform = game_manager.scenario.safe_points.GetChild(index);
 
 					float dist = Vector3.Distance(npc.transform.position, safe_point_transform.position);
 					if(dist < shortest_distance) {
@@ -233,13 +196,29 @@ public class NpcController : MonoBehaviour {
 				}
 
 				if(npc.nav_agent) {
-					npc.nav_agent.enabled = true;
-					npc.nav_agent.speed = 7.0f;
-					npc.nav_agent.SetDestination(safe_point.position);
+					if(safe_point) {
+						npc.nav_agent.enabled = true;
+						npc.nav_agent.speed = 7.0f;
+						npc.nav_agent.SetDestination(safe_point.position);
+					}
+					else {
+						npc.nav_agent.enabled = false;
+					}
 				}
 			}
-			else {
-				//TODO: Animal case!!
+			else if(npc.type == NpcType.BIRD) {
+				npc.anim.gameObject.SetActive(false);
+			}
+		}
+	}
+
+	public static void on_pov_change(NpcController npc, PlayerType pov, Material material) {
+		if(npc.type == NpcType.HUMAN) {
+			npc.renderer_.material = material;
+
+			if(pov == PlayerType.PLAYER2) {
+				npc.color_index = Util.random_index(COLOR_POOL.Length);
+				npc.renderer_.material.color = COLOR_POOL[npc.color_index];
 			}
 		}
 	}

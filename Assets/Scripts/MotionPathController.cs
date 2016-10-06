@@ -28,15 +28,63 @@ public class MotionPathAgent {
 
 	public bool stopped;
 	public bool started;
+}
 
-	public bool runs_from_player;
-	public bool entered_player_radius;
-	public bool in_player_radius;
+public enum MotionPathSelectionType {
+	PATH,
+	NODE,
+}
 
-	public float walk_speed;
-	public float walk_accel;
-	public float run_speed;
-	public float run_accel;
+public class MotionPathSelection {
+	public MotionPathSelectionType type;
+
+	public MotionPathController path;
+	public MotionPathNode node;
+}
+
+public static class MotionPathUtil {
+	public static MotionPathSelection get_selection() {
+		MotionPathSelection selection = null;
+
+		if(Selection.activeTransform) {
+			MotionPathController path = Selection.activeTransform.GetComponent<MotionPathController>();
+			if(path) {
+				selection = new MotionPathSelection();
+				selection.type = MotionPathSelectionType.PATH;
+				selection.path = path;
+			}
+			else if(Selection.activeTransform.parent) {
+				path = Selection.activeTransform.parent.GetComponent<MotionPathController>();
+				if(path) {
+					selection = new MotionPathSelection();
+					selection.type = MotionPathSelectionType.NODE;
+					selection.path = path;
+					selection.node = Selection.activeTransform.GetComponent<MotionPathNode>();
+				}
+			}
+		}
+
+		return selection;
+	}
+
+	public static MotionPathNode add_node(MotionPathController path, Vector3 pos) {
+		Transform transform = Util.new_transform(path.transform, "Node");
+		transform.position = pos;
+		return transform.gameObject.AddComponent<MotionPathNode>();
+	}
+
+	public static float get_node_gizmo_size(Transform node, bool path_selected) {
+		float size = 0.5f;
+		if(Camera.current != null && path_selected) {
+			float dist = Vector3.Distance(node.position, Camera.current.transform.position);
+			float adjusted_size = dist * 0.025f;
+			if(adjusted_size > size) {
+				size = adjusted_size;
+			}
+		}
+
+		return size;
+	}
 }
 
 public class MotionPath {
@@ -115,41 +163,15 @@ public class MotionPath {
 		agent.nav.Warp(start_node.transform.position);
 		agent.nav.SetDestination(start_node.transform.position);
 
-		agent.walk_speed = 2.0f;
-		agent.walk_accel = 8.0f;
-		agent.run_speed = 12.0f;
-		agent.run_accel = 48.0f;
-
 		return agent;
 	}
 
 	public static void set_agent_next_node(MotionPathAgent agent, bool reverse) {
-		int node_index = MotionPath.get_node_index(agent.path, agent.node, agent.reversed);
 
-		if(reverse) {
-			if(node_index == 0) {
-				node_index = MotionPath.get_node_count(agent.path);
-			}
-			node_index--;
-		}
-		else {
-			node_index = MotionPath.wrap_node_index(agent.path, node_index + 1);
-		}
-
-		agent.prev_node = agent.node;
-		agent.node = MotionPath.get_node(agent.path, node_index, agent.reversed);
-
-		if(reverse) {
-			agent.reversed = !agent.reversed;
-		}
-
-		agent.saved_node_index = MotionPath.wrap_node_index(agent.path, node_index + 1);
-
-		agent.node_time = 0.0f;
 	}
 
-	public static void move_agent(MotionPathAgent agent, float dt, Transform player2, bool first_hit) {
-		agent.entered_player_radius = false;
+	public static void move_agent(MotionPathAgent agent, float dt, bool run) {
+		Assert.is_true(agent.nav.enabled);
 
 		agent.stopped = false;
 		agent.started = false;
@@ -165,76 +187,90 @@ public class MotionPath {
 		if(agent.run_time < 0.0f) {
 			agent.run_time = 0.0f;
 		}
+		if(run) {
+			agent.run_time = 3.0f;
+			agent.stop_time = 0.0f;
+			agent.started = true;
+		}
 
-		if(agent.nav.enabled && !first_hit) {
-			if(!agent.node) {
-				agent.saved_node_index = MotionPath.wrap_node_index(agent.path, agent.saved_node_index);
-				agent.node = MotionPath.get_node(agent.path, agent.saved_node_index, agent.reversed);
-				agent.node_time = 0.0f;
+		if(!agent.node) {
+			agent.saved_node_index = MotionPath.wrap_node_index(agent.path, agent.saved_node_index);
+			agent.node = MotionPath.get_node(agent.path, agent.saved_node_index, agent.reversed);
+			agent.node_time = 0.0f;
+			agent.stop_time = 0.0f;
+			agent.started = true;
+		}
+		else {
+			//TODO: Calculate this from velocity/distance/etc.!!
+			float min_dist = Mathf.Max(agent.nav.speed * 0.5f, 1.0f);
+			if(agent.nav.remainingDistance <= min_dist && agent.node_time >= agent.stop_time) {
 				agent.stop_time = 0.0f;
-				agent.started = true;
-			}
-			else {
-				if(agent.runs_from_player && player2 != null && Vector3.Distance(agent.transform.position, player2.position) <= 2.5f) {
-					if(!agent.in_player_radius) {
-						agent.entered_player_radius = true;
-						agent.run_time = 3.0f;
-					}
+				if(agent.node.stop && agent.node.stop_time > 0.0f && agent.run_time == 0.0f) {
+					agent.stop_time = agent.node.stop_time;
+					agent.stopped = true;
+				}
 
-					agent.in_player_radius = true;
+				bool flip_direction = agent.node.flip_direction;
+
+				int node_index = MotionPath.get_node_index(agent.path, agent.node, agent.reversed);
+				if(flip_direction) {
+					if(node_index == 0) {
+						node_index = MotionPath.get_node_count(agent.path);
+					}
+					node_index--;
 				}
 				else {
-					agent.in_player_radius = false;
+					node_index = MotionPath.wrap_node_index(agent.path, node_index + 1);
 				}
 
-				//TODO: Calculate this from velocity/distance/etc.!!
-				float min_dist = Mathf.Max(agent.nav.speed * 0.5f, 1.0f);
-				if(agent.nav.remainingDistance <= min_dist && agent.node_time >= agent.stop_time) {
-					agent.stop_time = 0.0f;
-					if(agent.node.stop) {
-						agent.stop_time = agent.node.stop_forever ? Mathf.Infinity : agent.node.stop_time;
-						if(agent.stop_time > 0.0f) {
-							agent.stopped = true;
-						}
-					}
-
-					MotionPath.set_agent_next_node(agent, agent.node.flip_direction);
+				agent.prev_node = agent.node;
+				agent.node = MotionPath.get_node(agent.path, node_index, agent.reversed);
+				agent.node_time = 0.0f;
+				if(flip_direction) {
+					agent.reversed = !agent.reversed;
 				}
+
+				agent.saved_node_index = MotionPath.wrap_node_index(agent.path, node_index + 1);
+			}
+		}
+
+		Assert.is_true(agent.node != null);
+
+		float speed_modifier = agent.path.global_speed;
+		if(agent.prev_node) {
+			if(agent.prev_node.override_speed) {
+				speed_modifier = agent.prev_node.speed;
 			}
 
-			Assert.is_true(agent.node != null);
-
-			float speed_modifier = agent.path.global_speed;
-			if(agent.prev_node) {
-				if(agent.prev_node.override_speed) {
-					speed_modifier = agent.prev_node.speed;
-				}
-
-				if(!agent.prev_node.stop) {
-					agent.stop_time = 0.0f;
-				}
-			}
-			else {
+			if(!agent.prev_node.stop) {
 				agent.stop_time = 0.0f;
 			}
+		}
+		else {
+			agent.stop_time = 0.0f;
+		}
 
-			if(agent.node_time < agent.stop_time) {
-				speed_modifier = 0.0f;
-			}
+		if(agent.node_time < agent.stop_time) {
+			speed_modifier = 0.0f;
+		}
 
-			if(agent.target_pos != agent.node.transform.position) {
-				agent.target_pos = agent.node.transform.position;
-				agent.nav.SetDestination(agent.target_pos);
-			}
+		if(agent.target_pos != agent.node.transform.position) {
+			agent.target_pos = agent.node.transform.position;
+			agent.nav.SetDestination(agent.target_pos);
+		}
 
-			if(agent.run_time > 0.0f) {
-				agent.nav.speed = agent.run_speed * speed_modifier;
-				agent.nav.acceleration = agent.run_accel;
-			}
-			else {
-				agent.nav.speed = agent.walk_speed * speed_modifier;
-				agent.nav.acceleration = agent.walk_accel;
-			}
+		float walk_speed = 2.0f;
+		float walk_accel = 8.0f;
+		float run_speed = 12.0f;
+		float run_accel = 48.0f;
+
+		if(agent.run_time > 0.0f) {
+			agent.nav.speed = run_speed * speed_modifier;
+			agent.nav.acceleration = run_accel;
+		}
+		else {
+			agent.nav.speed = walk_speed * speed_modifier;
+			agent.nav.acceleration = walk_accel;
 		}
 	}
 }
@@ -277,64 +313,49 @@ public class MotionPathController : MonoBehaviour {
 		}
 	}
 
-	public void draw_gizmos(float alpha) {
-		float gizmo_scale = 0.5f;
+	void OnDrawGizmos() {
+		bool selected = false;
+		if(Selection.activeTransform != null) {
+			if(Selection.activeTransform == transform || Selection.activeTransform.parent == transform) {
+				selected = true;
+			}
+		}
 
+		float alpha = selected ? 0.5f : 0.05f;
 		Gizmos.color = Util.new_color(Util.white, alpha);
 
 		if(transform.childCount == 1) {
-			Vector3 pos = transform.GetChild(0).position + Vector3.up * gizmo_scale * 0.5f;
-			Gizmos.DrawWireCube(pos, Vector3.one * gizmo_scale);
+			Transform node = transform.GetChild(0);
+			float size = MotionPathUtil.get_node_gizmo_size(node, selected);
+			Vector3 pos = node.position + Vector3.up * size * 0.5f;
+			Gizmos.DrawWireCube(pos, Vector3.one * size);
 		}
-		// else if(transform.childCount == 2) {
-		// 	Vector3 pos0 = transform.GetChild(0).position + Vector3.up * gizmo_scale * 0.5f;
-		// 	Vector3 pos1 = transform.GetChild(1).position + Vector3.up * gizmo_scale * 0.5f;
-
-		// 	Gizmos.DrawWireCube(pos0, Vector3.one * gizmo_scale);
-		// 	Gizmos.DrawWireCube(pos1, Vector3.one * gizmo_scale);
-		// 	draw_arrow_gizmo(pos0, pos1, gizmo_scale);
-		// }
 		else {
+			Transform prev_node = transform.GetChild(transform.childCount - 1);
+
 			for(int i = 0; i < transform.childCount; i++) {
 				Transform node = transform.GetChild(i);
+				float size = MotionPathUtil.get_node_gizmo_size(node, selected);
+				Vector3 pos = node.position + Vector3.up * size * 0.5f;
 
-				int next_index = i + 1;
-				if(next_index >= transform.childCount) {
-					next_index = 0;
-				}
-				Transform next_node = transform.GetChild(next_index);
-
-				Vector3 pos = node.position + Vector3.up * gizmo_scale * 0.5f;
-				Vector3 next_pos = next_node.position + Vector3.up * gizmo_scale * 0.5f;
+				float prev_size = MotionPathUtil.get_node_gizmo_size(prev_node, selected);
+				Vector3 prev_pos = prev_node.position + Vector3.up * prev_size * 0.5f;
 
 				if(node == hover_node) {
 					Color saved_color = Gizmos.color;
-					Gizmos.color = Util.white;
-					Gizmos.DrawWireCube(pos, Vector3.one * gizmo_scale);
+					Gizmos.color = Util.red;
+					Gizmos.DrawWireCube(pos, Vector3.one * size);
 					Gizmos.color = saved_color;
 				}
 				else {
-					Gizmos.DrawWireCube(pos, Vector3.one * gizmo_scale);
+					Gizmos.DrawWireCube(pos, Vector3.one * size);
 				}
 
-				draw_arrow_gizmo(pos, next_pos, gizmo_scale);
+				draw_arrow_gizmo(prev_pos, pos, size);
+
+				prev_node = node;
 			}
 		}
-	}
-
-	void OnDrawGizmos() {
-		float alpha = 0.15f;
-		if(Selection.activeTransform != null) {
-			if(Selection.activeTransform.parent == transform) {
-				alpha = 0.5f;
-			}
-		}
-
-		draw_gizmos(alpha);
-	}
-
-	void OnDrawGizmosSelected() {
-		draw_gizmos(0.5f);
 	}
 #endif
 }

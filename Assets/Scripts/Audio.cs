@@ -25,13 +25,6 @@ public class Audio {
 
 		public int first_index;
 		public int count;
-
-		public static ClipGroup new_inst(Clip clip, int count) {
-			ClipGroup clip_group = new ClipGroup();
-			clip_group.clip = clip;
-			clip_group.count = count;
-			return clip_group;
-		}
 	}
 
 	public Transform transform;
@@ -52,24 +45,18 @@ public class Audio {
 			audio.source_pool[i] = source;
 		}
 
+		audio.clip_groups = new ClipGroup[(int)Clip.COUNT];
+		for(int i = 0; i < audio.clip_groups.Length; i++) {
+			ClipGroup clip_group = new ClipGroup();
+			clip_group.clip = (Clip)i;
+			clip_group.count = 1;
+
+			audio.clip_groups[i] = clip_group;
+		}
+
 		//TODO: Figure out a way to automate this!!
-		audio.clip_groups = new ClipGroup[] {
-			ClipGroup.new_inst(Clip.PLAYER_WALK, 1),
-			ClipGroup.new_inst(Clip.PLAYER_JUMP, 1),
-			ClipGroup.new_inst(Clip.PLAYER_LAND, 1),
-
-			ClipGroup.new_inst(Clip.NPC, 9),
-			ClipGroup.new_inst(Clip.COLLECTABLE, 12),
-
-			ClipGroup.new_inst(Clip.MISSILE, 1),
-			ClipGroup.new_inst(Clip.EXPLOSION, 1),
-			ClipGroup.new_inst(Clip.EXPLOSION_BIRDS, 1),
-
-			ClipGroup.new_inst(Clip.CONSOLE_CURSOR_FLASH, 1),
-			ClipGroup.new_inst(Clip.CONSOLE_TYPING, 1),
-		};
-
-		Assert.is_true(audio.clip_groups.Length == (int)Clip.COUNT, "Invalid number of clip groups!!");
+		audio.clip_groups[(int)Clip.NPC].count = 9;
+		audio.clip_groups[(int)Clip.COLLECTABLE].count = 12;
 
 		int total_clip_count = 0;
 		for(int i = 0; i < audio.clip_groups.Length; i++) {

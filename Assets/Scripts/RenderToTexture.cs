@@ -6,7 +6,6 @@ public class RenderToTexture : MonoBehaviour {
 		public Camera camera;
 		public Renderer renderer;
 		public RenderTexture render_texture;
-		public Transform model;
 	}
 
 	public class PaddingOffset {
@@ -27,6 +26,7 @@ public class RenderToTexture : MonoBehaviour {
 		Transform camera_group = GameObject.Find("CameraGroup").transform;
 		Transform quad_group = GameObject.Find("Screen").transform;
 
+		//TODO: Letterboxing for non-16:9 aspect ratios!!
 		float screen_padding = 0.125f;
 		float half_screen_padding = screen_padding * 0.5f;
 		PaddingOffset[] offsets = {
@@ -41,69 +41,19 @@ public class RenderToTexture : MonoBehaviour {
 			cam.renderer = quad_group.Find("Quad" + i).GetComponent<Renderer>();
 
 			PaddingOffset offset = offsets[i];
-
-			Vector3 tex_scale = cam.renderer.transform.localScale - offset.scale_offset;
-
-			// int tex_width = (int)tex_scale.x * (Screen.width / 16);
-			// int tex_height = (int)tex_scale.y * (Screen.height / 9);
-
-			int tex_width = (int)tex_scale.x * 80;
-			int tex_height = (int)tex_scale.y * 80;
-
-			cam.renderer.transform.localScale = new Vector3(tex_scale.x, tex_scale.y, tex_scale.z);
+			cam.renderer.transform.localScale -= offset.scale_offset;
 			cam.renderer.transform.localPosition += offset.position_offset;
 
-			cam.render_texture = new RenderTexture(tex_width, tex_height, 16);
+			int tex_width = (int)(cam.renderer.transform.localScale.x * (Screen.width / 16));
+			int tex_height = (int)(cam.renderer.transform.localScale.y * (Screen.width / 16));
+
+			cam.render_texture = new RenderTexture(tex_width, tex_height, 24);
 			cam.render_texture.antiAliasing = 8;
 			cam.render_texture.Create();
 			cam.camera.targetTexture = cam.render_texture;
 			cam.renderer.material.mainTexture = cam.render_texture;
 
-			cam.model = cam.camera.transform.Find("Model");
-
 			cameras[i] = cam;
-		}
-			
-		// {
-		// 	Transform quad = cameras[0].renderer.transform;
-
-		// 	Vector3 quad_scale = quad.localScale;
-		// 	quad_scale.x -= screen_padding;
-		// 	quad_scale.y -= screen_padding;
-
-		// 	quad.localScale = quad_scale;
-		// }
-
-		// {
-		// 	Transform quad = cameras[1].renderer.transform;
-
-		// 	Vector3 quad_scale = quad.localScale;
-		// 	quad_scale.x -= half_screen_padding;
-		// 	quad_scale.y -= half_screen_padding;
-
-		// 	quad.localScale = quad_scale;
-		// 	quad.localPosition = quad.localPosition - new Vector3(half_screen_padding * 0.5f, half_screen_padding * 0.5f, 0.0f);
-		// }
-
-		// {
-		// 	Transform quad = cameras[2].renderer.transform;
-
-		// 	Vector3 quad_scale = quad.localScale;
-		// 	quad_scale.x -= half_screen_padding;
-		// 	quad_scale.y -= screen_padding;
-
-		// 	quad.localScale = quad_scale;
-		// 	quad.localPosition = quad.localPosition - new Vector3(half_screen_padding * 0.5f, 0.0f, 0.0f);
-		// }
-	}
-
-	void Update() {
-		for(int i = 0; i < cameras.Length; i++) {
-			RenderTextureCamera cam = cameras[i];
-
-			float t = (float)i * Util.TAU * 0.25f + Time.time;
-			cam.model.localPosition = new Vector3(0.0f, Mathf.Sin(t), 5.0f);
-			cam.model.localRotation = Quaternion.Euler(t * (180.0f / Mathf.PI), 0.0f, 0.0f);
 		}
 	}
 }

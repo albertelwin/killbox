@@ -165,7 +165,7 @@ public class NpcController : MonoBehaviour {
 		npc.renderer_.material.SetFloat("_Emission", npc.emission);
 	}
 
-	public static void on_explosion(GameManager game_manager, NpcController npc, Vector3 hit_pos, float force) {
+	public static void on_explosion(NpcController npc, TargetPointController target_point, Vector3 hit_pos, float force) {
 		Vector3 point_on_bounds = npc.collider_.ClosestPointOnBounds(hit_pos);
 		if(Vector3.Distance(hit_pos, point_on_bounds) < Environment.EXPLOSION_RADIUS) {
 			npc.collider_.enabled = false;
@@ -175,7 +175,6 @@ public class NpcController : MonoBehaviour {
 				Environment.apply_fracture(npc.fracture, hit_pos, force);
 			}
 
-			//TODO: Seperate npc type for targets!!
 			Assert.is_true(npc.nav_agent == null);
 			npc.path_agent = null;
 		}
@@ -185,8 +184,8 @@ public class NpcController : MonoBehaviour {
 
 				Transform safe_point = null;
 				float shortest_distance = Mathf.Infinity;
-				for(int index = 0; index < game_manager.scenario.safe_points.childCount; index++) {
-					Transform safe_point_transform = game_manager.scenario.safe_points.GetChild(index);
+				for(int index = 0; index < target_point.safe_points.childCount; index++) {
+					Transform safe_point_transform = target_point.safe_points.GetChild(index);
 
 					float dist = Vector3.Distance(npc.transform.position, safe_point_transform.position);
 					if(dist < shortest_distance) {

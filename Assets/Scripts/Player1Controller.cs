@@ -428,6 +428,10 @@ public static class Player1Util {
 
 		return transform;
 	}
+
+	public static bool flash(float t, float hz = 1.0f) {
+		return ((int)(t * hz * 2.0f)) % 2 == 0;
+	}
 }
 
 public class Player1Console {
@@ -519,26 +523,7 @@ public class Player1Console {
 		public int elem_count;
 	}
 
-	public class RichTextTag {
-		public string match_str;
-		public bool is_glyph;
-
-		public static RichTextTag new_inst(string match_str, bool is_glyph) {
-			RichTextTag inst = new RichTextTag();
-			inst.match_str = match_str;
-			inst.is_glyph = is_glyph;
-			return inst;
-		}
-	}
-
-	public static RichTextTag[] RICH_TEXT_TAGS = new RichTextTag[] {
-		RichTextTag.new_inst("<quad", true),
-		RichTextTag.new_inst("<color", false),
-
-		RichTextTag.new_inst("</", false),
-	};
-
-	public static string CURSOR_STR = "\u2588";
+	public static string CURSOR_SYM = "\u2588";
 
 	public static float CHARS_PER_SEC = 50.0f;
 	// public static float SECS_PER_CHAR = 0.03f;
@@ -568,6 +553,8 @@ public class Player1Console {
 
 	public float cursor_time;
 	public float last_cursor_time;
+	public bool prompt;
+	public int prompt_length;
 
 	public int current_cmd_index;
 	public int next_cmd_index;
@@ -648,53 +635,6 @@ public class Player1Console {
 		Cmd cmd = push_cmd(cmd_buf, CmdType.PRINT_STR);
 		cmd.str_id = str_id;
 		return cmd;
-	}
-
-	public static void push_rich_text_str_cmd(CmdBuf cmd_buf, string str_) {
-		Assert.is_true(str_.Length > 0);
-
-		int str_it = 0;
-		string str = "";
-		while(str_it < str_.Length) {
-			str += str_[str_it++];
-
-			for(int i = 0; i < RICH_TEXT_TAGS.Length; i++) {
-				RichTextTag tag = RICH_TEXT_TAGS[i];
-
-				if(str.Length >= tag.match_str.Length) {
-					string substr = str.Substring(str.Length - tag.match_str.Length, tag.match_str.Length);
-					if(substr == tag.match_str) {
-						str = str.Substring(0, str.Length - tag.match_str.Length);
-						if(str.Length > 0) {
-							push_print_str_cmd(cmd_buf, str);
-							str = "";
-						}
-
-						while(true) {
-							char char_ = str_[str_it++];
-							substr += char_;
-
-							if(char_ == '>') {
-								break;
-							}
-						}
-
-						// for(int ii = 0; ii < tag.extra_len; ii++) {
-						// 	substr += str_[str_it++];
-						// }
-
-						push_commit_str_cmd(cmd_buf, substr);
-						if(tag.is_glyph) {
-							push_wait_cmd(cmd_buf, SECS_PER_CHAR);
-						}
-					}
-				}
-			}
-		}
-
-		if(str.Length > 0) {
-			push_print_str_cmd(cmd_buf, str);
-		}
 	}
 
 	public static Cmd push_user_str_cmd(CmdBuf cmd_buf, UserStrId str_id, int max_str_len, bool numeric_only = false, bool hide_str = false, float timeout = Mathf.Infinity) {
@@ -823,7 +763,8 @@ public class Player1Console {
 
 		TextMesh text_mesh = transform.GetComponent<TextMesh>();
 		text_mesh.text = str;
-		text_mesh.richText = true;
+		//TODO: Do we need this??
+		// text_mesh.richText = true;
 
 		Renderer renderer = transform.GetComponent<Renderer>();
 		float height = renderer.bounds.size.y;
@@ -881,7 +822,7 @@ public class Player1Console {
 
 		inst.str_builder = new StringBuilder();
 
-		inst.text_mesh_prefab = ((GameObject)Resources.Load("TextMeshPrefab")).transform;
+		inst.text_mesh_prefab = Util.load_prefab("TextMeshPrefab");
 
 		inst.item_queue = new Item[64];
 		inst.item_count = 0;
@@ -891,6 +832,8 @@ public class Player1Console {
 
 		inst.cursor_time = 0.0f;
 		inst.last_cursor_time = -0.5f;
+		inst.prompt = false;
+		inst.prompt_length = 0;
 
 		inst.cmd_buf = new_cmd_buf(MAX_CMD_COUNT);
 		inst.current_cmd_index = Player1Util.parse_script(inst.cmd_buf, "killbox_script");
@@ -909,10 +852,6 @@ public class Player1Console {
 		inst.logged_user_details = false;
 
 		return inst;
-	}
-
-	public static bool is_cursor_on(float cursor_time) {
-		return ((int)(cursor_time * 2.0f)) % 2 == 0;
 	}
 
 	public static void update(Player1Console inst, Player1Controller player1) {
@@ -1076,6 +1015,8 @@ public class Player1Console {
 							}
 						}
 
+						inst.prompt = true;
+
 						break;
 					}
 
@@ -1118,6 +1059,8 @@ public class Player1Console {
 							time_left = 0.0f;
 							done = true;
 						}
+
+						inst.prompt = true;
 
 						break;
 					}
@@ -1190,6 +1133,8 @@ public class Player1Console {
 							}
 						}
 
+						inst.prompt = true;
+
 						break;
 					}
 
@@ -1204,7 +1149,7 @@ public class Player1Console {
 
 					case CmdType.ACQUIRE_TARGET: {
 						Player1Controller.set_marker_color(player1.marker, Util.white, Util.green);
-						player1.target = game_manager.scenario.high_value_target;
+						player1.target = game_manager.env.target_point.high_value_target;
 
 						done = true;
 						break;
@@ -1240,6 +1185,9 @@ public class Player1Console {
 					inst.current_cmd_str = "";
 					inst.current_cmd_str_it = 0;
 					inst.current_cmd_item = null;
+
+					inst.prompt = false;
+					inst.prompt_length = 0;
 				}
 				else {
 					time_left = 0.0f;
@@ -1284,12 +1232,45 @@ public class Player1Console {
 
 				tail_item.text_mesh.text = inst.str_builder.ToString();
 
-				if(is_cursor_on(inst.cursor_time)) {
-					tail_item.text_mesh.text += CURSOR_STR;
+				if(inst.prompt) {
+					float rate = 24.0f;
+					float delay = 0.5f;
 
-					if(!is_cursor_on(inst.last_cursor_time)) {
-						Audio.play(game_manager.audio, Audio.Clip.CONSOLE_CURSOR_FLASH);
+					if(inst.cursor_time > delay) {
+						if(Player1Util.flash(inst.cursor_time, rate)) {
+							if(!Player1Util.flash(inst.last_cursor_time, rate)) {
+								Audio.play(game_manager.audio, Audio.Clip.CONSOLE_CURSOR_FLASH);
+								inst.prompt_length++;
+							}
+						}
 					}
+					else {
+						inst.prompt_length = 0;
+					}
+
+					string prompt_str = "";
+					for(int i = 0; i < inst.prompt_length; i++) {
+						prompt_str += "   ";
+					}
+
+					string str = tail_item.text_mesh.text;
+					tail_item.text_mesh.text += prompt_str + CURSOR_SYM;
+
+					if(tail_item.text_mesh_renderer.bounds.size.x >= inst.width) {
+						inst.prompt_length = 0;
+						tail_item.text_mesh.text = str + CURSOR_SYM;
+					}
+				}
+				else {
+					if(Player1Util.flash(inst.cursor_time)) {
+						tail_item.text_mesh.text += CURSOR_SYM;
+
+						if(!Player1Util.flash(inst.last_cursor_time)) {
+							Audio.play(game_manager.audio, Audio.Clip.CONSOLE_CURSOR_FLASH);
+						}
+					}
+
+					inst.prompt_length = 0;
 				}
 
 				inst.last_cursor_time = inst.cursor_time;
@@ -1789,7 +1770,7 @@ public class Player1Controller : MonoBehaviour {
 		float x = Mathf.Sin(angular_pos) * GameManager.drone_radius;
 		float z = Mathf.Cos(angular_pos) * GameManager.drone_radius;
 
-		transform.position = game_manager.scenario.pos + new Vector3(x, GameManager.drone_height, z);
+		transform.position = game_manager.env.target_point.pos + new Vector3(x, GameManager.drone_height, z);
 		transform.rotation = Quaternion.Euler(0.0f, -90.0f + angular_pos * Mathf.Rad2Deg, 0.0f);
 
 		camera_zoom = Mathf.Clamp(camera_zoom, min_fov - zero_fov, max_fov - zero_fov);
@@ -1896,10 +1877,10 @@ public class Player1Controller : MonoBehaviour {
 		yield return Util.wait_for_2s;
 
 		// Vector3 missile_direction = main_camera.transform.forward;
-		Vector3 missile_direction = (game_manager.scenario.pos - main_camera.transform.position).normalized;
+		Vector3 missile_direction = (game_manager.env.target_point.pos - main_camera.transform.position).normalized;
 		Vector3 missile_position = main_camera.transform.position - missile_direction * 4000.0f;
 		float missile_speed = Settings.USE_TRANSITIONS ? 100.0f : 1000.0f;
-		float missile_time = Mathf.Sqrt((2.0f * Vector3.Distance(missile_position, game_manager.scenario.pos)) / missile_speed);
+		float missile_time = Mathf.Sqrt((2.0f * Vector3.Distance(missile_position, game_manager.env.target_point.pos)) / missile_speed);
 		// Debug.Log(missile_time.ToString());
 
 		if(!Settings.LAN_MODE) {
@@ -1931,7 +1912,7 @@ public class Player1Controller : MonoBehaviour {
 			Vector3 velocity = Vector3.zero;
 
 			Vector3 start_pos = missile_position;
-			float dist_to_target = Vector3.Distance(start_pos, game_manager.scenario.pos);
+			float dist_to_target = Vector3.Distance(start_pos, game_manager.env.target_point.pos);
 
 			bool hit_target = false;
 			while(hit_target == false) {
@@ -1940,7 +1921,7 @@ public class Player1Controller : MonoBehaviour {
 
 				float dist_to_missile = Vector3.Distance(start_pos, missile_position);
 				if(dist_to_missile >= dist_to_target) {
-					missile_position = game_manager.scenario.pos;
+					missile_position = game_manager.env.target_point.pos;
 					hit_target = true;
 				}
 				else {

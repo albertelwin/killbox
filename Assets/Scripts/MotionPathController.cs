@@ -166,10 +166,6 @@ public class MotionPath {
 		return agent;
 	}
 
-	public static void set_agent_next_node(MotionPathAgent agent, bool reverse) {
-
-	}
-
 	public static void move_agent(MotionPathAgent agent, float dt, bool run) {
 		Assert.is_true(agent.nav.enabled);
 

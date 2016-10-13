@@ -4,7 +4,7 @@
 DOING:
 
 TODO:
-	Target npc type
+	Capsule colliders for adult npcs
 	React motion path
 	Optimise pilot view (clear -> render camera feeds -> render ui)
 	Camera clipping
@@ -49,23 +49,47 @@ public class GameManager : MonoBehaviour {
 		public TextMesh name;
 	}
 
+	public class PlayerButton {
+		public Transform transform;
+		public Collider collider;
+
+		public TextMesh text;
+
+		public Renderer head;
+		public Renderer body;
+		public Renderer helmet;
+
+		public static PlayerButton new_inst(Transform transform, string name) {
+			PlayerButton inst = new PlayerButton();
+			inst.transform = transform.Find(name);
+			inst.collider = inst.transform.GetComponent<Collider>();
+
+			inst.text = inst.transform.Find("Text").GetComponent<TextMesh>();
+
+			inst.head = inst.transform.Find("Head").GetComponent<Renderer>();
+			inst.body = inst.transform.Find("Body").GetComponent<Renderer>();
+			Transform helmet = inst.transform.Find("Helmet");
+			if(helmet) {
+				inst.helmet = helmet.GetComponent<Renderer>();
+			}
+
+			return inst;
+		}
+	}
+
 	public class MainScreen {
 		public Transform transform;
 
-		public Transform player1_button;
-		public Renderer player1_head;
-		public Renderer player1_body;
-		public Renderer player1_helmet;
-		public TextMesh player1_text;
-
-		public Transform player2_button;
-		public Renderer player2_head;
-		public Renderer player2_body;
-		public TextMesh player2_text;
-
 		public Transform cursor;
 
-		public Transform killbox;
+		public PlayerButton player1;
+		public PlayerButton player2;
+	}
+
+	public class LanScreen {
+		public Transform transform;
+
+		public Renderer[] movies;
 	}
 
 	public class EndScreen {
@@ -119,9 +143,9 @@ public class GameManager : MonoBehaviour {
 
 	[System.NonSerialized] public NetworkView network_view;
 
-	public static bool splash_screen_closed = false;
 	public SplashScreen splash_screen;
 	public MainScreen main_screen;
+	public LanScreen lan_screen;
 	public EndScreen end_screen;
 	public PauseScreen pause_screen;
 
@@ -151,7 +175,6 @@ public class GameManager : MonoBehaviour {
 	AudioSource menu_audio_source = null;
 
 	public static PlayerType persistent_player_type = PlayerType.NONE;
-	public static ScenarioType persistent_scenario_type = ScenarioType.NONE;
 
 	// public static float drone_height = 160.0f;
 	// public static float drone_radius = 60.0f;
@@ -165,21 +188,16 @@ public class GameManager : MonoBehaviour {
 	[System.NonSerialized] public bool first_missile_hit = false;
 	[System.NonSerialized] public bool showing_stats = false;
 
-	[System.NonSerialized] public TargetPointController scenario;
-
 	[System.NonSerialized] public Player1Controller player1_inst;
 	[System.NonSerialized] public Player1Controller network_player1_inst;
 
 	[System.NonSerialized] public Player2Controller player2_inst;
 	[System.NonSerialized] public Player2Controller network_player2_inst;
 
-	[System.NonSerialized] public ScenarioType network_scenario_type = ScenarioType.NONE;
-
 	[System.NonSerialized] public Light sun;
 	[System.NonSerialized] public float time_of_day;
 
 	[System.NonSerialized] public Environment env;
-	[System.NonSerialized] public Transform scenarios = null;
 
 	[System.NonSerialized] new public Audio audio;
 	[System.NonSerialized] public AudioSource menu_sfx_source;
@@ -187,6 +205,7 @@ public class GameManager : MonoBehaviour {
 	[System.NonSerialized] public Transform player1_prefab = null;
 	[System.NonSerialized] public Transform player2_prefab = null;
 	[System.NonSerialized] public Transform missile_prefab = null;
+	//TODO: Remove this!!
 	[System.NonSerialized] public Transform explosion_prefab = null;
 
 	public static GameManager get_inst() {
@@ -537,28 +556,7 @@ public class GameManager : MonoBehaviour {
 		}
 	}
 
-	TargetPointController get_scenario(ScenarioType scenario_type) {
-		int index = (int)scenario_type;
-		Assert.is_true(index < scenarios.childCount, "ASSERT: Scenario index out of range!!");
-
-		TargetPointController scenario_ = scenarios.GetChild(index).GetComponent<TargetPointController>();
-		scenario_.type = scenario_type;
-		return scenario_;
-	}
-
-	[RPC]
-	void send_scenario_type(int scenario_type) {
-		//TODO: Is there a more robust way to do this??
-		network_scenario_type = (ScenarioType)scenario_type;
-		Debug.Log("Received " + network_scenario_type + " scenario!");
-	}
-
-	[RPC]
-	void clear_scenario_type() {
-		network_scenario_type = ScenarioType.NONE;
-	}
-
-	void create_player(ConnectionType connection_type, ScenarioType scenario_type) {
+	void create_player(ConnectionType connection_type) {
 		if(created_player) {
 			Assert.invalid_path("Something went wrong, player already exists!!");
 		}
@@ -571,12 +569,6 @@ public class GameManager : MonoBehaviour {
 			Analytics.CustomEvent("game_started", new Dictionary<string, object> {
 				{ "player_type", player_type_str },
 			});
-
-			Assert.is_true(scenario_type != ScenarioType.NONE);
-			scenario = get_scenario(persistent_scenario_type);
-			if(Settings.LAN_MODE) {
-				network_view.RPC("send_scenario_type", RPCMode.Others, (int)persistent_scenario_type);
-			}
 
 			menu_camera.gameObject.SetActive(false);
 
@@ -603,8 +595,8 @@ public class GameManager : MonoBehaviour {
 				Cursor.visible = !(Cursor.lockState == CursorLockMode.Locked);
 
 				//TODO: Pick this randomly from pool of points!!
-				// Transform spawn_point = scenario.spawn_point;
-				Transform spawn_point = scenario.spawn_points.GetChild(scenario.spawn_points.childCount - 1);
+				// Transform spawn_point = env.target_point.spawn_point;
+				Transform spawn_point = env.target_point.spawn_points.GetChild(env.target_point.spawn_points.childCount - 1);
 
 				if(connection_type != ConnectionType.OFFLINE) {
 					Network.Instantiate(player2_prefab, spawn_point.position, spawn_point.rotation, 0);
@@ -636,7 +628,6 @@ public class GameManager : MonoBehaviour {
 	public void game_over(bool reset_persistent_state = false) {
 		if(reset_persistent_state) {
 			persistent_player_type = PlayerType.NONE;
-			persistent_scenario_type = ScenarioType.NONE;
 
 			if(!Settings.LAN_MODE) {
 				network_disconnect();
@@ -662,12 +653,6 @@ public class GameManager : MonoBehaviour {
 		first_missile_hit = false;
 		showing_stats = false;
 
-		if(Settings.LAN_MODE) {
-			if(connected_to_another_player()) {
-				network_view.RPC("clear_scenario_type", RPCMode.Others);
-			}
-		}
-
 		game_log.gameObject.SetActive(false);
 		set_pause(this, false);
 		menu_camera.gameObject.SetActive(true);
@@ -679,14 +664,14 @@ public class GameManager : MonoBehaviour {
 	void OnServerInitialized() {
 		Debug.Log("Server created!");
 		if(!Settings.LAN_MODE) {
-			create_player(ConnectionType.SERVER, persistent_scenario_type);
+			create_player(ConnectionType.SERVER);
 		}
 	}
 
 	void OnConnectedToServer() {
 		Debug.Log("Connected to server!");
 		if(!Settings.LAN_MODE) {
-			create_player(ConnectionType.CLIENT, persistent_scenario_type);
+			create_player(ConnectionType.CLIENT);
 		}
 	}
 
@@ -719,35 +704,15 @@ public class GameManager : MonoBehaviour {
 				if(host_list.Length > 0) {
 					Debug.Log("Found server, now connecting...");
 
-					HostData host = host_list[0];
-
-					ScenarioType host_scenario_type = ScenarioType.NONE;
-					for(int i = 0; i < (int)ScenarioType.COUNT; i++) {
-						ScenarioType scenario_type = (ScenarioType)i;
-						if(host.comment == scenario_type.ToString()) {
-							host_scenario_type = scenario_type;
-							break;
-						}
-					}
-
-					if(host_scenario_type != ScenarioType.NONE) {
-						Debug.Log("Received " + host_scenario_type.ToString() + " scenario!");
-						persistent_scenario_type = host_scenario_type;
-
-						Network.Connect(host);
-					}
-					else {
-						Debug.Log("Failed to connect, host had invalid scenario type: " + host.comment);
-					}
+					Network.Connect(host_list[0]);
 				}
 				else {
 					Debug.Log("Could not find an open server, now creating a new one...");
 
 					string game_type = (player_type == PlayerType.PLAYER1) ? game_type_player1 : game_type_player2;
-					string game_comment = persistent_scenario_type.ToString();
 
 					Network.InitializeServer(1, 25002, !Network.HavePublicAddress());
-					MasterServer.RegisterHost(game_type, game_name, game_comment);
+					MasterServer.RegisterHost(game_type, game_name, "");
 				}
 			}
 		}
@@ -759,15 +724,15 @@ public class GameManager : MonoBehaviour {
 	IEnumerator start_game_from_main_screen(PlayerType player_type) {
 		this.player_type = player_type;
 
-		main_screen.player1_text.color = Util.black_no_alpha;
-		main_screen.player2_text.color = Util.black_no_alpha;
+		main_screen.player1.text.color = Util.black_no_alpha;
+		main_screen.player2.text.color = Util.black_no_alpha;
 
 		float fade_duration = 0.25f;
 
 		if(Settings.USE_TRANSITIONS) {
 			if(player_type == PlayerType.PLAYER1) {
-				StartCoroutine(Util.lerp_material_alpha(main_screen.player2_head, 0.0f, fade_duration));
-				StartCoroutine(Util.lerp_material_alpha(main_screen.player2_body, 0.0f, fade_duration));
+				StartCoroutine(Util.lerp_material_alpha(main_screen.player2.head, 0.0f, fade_duration));
+				StartCoroutine(Util.lerp_material_alpha(main_screen.player2.body, 0.0f, fade_duration));
 
 				yield return StartCoroutine(Util.lerp_material_alpha(main_screen.cursor.GetComponent<Renderer>(), 0.0f, fade_duration));
 				main_screen.cursor.gameObject.SetActive(false);
@@ -775,15 +740,15 @@ public class GameManager : MonoBehaviour {
 				StartCoroutine(Util.lerp_audio_volume(menu_audio_source, 1.0f, 0.0f, 4.0f));
 
 				yield return new WaitForSeconds(0.5f);
-				StartCoroutine(Util.lerp_material_alpha(main_screen.player1_helmet, 0.0f));
-				yield return StartCoroutine(Util.lerp_material_alpha(main_screen.player1_body, 0.0f));
+				StartCoroutine(Util.lerp_material_alpha(main_screen.player1.helmet, 0.0f));
+				yield return StartCoroutine(Util.lerp_material_alpha(main_screen.player1.body, 0.0f));
 				yield return new WaitForSeconds(0.5f);
-				yield return StartCoroutine(Util.lerp_material_alpha(main_screen.player1_head, 0.0f));
+				yield return StartCoroutine(Util.lerp_material_alpha(main_screen.player1.head, 0.0f));
 			}
 			else {
-				StartCoroutine(Util.lerp_material_alpha(main_screen.player1_head, 0.0f, fade_duration));
-				StartCoroutine(Util.lerp_material_alpha(main_screen.player1_helmet, 0.0f, fade_duration));
-				StartCoroutine(Util.lerp_material_alpha(main_screen.player1_body, 0.0f, fade_duration));
+				StartCoroutine(Util.lerp_material_alpha(main_screen.player1.head, 0.0f, fade_duration));
+				StartCoroutine(Util.lerp_material_alpha(main_screen.player1.helmet, 0.0f, fade_duration));
+				StartCoroutine(Util.lerp_material_alpha(main_screen.player1.body, 0.0f, fade_duration));
 
 				yield return StartCoroutine(Util.lerp_material_alpha(main_screen.cursor.GetComponent<Renderer>(), 0.0f, fade_duration));
 				main_screen.cursor.gameObject.SetActive(false);
@@ -791,18 +756,14 @@ public class GameManager : MonoBehaviour {
 				StartCoroutine(Util.lerp_audio_volume(menu_audio_source, 1.0f, 0.0f, 4.0f));
 
 				yield return new WaitForSeconds(0.5f);
-				yield return StartCoroutine(Util.lerp_material_alpha(main_screen.player2_body, 0.0f));
+				yield return StartCoroutine(Util.lerp_material_alpha(main_screen.player2.body, 0.0f));
 				yield return new WaitForSeconds(0.5f);
-				yield return StartCoroutine(Util.lerp_material_alpha(main_screen.player2_head, 0.0f));
+				yield return StartCoroutine(Util.lerp_material_alpha(main_screen.player2.head, 0.0f));
 			}
 		}
 		else {
 			menu_audio_source.volume = 0.0f;
 		}
-
-		PlayerPrefs.SetInt(PREF_KEY_PLAY_COUNT, PlayerPrefs.GetInt(PREF_KEY_PLAY_COUNT) + 1);
-		PlayerPrefs.Save();
-		game_log.gameObject.SetActive(false);
 
 		StartCoroutine(start_game(player_type));
 	}
@@ -810,37 +771,18 @@ public class GameManager : MonoBehaviour {
 	IEnumerator start_game(PlayerType player_type) {
 		this.player_type = player_type;
 
-		persistent_scenario_type = ScenarioType.FARM;
-		// if(persistent_scenario_type == ScenarioType.NONE) {
-		// 	persistent_scenario_type = (ScenarioType)Util.random_index(scenarios.childCount);
-		// }
-
 		if(Settings.LAN_MODE) {
 			ConnectionType connection_type = Settings.LAN_SERVER_MACHINE ? ConnectionType.SERVER : ConnectionType.CLIENT;
 			if(!connected_to_another_player()) {
 				connection_type = ConnectionType.OFFLINE;
 				Debug.Log("LOG: No network connection, switching to offline game.");
 			}
-			// else {
-			// 	if(player_type == PlayerType.PLAYER1) {
-			// 		if(network_player2_inst != null) {
-			// 			persistent_scenario_type = network_scenario_type;
-			// 		}
-			// 	}
-			// 	else {
-			// 		if(network_player1_inst != null) {
-			// 			persistent_scenario_type = network_scenario_type;
-			// 		}
-			// 	}
 
-			// 	Assert.is_true(persistent_scenario_type != ScenarioType.NONE);
-			// }
-
-			create_player(connection_type, persistent_scenario_type);
+			create_player(connection_type);
 		}
 		else {
 			if(Settings.FORCE_OFFLINE_MODE) {
-				create_player(ConnectionType.OFFLINE, persistent_scenario_type);
+				create_player(ConnectionType.OFFLINE);
 			}
 			else {
 				if(persistent_player_type == PlayerType.NONE) {
@@ -854,14 +796,14 @@ public class GameManager : MonoBehaviour {
 				else {
 					if(connected_to_another_player()) {
 						ConnectionType connection_type = Network.isServer ? ConnectionType.SERVER : ConnectionType.CLIENT;
-						create_player(connection_type, persistent_scenario_type);
+						create_player(connection_type);
 					}
 				}
 
 				//TODO: Confirm host list hasn't been received!!
 				if(!created_player) {
 					Debug.Log("Request timed out, playing offline!");
-					create_player(ConnectionType.OFFLINE, persistent_scenario_type);
+					create_player(ConnectionType.OFFLINE);
 				}
 			}
 		}
@@ -870,12 +812,13 @@ public class GameManager : MonoBehaviour {
 	}
 
 	IEnumerator show_splash_screen() {
+		end_screen.transform.gameObject.SetActive(false);
+		main_screen.transform.gameObject.SetActive(false);
+		lan_screen.transform.gameObject.SetActive(false);
+
 		if(Settings.LAN_MODE && Settings.LAN_FORCE_CONNECTION) {
 			if(!connected_to_another_player() && persistent_player_type == PlayerType.NONE) {
 				splash_screen.transform.gameObject.SetActive(false);
-				main_screen.transform.gameObject.SetActive(false);
-				end_screen.transform.gameObject.SetActive(false);
-				splash_screen_closed = false;
 
 				if(Settings.LAN_SERVER_MACHINE) {
 					Network.InitializeServer(1, Settings.LAN_SERVER_PORT, false);
@@ -907,99 +850,182 @@ public class GameManager : MonoBehaviour {
 			}
 		}
 
-		if(Settings.USE_SPLASH && !splash_screen_closed) {
-			splash_screen.transform.gameObject.SetActive(true);
-			main_screen.transform.gameObject.SetActive(false);
-			end_screen.transform.gameObject.SetActive(false);
-
-			splash_screen.logo.material.color = new Color(1.0f, 1.0f, 1.0f, 0.0f);
-			splash_screen.name.color = new Color(1.0f, 1.0f, 1.0f, 0.0f);
-
-			yield return new WaitForSeconds(0.5f);
-			yield return StartCoroutine(Util.lerp_material_alpha(splash_screen.logo, 1.0f, 2.0f));
-			yield return new WaitForSeconds(0.5f);
-			yield return StartCoroutine(Util.lerp_text_alpha(splash_screen.name, 1.0f));
-
-			yield return new WaitForSeconds(1.5f);
-
-			StartCoroutine(Util.lerp_material_alpha(splash_screen.logo, 0.0f, 3.5f));
-			StartCoroutine(Util.lerp_text_alpha(splash_screen.name, 0.0f, 3.5f));
-
-			StartCoroutine(Util.lerp_audio_volume(menu_audio_source, 0.0f, 1.0f, 6.0f));
-			yield return new WaitForSeconds(5.0f);
-		}
-		else {
-			splash_screen_closed = true;
-		}
-
 		if(persistent_player_type == PlayerType.NONE) {
-			if(splash_screen_closed) {
+			if(Settings.USE_SPLASH) {
+				splash_screen.transform.gameObject.SetActive(true);
+
+				splash_screen.logo.material.color = new Color(1.0f, 1.0f, 1.0f, 0.0f);
+				splash_screen.name.color = new Color(1.0f, 1.0f, 1.0f, 0.0f);
+
+				yield return new WaitForSeconds(0.5f);
+				yield return StartCoroutine(Util.lerp_material_alpha(splash_screen.logo, 1.0f, 2.0f));
+				yield return new WaitForSeconds(0.5f);
+				yield return StartCoroutine(Util.lerp_text_alpha(splash_screen.name, 1.0f));
+
+				yield return new WaitForSeconds(1.5f);
+
+				StartCoroutine(Util.lerp_material_alpha(splash_screen.logo, 0.0f, 3.5f));
+				StartCoroutine(Util.lerp_text_alpha(splash_screen.name, 0.0f, 3.5f));
+
+				StartCoroutine(Util.lerp_audio_volume(menu_audio_source, 0.0f, 1.0f, 6.0f));
+				yield return new WaitForSeconds(5.0f);
+
+				splash_screen.transform.gameObject.SetActive(false);
+			}
+			else {
+				Assert.is_true(!splash_screen.transform.gameObject.activeSelf);
 				StartCoroutine(Util.lerp_audio_volume(menu_audio_source, menu_audio_source.volume, 1.0f));
 			}
 
-			splash_screen_closed = false;
+			if(!Settings.LAN_MODE) {
+				lan_screen.transform.gameObject.SetActive(true);
 
-			splash_screen.transform.gameObject.SetActive(false);
-			main_screen.transform.gameObject.SetActive(true);
-			end_screen.transform.gameObject.SetActive(false);
+				PlayerType start_player = Settings.LAN_SERVER_MACHINE ? PlayerType.PLAYER1 : PlayerType.PLAYER2;
 
-			main_screen.cursor.gameObject.SetActive(false);
-
-			main_screen.player1_helmet.material.color = Util.black_no_alpha;
-			main_screen.player1_head.material.color = player1_text_color;
-			main_screen.player1_body.material.color = Util.black_no_alpha;
-			main_screen.player1_text.color = Util.black_no_alpha;
-
-			main_screen.player2_head.material.color = player2_text_color;
-			main_screen.player2_body.material.color = Util.black_no_alpha;
-			main_screen.player2_text.color = Util.black_no_alpha;
-
-			PlayerType menu_player = PlayerType.NONE;
-			if(Settings.LAN_MODE) {
-				menu_player = Settings.LAN_SERVER_MACHINE ? PlayerType.PLAYER1 : PlayerType.PLAYER2;
-			}
-
-			if(menu_player == PlayerType.NONE) {
-				if(Settings.USE_TRANSITIONS) {
-					main_screen.player1_head.material.color = Util.new_color(player1_text_color, 0.0f);
-					main_screen.player2_head.material.color = Util.new_color(player2_text_color, 0.0f);
-
-					yield return StartCoroutine(Util.lerp_material_color(main_screen.player1_head, main_screen.player1_head.material.color, player1_text_color));
-					yield return StartCoroutine(Util.lerp_material_color(main_screen.player2_head, main_screen.player2_head.material.color, player2_text_color));
+				Renderer movie = null;
+				if(start_player == PlayerType.PLAYER1) {
+					movie = lan_screen.movies[0];
+					lan_screen.movies[1].gameObject.SetActive(false);
 				}
-			}
-			else if(menu_player == PlayerType.PLAYER1) {
-				main_screen.player2_button.gameObject.SetActive(false);
-				main_screen.player1_button.localPosition = Vector3.zero;
+				else {
+					movie = lan_screen.movies[1];
+					lan_screen.movies[0].gameObject.SetActive(false);
+				}
+				movie.gameObject.SetActive(true);
+				movie.material.color = Util.white_no_alpha;
+
+				MovieTexture movie_texture = (MovieTexture)movie.material.mainTexture;
+				movie_texture.loop = true;
+				movie_texture.Stop();
+				movie_texture.Play();
 
 				if(Settings.USE_TRANSITIONS) {
-					main_screen.player1_head.material.color = Util.new_color(player1_text_color, 0.0f);
-					yield return StartCoroutine(Util.lerp_material_color(main_screen.player1_head, main_screen.player1_head.material.color, player1_text_color));
+					yield return StartCoroutine(Util.lerp_material_alpha(movie, 1.0f));
+				}
+
+				while(true) {
+#if !UNITY_EDITOR
+					if(Settings.LAN_FORCE_CONNECTION && !connected_to_another_player()) {
+						StartCoroutine(show_splash_screen());
+						break;
+					}
+#endif
+
+					//TODO: Do we want to remove certain keys - escape/etc.??
+					if(Input.anyKey) {
+						PlayerPrefs.SetInt(PREF_KEY_PLAY_COUNT, PlayerPrefs.GetInt(PREF_KEY_PLAY_COUNT) + 1);
+						PlayerPrefs.Save();
+						game_log.gameObject.SetActive(false);
+
+						if(Settings.USE_TRANSITIONS) {
+							StartCoroutine(Util.lerp_audio_volume(menu_audio_source, 1.0f, 0.0f, 4.0f));
+
+							yield return new WaitForSeconds(0.5f);
+							yield return StartCoroutine(Util.lerp_material_alpha(movie, 0.0f, 2.5f));
+						}
+						else {
+							menu_audio_source.volume = 0.0f;
+						}
+
+						movie_texture.Stop();
+						movie.gameObject.SetActive(false);
+
+						StartCoroutine(start_game(start_player));
+
+						break;
+					}
+
+					yield return Util.wait_for_frame;
 				}
 			}
 			else {
-				main_screen.player1_button.gameObject.SetActive(false);
-				main_screen.player2_button.localPosition = Vector3.zero;
+				main_screen.transform.gameObject.SetActive(true);
+
+				main_screen.cursor.gameObject.SetActive(false);
+
+				main_screen.player1.transform.gameObject.SetActive(true);
+				main_screen.player1.helmet.material.color = Util.black_no_alpha;
+				main_screen.player1.head.material.color = player1_text_color;
+				main_screen.player1.body.material.color = Util.black_no_alpha;
+				main_screen.player1.text.color = Util.black_no_alpha;
+
+				main_screen.player2.transform.gameObject.SetActive(true);
+				main_screen.player2.head.material.color = player2_text_color;
+				main_screen.player2.body.material.color = Util.black_no_alpha;
+				main_screen.player2.text.color = Util.black_no_alpha;
 
 				if(Settings.USE_TRANSITIONS) {
-					main_screen.player2_head.material.color = Util.new_color(player2_text_color, 0.0f);
-					yield return StartCoroutine(Util.lerp_material_color(main_screen.player2_head, main_screen.player2_head.material.color, player2_text_color));
+					main_screen.player1.head.material.color = Util.new_color(player1_text_color, 0.0f);
+					main_screen.player2.head.material.color = Util.new_color(player2_text_color, 0.0f);
+
+					yield return StartCoroutine(Util.lerp_material_color(main_screen.player1.head, main_screen.player1.head.material.color, player1_text_color));
+					yield return StartCoroutine(Util.lerp_material_color(main_screen.player2.head, main_screen.player2.head.material.color, player2_text_color));
+				}
+
+				Cursor.lockState = CursorLockMode.Locked;
+				main_screen.cursor.gameObject.SetActive(true);
+				StartCoroutine(Util.lerp_material_color(main_screen.cursor.GetComponent<Renderer>(), Util.white_no_alpha, Util.white));
+				Cursor.lockState = CursorLockMode.None;
+
+				while(true) {
+					Ray cursor_ray = move_cursor_(main_screen.cursor);
+					bool clicked = Input.GetKey(KeyCode.Mouse0);
+
+					menu_sfx_source.volume = 0.0f;
+
+					if(Util.raycast_collider(main_screen.player1.collider, cursor_ray)) {
+						main_screen.player1.text.color = Color.white;
+						main_screen.player1.helmet.material.color = player1_text_color;
+						main_screen.player1.body.material.color = player1_text_color;
+
+						if(clicked) {
+							StartCoroutine(start_game_from_main_screen(PlayerType.PLAYER1));
+							break;
+						}
+					}
+					else {
+						main_screen.player1.text.color = Util.black_no_alpha;
+						main_screen.player1.helmet.material.color = Util.black_no_alpha;
+						main_screen.player1.body.material.color = Util.black_no_alpha;
+					}
+
+					if(Util.raycast_collider(main_screen.player2.collider, cursor_ray)) {
+						player2_texture_flip_time += Time.deltaTime * player2_texture_flip_rate;
+						if(player2_texture_flip_time > 1.0f) {
+							player2_texture_id++;
+							if(player2_texture_id == player2_body_textures.Length) {
+								Util.shuffle_array<Texture2D>(player2_body_textures);
+								player2_texture_id = 0;
+							}
+
+							player2_texture_flip_time = 0.0f;
+							main_screen.player2.body.material.mainTexture = player2_body_textures[player2_texture_id];
+						}
+
+						main_screen.player2.text.color = Color.white;
+						main_screen.player2.body.material.color = player2_text_color;
+
+						menu_sfx_source.volume = 0.5f;
+
+						if(clicked) {
+							main_screen.player2.body.material.mainTexture = Random.value > 0.5f ? player2_boy_texture : player2_girl_texture;
+							StartCoroutine(start_game_from_main_screen(PlayerType.PLAYER2));
+							break;
+						}
+					}
+					else {
+						main_screen.player2.text.color = Util.black_no_alpha;
+						main_screen.player2.body.material.color = Util.black_no_alpha;
+					}
+
+					yield return Util.wait_for_frame;
 				}
 			}
-
-			splash_screen_closed = true;
-
-			Cursor.lockState = CursorLockMode.Locked;
-			main_screen.cursor.gameObject.SetActive(true);
-			yield return StartCoroutine(Util.lerp_material_color(main_screen.cursor.GetComponent<Renderer>(), Util.white_no_alpha, Util.white));
-			Cursor.lockState = CursorLockMode.None;
 		}
 		else {
-			splash_screen.transform.gameObject.SetActive(false);
-			main_screen.transform.gameObject.SetActive(false);
-			end_screen.transform.gameObject.SetActive(false);
+			Assert.is_true(!main_screen.transform.gameObject.activeSelf);
+			Assert.is_true(!lan_screen.transform.gameObject.activeSelf);
 
-			splash_screen_closed = true;
 			StartCoroutine(start_game(persistent_player_type));
 		}
 
@@ -1048,18 +1074,14 @@ public class GameManager : MonoBehaviour {
 		main_screen = new MainScreen();
 		main_screen.transform = transform.Find("Camera/Main");
 		main_screen.cursor = main_screen.transform.Find("Cursor");
-		main_screen.killbox = main_screen.transform.Find("Killbox");
+		main_screen.player1 = PlayerButton.new_inst(main_screen.transform, "Player1Button");
+		main_screen.player2 = PlayerButton.new_inst(main_screen.transform, "Player2Button");
 
-		main_screen.player1_button = main_screen.transform.Find("Player1Button");
-		main_screen.player1_head = main_screen.player1_button.Find("Head").GetComponent<Renderer>();
-		main_screen.player1_helmet = main_screen.player1_button.Find("Helmet").GetComponent<Renderer>();
-		main_screen.player1_body = main_screen.player1_button.Find("Body").GetComponent<Renderer>();
-		main_screen.player1_text = main_screen.player1_button.Find("Text").GetComponent<TextMesh>();
-
-		main_screen.player2_button = main_screen.transform.Find("Player2Button");
-		main_screen.player2_head = main_screen.player2_button.Find("Head").GetComponent<Renderer>();
-		main_screen.player2_body = main_screen.player2_button.Find("Body").GetComponent<Renderer>();
-		main_screen.player2_text = main_screen.player2_button.Find("Text").GetComponent<TextMesh>();
+		lan_screen = new LanScreen();
+		lan_screen.transform = transform.Find("Camera/LAN");
+		lan_screen.movies = new Renderer[2];
+		lan_screen.movies[0] = lan_screen.transform.Find("Player1Movie").GetComponent<Renderer>();
+		lan_screen.movies[1] = lan_screen.transform.Find("Player2Movie").GetComponent<Renderer>();
 
 		end_screen = new EndScreen();
 		end_screen.transform = transform.Find("Camera/End");
@@ -1112,10 +1134,10 @@ public class GameManager : MonoBehaviour {
 
 		network_log = transform.Find("Camera/NetworkLog").GetComponent<TextMesh>();
 
-		player1_prefab = ((GameObject)Resources.Load("Player1Prefab")).transform;
-		player2_prefab = ((GameObject)Resources.Load("Player2Prefab")).transform;
-		missile_prefab = ((GameObject)Resources.Load("MissilePrefab")).transform;
-		explosion_prefab = ((GameObject)Resources.Load("ExplosionPrefab")).transform;
+		player1_prefab = Util.load_prefab("Player1Prefab");
+		player2_prefab = Util.load_prefab("Player2Prefab");
+		missile_prefab = Util.load_prefab("MissilePrefab");
+		explosion_prefab = Util.load_prefab("ExplosionPrefab");
 
 		player_type = PlayerType.NONE;
 
@@ -1124,8 +1146,6 @@ public class GameManager : MonoBehaviour {
 
 		audio = Audio.new_inst();
 		env = Environment.new_inst(this, GameObject.Find("Environment").transform);
-
-		scenarios = env.transform.Find("TargetPoints");
 
 		menu_sfx_source = Util.new_audio_source(transform, "MenuSfxSource");
 		menu_sfx_source.clip = (AudioClip)Resources.Load("menu_hover");
@@ -1161,81 +1181,9 @@ public class GameManager : MonoBehaviour {
 				Destroy(network_player2_inst.gameObject);
 				network_player2_inst = null;
 			}
-
-			network_scenario_type = ScenarioType.NONE;
 		}
 
 		Environment.update(this, env);
-
-		float menu_sfx_volume = 0.0f;
-
-		//TODO: Move this into show_splash_screen??
-		if(splash_screen_closed && player_type == PlayerType.NONE) {
-			float menu_sfx_max_volume = 0.5f;
-
-			if(Settings.LAN_MODE && Settings.LAN_FORCE_CONNECTION) {
-				if(!connected_to_another_player()) {
-					StartCoroutine(show_splash_screen());
-				}
-			}
-
-			Ray cursor_ray = move_cursor_(main_screen.cursor);
-			bool clicked = Input.GetKeyDown(KeyCode.Mouse0);
-
-			if(main_screen.player1_button.gameObject.activeSelf) {
-				bool ray_hit = Util.raycast_collider(main_screen.player1_button.GetComponent<Collider>(), cursor_ray);
-				if(ray_hit) {
-					main_screen.player1_text.color = Color.white;
-					main_screen.player1_helmet.material.color = player1_text_color;
-					main_screen.player1_body.material.color = player1_text_color;
-
-					// menu_sfx_volume = menu_sfx_max_volume;
-
-					if(clicked) {
-						StartCoroutine(start_game_from_main_screen(PlayerType.PLAYER1));
-					}
-				}
-				else {
-					main_screen.player1_text.color = Util.black_no_alpha;
-					main_screen.player1_helmet.material.color = Util.black_no_alpha;
-					main_screen.player1_body.material.color = Util.black_no_alpha;
-				}
-			}
-
-			if(main_screen.player2_button.gameObject.activeSelf) {
-				bool ray_hit = Util.raycast_collider(main_screen.player2_button.GetComponent<Collider>(), cursor_ray);
-				if(ray_hit) {
-					player2_texture_flip_time += Time.deltaTime * player2_texture_flip_rate;
-					if(player2_texture_flip_time > 1.0f) {
-						player2_texture_id++;
-						if(player2_texture_id == player2_body_textures.Length) {
-							Util.shuffle_array<Texture2D>(player2_body_textures);
-							player2_texture_id = 0;
-						}
-
-						player2_texture_flip_time = 0.0f;
-						main_screen.player2_body.material.mainTexture = player2_body_textures[player2_texture_id];
-					}
-
-					main_screen.player2_text.color = Color.white;
-					main_screen.player2_body.material.color = player2_text_color;
-
-					menu_sfx_volume = menu_sfx_max_volume;
-
-					if(clicked) {
-						main_screen.player2_body.material.mainTexture = Random.value > 0.5f ? player2_boy_texture : player2_girl_texture;
-						StartCoroutine(start_game_from_main_screen(PlayerType.PLAYER2));
-					}
-				}
-				else {
-					main_screen.player2_text.color = Util.black_no_alpha;
-					main_screen.player2_body.material.color = Util.black_no_alpha;
-				}
-			}
-
-		}
-
-		menu_sfx_source.volume = menu_sfx_volume;
 
 		//TODO: Test this!!
 		if(created_player) {
@@ -1263,7 +1211,6 @@ public class GameManager : MonoBehaviour {
 			game_over(true);
 		}
 		else {
-			// if(Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.JoystickButton9)) {
 			if(Input.GetKeyDown(KeyCode.Escape)) {
 				if(player_type != PlayerType.NONE && created_player && !showing_stats) {
 					set_pause(this, !pause_screen.active);
@@ -1362,16 +1309,5 @@ public class GameManager : MonoBehaviour {
 		}
 
 		// Debug.Log(pause_screen.time_since_last_response.ToString());
-	}
-
-	void OnRenderObject() {
-		// if(Settings.USE_KILLBOX_ANIMATION) {
-		// 	if(splash_screen_closed && player_type == PlayerType.NONE) {
-		// 		main_screen.killbox.rotation = Quaternion.Inverse(Quaternion.Euler(35.26439f, -45.0f, 0.0f));
-		// 		Killbox.gl_render_(main_screen.killbox, env.killbox.line_material, Time.time * 0.5f);
-		// 	}
-		// }
-
-		Killbox.gl_render(env.killbox);
 	}
 }

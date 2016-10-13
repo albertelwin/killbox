@@ -2,15 +2,6 @@
 using UnityEngine;
 using System.Collections;
 
-public enum ScenarioType {
-	FARM,
-	MARKET,
-	CAR,
-
-	COUNT,
-	NONE,
-}
-
 public class Environment {
 	public class FractureCell {
 		public Transform transform;
@@ -47,7 +38,7 @@ public class Environment {
 		public Fracture fracture;
 	}
 
-	public struct Animal {
+	public class Animal {
 		public Transform transform;
 		public Animation anim;
 		public Vector3 initial_pos;
@@ -60,13 +51,15 @@ public class Environment {
 		public Renderer shock_wave;
 	}
 
-	public struct Crater {
+	public class Crater {
 		public Transform transform;
 		public Transform before;
 		public Transform after;
 	}
 
 	public Transform transform;
+
+	public TargetPointController target_point;
 
 	public Building[] buildings;
 	public Animal[] animals;
@@ -78,9 +71,12 @@ public class Environment {
 	public static float EXPLOSION_RADIUS = 10.0f;
 	public Explosion explosion;
 
-	public Crater crater;
+	public Transform explosion_prefab;
+	public Transform explosion_;
+	public Transform smoke_prefab;
+	public Transform smoke_;
 
-	public KillboxController killbox;
+	public Crater crater;
 
 	public Renderer controls_hint;
 	public bool controls_hidden;
@@ -90,6 +86,8 @@ public class Environment {
 	public static Environment new_inst(GameManager game_manager, Transform transform) {
 		Environment env = new Environment();
 		env.transform = transform;
+
+		env.target_point = transform.Find("TargetPoint").GetComponent<TargetPointController>();
 
 		Transform buildings_parent = transform.Find("Buildings");
 		env.buildings = new Building[buildings_parent.childCount];
@@ -152,7 +150,10 @@ public class Environment {
 		env.explosion.shock_wave.transform.parent = env.explosion.transform;
 		env.explosion.shock_wave.name = "ShockWave";
 
-		//TODO: Handle multiple of these!!
+		env.explosion_prefab = Util.load_prefab("ExplosionPrefab_");
+		env.smoke_prefab = Util.load_prefab("SmokePrefab");
+
+		env.crater = new Crater();
 		env.crater.transform = transform.Find("Crater");
 		if(env.crater.transform != null) {
 			env.crater.before = env.crater.transform.Find("Before");
@@ -161,8 +162,6 @@ public class Environment {
 			env.crater.after = env.crater.transform.Find("After");
 			env.crater.after.gameObject.SetActive(false);
 		}
-
-		env.killbox = transform.Find("Killbox").GetComponent<KillboxController>();
 
 		env.controls_hint = transform.Find("Controls").GetComponent<Renderer>();
 		env.controls_hidden = false;
@@ -209,12 +208,20 @@ public class Environment {
 		env.explosion.shock_wave.enabled = false;
 		env.explosion.shock_wave.material.color = Util.black;
 
+		if(env.explosion_) {
+			Object.Destroy(env.explosion_.gameObject);
+			env.explosion_ = null;
+		}
+
+		if(env.smoke_) {
+			Object.Destroy(env.smoke_.gameObject);
+			env.smoke_ = null;
+		}
+
 		if(env.crater.transform != null) {
 			env.crater.before.gameObject.SetActive(true);
 			env.crater.after.gameObject.SetActive(false);
 		}
-
-		Killbox.hide(env.killbox);
 
 		env.controls_hint.gameObject.SetActive(true);
 		env.controls_hint.material.color = Util.white;
@@ -222,8 +229,6 @@ public class Environment {
 	}
 
 	public static void update(GameManager game_manager, Environment env) {
-		Killbox.update(env.killbox);
-
 		for(int i = 0; i < env.npcs.Length; i++) {
 			NpcController.update(game_manager, env.npcs[i]);
 		}
@@ -348,11 +353,16 @@ public class Environment {
 	public static void play_explosion_(MonoBehaviour player, Environment env, Vector3 hit_pos) {
 		env.explosion.transform.position = hit_pos;
 
-		// player.StartCoroutine(play_explosion_smoke(player, env.explosion.smoke));
-		// player.StartCoroutine(play_explosion_shock_wave(env.explosion.shock_wave));
-
-		Transform explosion_prefab = ((GameObject)Resources.Load("ExplosionPrefab_")).transform;
-		Transform explosion = (Transform)Object.Instantiate(explosion_prefab, hit_pos, Quaternion.identity);
+		// if(env.explosion_ != null) {
+			env.explosion_ = (Transform)Object.Instantiate(env.explosion_prefab, hit_pos, Quaternion.identity);
+			if(env.smoke_prefab && env.smoke_ == null) {
+				env.smoke_ = (Transform)Object.Instantiate(env.smoke_prefab, hit_pos, Quaternion.identity);
+			}
+		// }
+		// else {
+		// 	player.StartCoroutine(play_explosion_smoke(player, env.explosion.smoke));
+		// 	player.StartCoroutine(play_explosion_shock_wave(env.explosion.shock_wave));
+		// }
 	}
 
 	public static void play_explosion(GameManager game_manager, MonoBehaviour player, Environment env, Vector3 hit_pos) {
@@ -396,7 +406,7 @@ public class Environment {
 		}
 
 		for(int i = 0; i < env.npcs.Length; i++) {
-			NpcController.on_explosion(game_manager, env.npcs[i], hit_pos, force);
+			NpcController.on_explosion(env.npcs[i], env.target_point, hit_pos, force);
 		}
 
 		game_manager.first_missile_hit = true;

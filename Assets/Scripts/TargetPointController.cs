@@ -7,8 +7,6 @@ using System.Collections;
 public class TargetPointController : MonoBehaviour {
 	public Transform high_value_target;
 
-	[System.NonSerialized] public ScenarioType type;
-
 	[System.NonSerialized] public Transform safe_points;
 	[System.NonSerialized] public Transform spawn_points;
 

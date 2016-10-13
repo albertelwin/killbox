@@ -82,7 +82,7 @@ public class Player2Controller : MonoBehaviour {
 			first_missile_fired = true;
 			first_missile_fired_time = game_manager.total_playing_time;
 
-			StartCoroutine(fire_first_missile(game_manager.scenario.pos, time));
+			StartCoroutine(fire_first_missile(game_manager.env.target_point.pos, time));
 		}
 		else {
 			second_missile_fired = true;
@@ -108,10 +108,6 @@ public class Player2Controller : MonoBehaviour {
 	}
 
 	IEnumerator fire_first_missile(Vector3 hit_pos, float hit_time) {
-		if(Settings.USE_KILLBOX_ANIMATION) {
-			StartCoroutine(Killbox.show(game_manager.env.killbox, hit_pos, hit_time));
-		}
-
 		yield return StartCoroutine(wait_for_hit(hit_time));
 
 		bool in_blast_radius = (Vector3.Distance(hit_pos, mesh.position) < (Environment.EXPLOSION_RADIUS + mesh_radius));
@@ -211,8 +207,7 @@ public class Player2Controller : MonoBehaviour {
 		yield return Util.wait_for_2s;
 
 		camera_type = CameraType.ENDING;
-		camera_ref.position = game_manager.scenario.pos + Vector3.up * mesh_radius;
-		Killbox.hide(game_manager.env.killbox);
+		camera_ref.position = game_manager.env.target_point.pos + Vector3.up * mesh_radius;
 
 		yield return StartCoroutine(FadeImageEffect.lerp_alpha(camera_fade, 0.0f, 5.0f));
 
@@ -393,7 +388,7 @@ public class Player2Controller : MonoBehaviour {
 #if UNITY_EDITOR
 		if(game_manager.get_key_down(KeyCode.Alpha4)) {
 			camera_type = CameraType.ENDING;
-			camera_ref.position = game_manager.scenario.pos + Vector3.up * mesh_radius;
+			camera_ref.position = game_manager.env.target_point.pos + Vector3.up * mesh_radius;
 			user_has_control = false;
 		}
 
@@ -433,12 +428,12 @@ public class Player2Controller : MonoBehaviour {
 						game_manager.network_disconnect();
 					}
 
-					missile_fired(Vector3.up * GameManager.drone_height + game_manager.scenario.pos, -Vector3.up, hit_time);
+					missile_fired(Vector3.up * GameManager.drone_height + game_manager.env.target_point.pos, -Vector3.up, hit_time);
 				}
 			}
 			else if(!second_missile_fired) {
 				if(game_manager.total_playing_time > (first_missile_fired_time + 30.0f)) {
-					missile_fired(Vector3.up * GameManager.drone_height + game_manager.scenario.pos, -Vector3.up, hit_time);
+					missile_fired(Vector3.up * GameManager.drone_height + game_manager.env.target_point.pos, -Vector3.up, hit_time);
 				}
 			}
 		}
@@ -564,7 +559,7 @@ public class Player2Controller : MonoBehaviour {
 				float rising_speed = 4.0f;
 				camera_ref.position += Vector3.up * rising_speed * Time.deltaTime;
 
-				camera_.transform.forward = game_manager.scenario.pos - camera_.transform.position;
+				camera_.transform.forward = game_manager.env.target_point.pos - camera_.transform.position;
 
 				break;
 			}

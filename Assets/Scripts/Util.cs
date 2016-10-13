@@ -175,6 +175,16 @@ public static class Util {
 		return audio_source;
 	}
 
+	public static Transform load_prefab(string name) {
+		Transform transform = null;
+		GameObject go = (GameObject)Resources.Load(name);
+		if(go) {
+			transform = go.transform;
+		}
+
+		return transform;
+	}
+
 	public static float rand_11() {
 		return Random.value * 2.0f - 1.0f;
 	}

@@ -39,6 +39,7 @@ public static class Util {
 	public static YieldInstruction wait_for_500ms = new WaitForSeconds(0.5f);
 	public static YieldInstruction wait_for_1s = new WaitForSeconds(1.0f);
 	public static YieldInstruction wait_for_2s = new WaitForSeconds(2.0f);
+	public static YieldInstruction wait_for_3s = new WaitForSeconds(3.0f);
 	public static YieldInstruction wait_for_4s = new WaitForSeconds(4.0f);
 
 	public static KeyValue[] numeric_key_chars = new KeyValue[] {

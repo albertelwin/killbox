@@ -43,6 +43,7 @@ public class MotionPathSelection {
 }
 
 public static class MotionPathUtil {
+#if UNITY_EDITOR
 	public static MotionPathSelection get_selection() {
 		MotionPathSelection selection = null;
 
@@ -66,6 +67,7 @@ public static class MotionPathUtil {
 
 		return selection;
 	}
+#endif
 
 	public static MotionPathNode add_node(MotionPathController path, Vector3 pos) {
 		Transform transform = Util.new_transform(path.transform, "Node");

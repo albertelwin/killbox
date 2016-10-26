@@ -118,17 +118,21 @@ public class Player2Controller : MonoBehaviour {
 		has_jumped = true;
 		can_jump = false;
 
-		if(!in_blast_radius) {
+		if(!in_blast_radius && Settings.USE_DEATH_VIEW) {
 			Environment.play_explosion(game_manager, this, game_manager.env, hit_pos);
 			audio_sources[0].volume = 0.0f;
-
-			AudioSource exp_source = game_manager.env.explosion.audio_source;
-			exp_source.clip = Audio.get_random_clip(game_manager.audio, Audio.Clip.EXPLOSION_BIRDS);
-			exp_source.Play();
 
 			for(int i = 0; i < game_manager.env.collectables.Length; i++) {
 				Collectable.mark_as_used(game_manager.env.collectables[i], true);
 			}
+
+			Environment.play_screams(game_manager.env);
+		}
+
+		if(!in_blast_radius) {
+			AudioSource exp_source = game_manager.env.explosion.audio_source;
+			exp_source.clip = Audio.get_random_clip(game_manager.audio, Audio.Clip.EXPLOSION_BIRDS);
+			exp_source.Play();
 
 			camera_fade.alpha = 1.0f;
 			camera_blur_effect.enabled = true;
@@ -164,13 +168,6 @@ public class Player2Controller : MonoBehaviour {
 		}
 		else {
 			if(Settings.USE_DEATH_VIEW) {
-				Environment.play_explosion(game_manager, this, game_manager.env, hit_pos);
-				audio_sources[0].volume = 0.0f;
-
-				for(int i = 0; i < game_manager.env.collectables.Length; i++) {
-					Collectable.mark_as_used(game_manager.env.collectables[i], true);
-				}
-
 				camera_type = CameraType.DEATH;
 
 				camera_blur_effect.enabled = true;
@@ -200,6 +197,8 @@ public class Player2Controller : MonoBehaviour {
 				yield return StartCoroutine(wait_for_hit(hit_time));
 			}
 		}
+
+		Environment.stop_screams(game_manager.env);
 
 		user_has_control = false;
 		camera_fade.alpha = 1.0f;
@@ -411,7 +410,7 @@ public class Player2Controller : MonoBehaviour {
 		}
 
 		if(!game_manager.connected_to_another_player() || game_manager.network_player1_inst == null) {
-			float time_until_auto_fire = 90.0f;
+			float time_until_auto_fire = 180.0f;
 			float hit_time = Settings.USE_TRANSITIONS ? 10.0f : 1.0f;
 
 			if(!first_missile_fired) {

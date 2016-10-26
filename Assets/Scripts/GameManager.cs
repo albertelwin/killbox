@@ -4,8 +4,8 @@
 DOING:
 
 TODO:
-	Capsule colliders for adult npcs
-	React motion path
+	1 deaths confirmed
+	Clear smoke quicker
 	Optimise pilot view (clear -> render camera feeds -> render ui)
 	Camera clipping
 	Fix intrusive firewall pop-up
@@ -14,6 +14,9 @@ TODO:
 	Load scene async
 
 DONE:
+	Bucket physics
+	Capsule colliders for adult npcs
+	Npc blood
 	Interrupt stop event on player react with npc
 	Remove Mesh from NPC
 	Remove walk speed etc. from MotionPathAgent
@@ -89,7 +92,8 @@ public class GameManager : MonoBehaviour {
 	public class LanScreen {
 		public Transform transform;
 
-		public Renderer[] movies;
+		public Renderer killbox_movie;
+		public Renderer[] player_movies;
 	}
 
 	public class EndScreen {
@@ -877,65 +881,95 @@ public class GameManager : MonoBehaviour {
 				StartCoroutine(Util.lerp_audio_volume(menu_audio_source, menu_audio_source.volume, 1.0f));
 			}
 
-			if(!Settings.LAN_MODE) {
+			if(Settings.LAN_MODE) {
 				lan_screen.transform.gameObject.SetActive(true);
 
 				PlayerType start_player = Settings.LAN_SERVER_MACHINE ? PlayerType.PLAYER1 : PlayerType.PLAYER2;
 
-				Renderer movie = null;
-				if(start_player == PlayerType.PLAYER1) {
-					movie = lan_screen.movies[0];
-					lan_screen.movies[1].gameObject.SetActive(false);
-				}
-				else {
-					movie = lan_screen.movies[1];
-					lan_screen.movies[0].gameObject.SetActive(false);
-				}
-				movie.gameObject.SetActive(true);
-				movie.material.color = Util.white_no_alpha;
+				lan_screen.player_movies[0].gameObject.SetActive(false);
+				lan_screen.player_movies[1].gameObject.SetActive(false);
 
-				MovieTexture movie_texture = (MovieTexture)movie.material.mainTexture;
-				movie_texture.loop = true;
-				movie_texture.Stop();
-				movie_texture.Play();
+				Renderer killbox_movie = lan_screen.killbox_movie;
+				killbox_movie.gameObject.SetActive(true);
+				killbox_movie.material.color = Util.white_no_alpha;
 
-				if(Settings.USE_TRANSITIONS) {
-					yield return StartCoroutine(Util.lerp_material_alpha(movie, 1.0f));
+				yield return Util.wait_for_3s;
+
+				MovieTexture killbox_texture = (MovieTexture)killbox_movie.material.mainTexture;
+				killbox_texture.loop = true;
+				killbox_texture.Stop();
+				killbox_texture.Play();
+
+				StartCoroutine(Util.lerp_material_alpha(killbox_movie, 1.0f));
+
+				while(Input.anyKey) {
+					yield return Util.wait_for_frame;
 				}
+
+				bool reconnect = false;
 
 				while(true) {
 #if !UNITY_EDITOR
 					if(Settings.LAN_FORCE_CONNECTION && !connected_to_another_player()) {
-						StartCoroutine(show_splash_screen());
+						reconnect = true;
 						break;
 					}
 #endif
 
 					//TODO: Do we want to remove certain keys - escape/etc.??
 					if(Input.anyKey) {
-						PlayerPrefs.SetInt(PREF_KEY_PLAY_COUNT, PlayerPrefs.GetInt(PREF_KEY_PLAY_COUNT) + 1);
-						PlayerPrefs.Save();
-						game_log.gameObject.SetActive(false);
-
-						if(Settings.USE_TRANSITIONS) {
-							StartCoroutine(Util.lerp_audio_volume(menu_audio_source, 1.0f, 0.0f, 4.0f));
-
-							yield return new WaitForSeconds(0.5f);
-							yield return StartCoroutine(Util.lerp_material_alpha(movie, 0.0f, 2.5f));
+#if UNITY_EDITOR
+						if(Input.GetKey(KeyCode.Alpha1)) {
+							start_player = PlayerType.PLAYER1;
 						}
-						else {
-							menu_audio_source.volume = 0.0f;
+						else if(Input.GetKey(KeyCode.Alpha2)){
+							start_player = PlayerType.PLAYER2;
 						}
-
-						movie_texture.Stop();
-						movie.gameObject.SetActive(false);
-
-						StartCoroutine(start_game(start_player));
-
+#endif
 						break;
 					}
 
 					yield return Util.wait_for_frame;
+				}
+
+				if(reconnect) {
+					StartCoroutine(show_splash_screen());
+				}
+				else {
+					PlayerPrefs.SetInt(PREF_KEY_PLAY_COUNT, PlayerPrefs.GetInt(PREF_KEY_PLAY_COUNT) + 1);
+					PlayerPrefs.Save();
+					game_log.gameObject.SetActive(false);
+
+					killbox_texture.Stop();
+					killbox_movie.gameObject.SetActive(false);
+
+					Renderer player_movie = null;
+					if(start_player == PlayerType.PLAYER1) {
+						player_movie = lan_screen.player_movies[0];
+						lan_screen.player_movies[1].gameObject.SetActive(false);
+					}
+					else {
+						player_movie = lan_screen.player_movies[1];
+						lan_screen.player_movies[0].gameObject.SetActive(false);
+					}
+					player_movie.gameObject.SetActive(true);
+					player_movie.material.color = Util.white;
+
+					MovieTexture player_texture = (MovieTexture)player_movie.material.mainTexture;
+					player_texture.loop = false;
+					player_texture.Stop();
+					player_texture.Play();
+
+					menu_sfx_source.volume = 1.0f;
+
+					while(player_texture.isPlaying) {
+						yield return Util.wait_for_frame;
+					}
+
+					menu_sfx_source.volume = 0.0f;
+					menu_audio_source.volume = 0.0f;
+
+					StartCoroutine(start_game(start_player));
 				}
 			}
 			else {
@@ -1005,10 +1039,11 @@ public class GameManager : MonoBehaviour {
 						main_screen.player2.text.color = Color.white;
 						main_screen.player2.body.material.color = player2_text_color;
 
-						menu_sfx_source.volume = 0.5f;
+						menu_sfx_source.volume = 1.0f;
 
 						if(clicked) {
 							main_screen.player2.body.material.mainTexture = Random.value > 0.5f ? player2_boy_texture : player2_girl_texture;
+							menu_sfx_source.volume = 0.0f;
 							StartCoroutine(start_game_from_main_screen(PlayerType.PLAYER2));
 							break;
 						}
@@ -1079,9 +1114,10 @@ public class GameManager : MonoBehaviour {
 
 		lan_screen = new LanScreen();
 		lan_screen.transform = transform.Find("Camera/LAN");
-		lan_screen.movies = new Renderer[2];
-		lan_screen.movies[0] = lan_screen.transform.Find("Player1Movie").GetComponent<Renderer>();
-		lan_screen.movies[1] = lan_screen.transform.Find("Player2Movie").GetComponent<Renderer>();
+		lan_screen.killbox_movie = lan_screen.transform.Find("KillboxMovie").GetComponent<Renderer>();
+		lan_screen.player_movies = new Renderer[2];
+		lan_screen.player_movies[0] = lan_screen.transform.Find("Player1Movie").GetComponent<Renderer>();
+		lan_screen.player_movies[1] = lan_screen.transform.Find("Player2Movie").GetComponent<Renderer>();
 
 		end_screen = new EndScreen();
 		end_screen.transform = transform.Find("Camera/End");

@@ -38,6 +38,15 @@ public class Environment {
 		public Fracture fracture;
 	}
 
+	public class Prop {
+		public Transform transform;
+		public Renderer renderer;
+		public Collider collider;
+		public Rigidbody rigidbody;
+		public Fracture fracture;
+		public Vector3 initial_pos;
+	}
+
 	public class Animal {
 		public Transform transform;
 		public Animation anim;
@@ -62,9 +71,12 @@ public class Environment {
 	public TargetPointController target_point;
 
 	public Building[] buildings;
+	public Prop[] props;
 	public Animal[] animals;
 	public Collectable[] collectables;
 	public NpcController[] npcs;
+
+	public AudioSource[] npc_scream_sources;
 
 	public Foliage foliage;
 
@@ -109,6 +121,25 @@ public class Environment {
 			env.buildings[i] = building;
 		}
 
+		Transform props_parent = transform.Find("Props");
+		env.props = new Prop[props_parent.childCount];
+		for(int i = 0; i < props_parent.childCount; i++) {
+			Prop prop = new Prop();
+			prop.transform = props_parent.GetChild(i);
+			prop.renderer = prop.transform.GetComponent<Renderer>();
+			prop.collider = prop.transform.GetComponent<Collider>();
+			prop.rigidbody = prop.transform.GetComponent<Rigidbody>();
+
+			Transform fractured_mesh = prop.transform.Find("FracturedMesh");
+			if(fractured_mesh != null) {
+				prop.fracture = Fracture.new_inst(fractured_mesh);
+			}
+
+			prop.initial_pos = prop.transform.position;
+
+			env.props[i] = prop;
+		}
+
 		Transform animals_parent = transform.Find("Animals");
 		env.animals = new Animal[animals_parent.childCount];
 		for(int i = 0; i < env.animals.Length; i++) {
@@ -132,9 +163,32 @@ public class Environment {
 
 		Transform npcs_parent = transform.Find("Npcs");
 		env.npcs = new NpcController[npcs_parent.childCount];
+		int npc_scream_count = 0;
 		for(int i = 0; i < npcs_parent.childCount; i++) {
 			env.npcs[i] = npcs_parent.GetChild(i).GetComponent<NpcController>();
+			if(env.npcs[i].screams) {
+				npc_scream_count++;
+			}
 		}
+
+		int npc_scream_index = 0;
+		env.npc_scream_sources = new AudioSource[npc_scream_count];
+		for(int npc_index = 0; npc_index < env.npcs.Length; npc_index++) {
+			NpcController npc = env.npcs[npc_index];
+			if(npc.screams) {
+				Assert.is_true(npc_scream_index < npc_scream_count);
+
+				AudioSource audio_source = Util.new_audio_source(npc.transform, "ScreamAudioSource");
+				audio_source.transform.localPosition = Vector3.zero;
+				audio_source.loop = true;
+				audio_source.spatialBlend = 1.0f;
+				audio_source.maxDistance = 150.0f;
+				audio_source.clip = Audio.get_clip(game_manager.audio, Audio.Clip.SCREAM, npc_scream_index);
+				env.npc_scream_sources[npc_scream_index] = audio_source;
+				npc_scream_index++;
+			}
+		}
+		Assert.is_true(npc_scream_index == npc_scream_count);
 
 		env.foliage = Foliage.new_inst(game_manager, transform.Find("Foliage"));
 
@@ -184,6 +238,19 @@ public class Environment {
 			}
 		}
 
+		for(int i = 0; i < env.props.Length; i++) {
+			Prop prop = env.props[i];
+			prop.renderer.enabled = true;
+			prop.rigidbody.detectCollisions = true;
+			prop.collider.enabled = true;
+			prop.transform.position = prop.initial_pos;
+			prop.transform.rotation = Quaternion.identity;
+
+			if(prop.fracture != null) {
+				remove_fracture(prop.fracture);
+			}
+		}
+
 		for(int i = 0; i < env.animals.Length; i++) {
 			Animal animal = env.animals[i];
 			animal.transform.position = animal.initial_pos;
@@ -196,6 +263,7 @@ public class Environment {
 		for(int i = 0; i < env.npcs.Length; i++) {
 			env.npcs[i].Start();
 		}
+		stop_screams(env, true);
 
 		for(int i = 0; i < env.collectables.Length; i++) {
 			Collectable.reset(env.collectables[i]);
@@ -228,14 +296,83 @@ public class Environment {
 		env.controls_hidden = false;
 	}
 
+	public static void update_collectables(GameManager game_manager, Environment env) {
+		Player2Controller player2 = game_manager.player2_inst;
+		if(player2 != null) {
+			Vector3 player_pos = player2.transform.position + Vector3.up * player2.mesh_radius;
+			//NOTE: Scratch memory, is this really needed??
+			Vector3 pos = Vector3.zero;
+
+			float time = Time.time;
+			float dt = Time.deltaTime;
+
+			float radius = 0.25f;
+			float radius2 = radius * 2.0f;
+			float collision_dist = radius + player2.mesh_radius;
+			float collision_dist_sqr = collision_dist * collision_dist;
+
+			float cull_radius = 75.0f;
+			float cull_radius_sqr = cull_radius * cull_radius;
+
+			for(int i = 0; i < env.collectables.Length; i++) {
+				Collectable collectable = env.collectables[i];
+				if(!collectable.used && collectable.renderer.isVisible) {
+					Transform transform = collectable.transform;
+
+					Vector3 dir_to_player = player_pos - transform.position;
+					float player_dist_sqr = dir_to_player.x * dir_to_player.x + dir_to_player.y * dir_to_player.y + dir_to_player.z * dir_to_player.z;
+
+					if(player_dist_sqr < cull_radius_sqr) {
+						float x = transform.position.x;
+						float y = collectable.initial_pos.y + Mathf.Sin(time + collectable.rnd_offset) * 0.1f;
+						float z = transform.position.z;
+
+						if(player_dist_sqr < collision_dist_sqr) {
+							Collectable.mark_as_used(collectable, true);
+							collectable.audio_source.clip = Audio.get_random_clip(game_manager.audio, Audio.Clip.COLLECTABLE);
+							collectable.audio_source.Play();
+						}
+						else {
+							float dist = Mathf.Max(Mathf.Sqrt(player_dist_sqr) - 0.5f, 0.0f);
+							float max_dist = 5.0f;
+							float base_height = collectable.initial_pos.y - radius2;
+
+							if(dist < max_dist && base_height < player_pos.y) {
+								float distance_to_move = dt * (max_dist / dist);
+								if(distance_to_move > dist) {
+									distance_to_move = dist;
+								}
+
+								x += dir_to_player.x * distance_to_move;
+								z += dir_to_player.z * distance_to_move;
+							}
+							else {
+								float t = dt * 0.5f;
+								x = x * (1.0f - t) + collectable.initial_pos.x * t;
+								z = z * (1.0f - t) + collectable.initial_pos.z * t;
+							}
+						}
+
+						pos.Set(x, y, z);
+						transform.position = pos;
+					}
+				}
+			}
+		}
+	}
+
 	public static void update(GameManager game_manager, Environment env) {
-		for(int i = 0; i < env.npcs.Length; i++) {
-			NpcController.update(game_manager, env.npcs[i]);
+		Player2Controller player2 = game_manager.player2_inst;
+		Transform player2_transform = null;
+		if(player2 != null) {
+			player2_transform = player2.transform;
 		}
 
-		for(int i = 0; i < env.collectables.Length; i++) {
-			Collectable.update(game_manager, env.collectables[i]);
+		for(int i = 0; i < env.npcs.Length; i++) {
+			NpcController.update(game_manager, env.npcs[i], player2_transform);
 		}
+
+		update_collectables(game_manager, env);
 
 		Foliage.update(game_manager, env.foliage);
 	}
@@ -360,33 +497,21 @@ public class Environment {
 			}
 		// }
 		// else {
-		// 	player.StartCoroutine(play_explosion_smoke(player, env.explosion.smoke));
-		// 	player.StartCoroutine(play_explosion_shock_wave(env.explosion.shock_wave));
+			player.StartCoroutine(play_explosion_smoke(player, env.explosion.smoke));
+			// player.StartCoroutine(play_explosion_shock_wave(env.explosion.shock_wave));
 		// }
 	}
 
 	public static void play_explosion(GameManager game_manager, MonoBehaviour player, Environment env, Vector3 hit_pos) {
 		play_explosion_(player, env, hit_pos);
 
-		float force = 400.0f;
+		float force = 2000.0f;
 		if(game_manager.first_missile_hit) {
 			force *= 3.0f;
 		}
 
 		for(int i = 0; i < env.buildings.Length; i++) {
 			Building building = env.buildings[i];
-
-			// Vector3 point_on_bounds = building.collider.ClosestPointOnBounds(hit_pos);
-			// if(Vector3.Distance(hit_pos, point_on_bounds) < EXPLOSION_RADIUS) {
-			// 	//TODO: Only do this if the building can be fractured??
-			// 	building.renderer.enabled = false;
-			// 	building.collider.enabled = false;
-
-			// 	if(building.fracture != null) {
-			// 		apply_fracture(building.fracture, hit_pos, force);
-			// 	}
-			// }
-
 			if(building.fracture != null) {
 				building.mesh.gameObject.SetActive(false);
 
@@ -398,6 +523,17 @@ public class Environment {
 			}
 		}
 
+		for(int i = 0; i < env.props.Length; i++) {
+			Prop prop = env.props[i];
+			if(prop.fracture != null) {
+				prop.renderer.enabled = false;
+				prop.collider.enabled = false;
+				prop.rigidbody.detectCollisions = false;
+
+				apply_fracture(prop.fracture, hit_pos, force);
+			}
+		}
+
 		Foliage.on_explosion(env.foliage, hit_pos);
 
 		if(env.crater.transform != null) {
@@ -406,9 +542,22 @@ public class Environment {
 		}
 
 		for(int i = 0; i < env.npcs.Length; i++) {
-			NpcController.on_explosion(env.npcs[i], env.target_point, hit_pos, force);
+			NpcController.on_explosion(game_manager, env.npcs[i], env.target_point, hit_pos);
 		}
 
 		game_manager.first_missile_hit = true;
+	}
+
+	public static void play_screams(Environment env) {
+		for(int i = 0; i < env.npc_scream_sources.Length; i++) {
+			env.npc_scream_sources[i].Play();
+		}
+	}
+
+	public static void stop_screams(Environment env, bool now = false) {
+		//TODO: How should these fade??
+		for(int i = 0; i < env.npc_scream_sources.Length; i++) {
+			env.npc_scream_sources[i].Stop();
+		}
 	}
 }

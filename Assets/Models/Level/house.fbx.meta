@@ -69,6 +69,84 @@ ModelImporter:
     100122: window_1
     100124: window_2
     100126: window_3
+    100128: building_1_wall
+    100130: building_1_wall_destroy
+    100132: group26
+    100134: group27
+    100136: group28
+    100138: group29
+    100140: group30
+    100142: group31_pCylinder5
+    100144: market_area
+    100146: pCube100
+    100148: pCube100 1
+    100150: pCube100 2
+    100152: pCube101
+    100154: pCube101 1
+    100156: pCube101 2
+    100158: pCube102
+    100160: pCube102 1
+    100162: pCube102 2
+    100164: pCube103
+    100166: pCube103 1
+    100168: pCube103 2
+    100170: pCube93
+    100172: pCube94
+    100174: pCube95
+    100176: pCube96
+    100178: pCube96 1
+    100180: pCube96 2
+    100182: pCube97
+    100184: pCube97 1
+    100186: pCube97 2
+    100188: pCube98
+    100190: pCube98 1
+    100192: pCube98 2
+    100194: pCube99
+    100196: pCube99 1
+    100198: pCube99 2
+    100200: polySurface136
+    100202: polySurface137
+    100204: polySurface138
+    100206: polySurface1388
+    100208: polySurface138_MeshPart0
+    100210: polySurface138_MeshPart1
+    100212: polySurface1391
+    100214: polySurface1391 1
+    100216: polySurface1391 2
+    100218: polySurface1392
+    100220: polySurface1392 1
+    100222: polySurface1392 2
+    100224: polySurface1393
+    100226: polySurface1393 1
+    100228: polySurface1393 2
+    100230: polySurface1394
+    100232: polySurface1394 1
+    100234: polySurface1394 2
+    100236: polySurface1395
+    100238: polySurface1396
+    100240: polySurface1397
+    100242: polySurface1398
+    100244: polySurface1399
+    100246: polySurface1400
+    100248: polySurface1401
+    100250: polySurface1402
+    100252: polySurface1403
+    100254: polySurface1404
+    100256: polySurface1405
+    100258: polySurface1406
+    100260: polySurface1407
+    100262: polySurface153
+    100264: polySurface177
+    100266: polySurface845
+    100268: polySurface875
+    100270: polySurface879
+    100272: polySurface881
+    100274: polySurface905
+    100276: polySurface929
+    100278: polySurface930
+    100280: polySurface934
+    100282: destroy_static
     400000: destroy
     400002: door
     400004: //RootNode
@@ -133,6 +211,84 @@ ModelImporter:
     400122: window_1
     400124: window_2
     400126: window_3
+    400128: building_1_wall
+    400130: building_1_wall_destroy
+    400132: group26
+    400134: group27
+    400136: group28
+    400138: group29
+    400140: group30
+    400142: group31_pCylinder5
+    400144: market_area
+    400146: pCube100
+    400148: pCube100 1
+    400150: pCube100 2
+    400152: pCube101
+    400154: pCube101 1
+    400156: pCube101 2
+    400158: pCube102
+    400160: pCube102 1
+    400162: pCube102 2
+    400164: pCube103
+    400166: pCube103 1
+    400168: pCube103 2
+    400170: pCube93
+    400172: pCube94
+    400174: pCube95
+    400176: pCube96
+    400178: pCube96 1
+    400180: pCube96 2
+    400182: pCube97
+    400184: pCube97 1
+    400186: pCube97 2
+    400188: pCube98
+    400190: pCube98 1
+    400192: pCube98 2
+    400194: pCube99
+    400196: pCube99 1
+    400198: pCube99 2
+    400200: polySurface136
+    400202: polySurface137
+    400204: polySurface138
+    400206: polySurface1388
+    400208: polySurface138_MeshPart0
+    400210: polySurface138_MeshPart1
+    400212: polySurface1391
+    400214: polySurface1391 1
+    400216: polySurface1391 2
+    400218: polySurface1392
+    400220: polySurface1392 1
+    400222: polySurface1392 2
+    400224: polySurface1393
+    400226: polySurface1393 1
+    400228: polySurface1393 2
+    400230: polySurface1394
+    400232: polySurface1394 1
+    400234: polySurface1394 2
+    400236: polySurface1395
+    400238: polySurface1396
+    400240: polySurface1397
+    400242: polySurface1398
+    400244: polySurface1399
+    400246: polySurface1400
+    400248: polySurface1401
+    400250: polySurface1402
+    400252: polySurface1403
+    400254: polySurface1404
+    400256: polySurface1405
+    400258: polySurface1406
+    400260: polySurface1407
+    400262: polySurface153
+    400264: polySurface177
+    400266: polySurface845
+    400268: polySurface875
+    400270: polySurface879
+    400272: polySurface881
+    400274: polySurface905
+    400276: polySurface929
+    400278: polySurface930
+    400280: polySurface934
+    400282: destroy_static
     2300000: door
     2300002: house 1
     2300004: house_biiits:house_front1:house_front house_front1:destroy house_front1:.000
@@ -192,6 +348,81 @@ ModelImporter:
     2300112: window_1
     2300114: window_2
     2300116: window_3
+    2300118: building_1_wall
+    2300120: building_1_wall_destroy
+    2300122: group26
+    2300124: group27
+    2300126: group28
+    2300128: group29
+    2300130: group30
+    2300132: group31_pCylinder5
+    2300134: pCube100
+    2300136: pCube100 1
+    2300138: pCube100 2
+    2300140: pCube101
+    2300142: pCube101 1
+    2300144: pCube101 2
+    2300146: pCube102
+    2300148: pCube102 1
+    2300150: pCube102 2
+    2300152: pCube103
+    2300154: pCube103 1
+    2300156: pCube103 2
+    2300158: pCube93
+    2300160: pCube94
+    2300162: pCube95
+    2300164: pCube96
+    2300166: pCube96 1
+    2300168: pCube96 2
+    2300170: pCube97
+    2300172: pCube97 1
+    2300174: pCube97 2
+    2300176: pCube98
+    2300178: pCube98 1
+    2300180: pCube98 2
+    2300182: pCube99
+    2300184: pCube99 1
+    2300186: pCube99 2
+    2300188: polySurface136
+    2300190: polySurface137
+    2300192: polySurface1388
+    2300194: polySurface138_MeshPart0
+    2300196: polySurface138_MeshPart1
+    2300198: polySurface1391
+    2300200: polySurface1391 1
+    2300202: polySurface1391 2
+    2300204: polySurface1392
+    2300206: polySurface1392 1
+    2300208: polySurface1392 2
+    2300210: polySurface1393
+    2300212: polySurface1393 1
+    2300214: polySurface1393 2
+    2300216: polySurface1394
+    2300218: polySurface1394 1
+    2300220: polySurface1394 2
+    2300222: polySurface1395
+    2300224: polySurface1396
+    2300226: polySurface1397
+    2300228: polySurface1398
+    2300230: polySurface1399
+    2300232: polySurface1400
+    2300234: polySurface1401
+    2300236: polySurface1402
+    2300238: polySurface1403
+    2300240: polySurface1404
+    2300242: polySurface1405
+    2300244: polySurface1406
+    2300246: polySurface1407
+    2300248: polySurface153
+    2300250: polySurface177
+    2300252: polySurface845
+    2300254: polySurface875
+    2300256: polySurface879
+    2300258: polySurface881
+    2300260: polySurface905
+    2300262: polySurface929
+    2300264: polySurface930
+    2300266: polySurface934
     3300000: door
     3300002: house 1
     3300004: house_biiits:house_front1:house_front house_front1:destroy house_front1:.000
@@ -251,6 +482,81 @@ ModelImporter:
     3300112: window_1
     3300114: window_2
     3300116: window_3
+    3300118: building_1_wall
+    3300120: building_1_wall_destroy
+    3300122: group26
+    3300124: group27
+    3300126: group28
+    3300128: group29
+    3300130: group30
+    3300132: group31_pCylinder5
+    3300134: pCube100
+    3300136: pCube100 1
+    3300138: pCube100 2
+    3300140: pCube101
+    3300142: pCube101 1
+    3300144: pCube101 2
+    3300146: pCube102
+    3300148: pCube102 1
+    3300150: pCube102 2
+    3300152: pCube103
+    3300154: pCube103 1
+    3300156: pCube103 2
+    3300158: pCube93
+    3300160: pCube94
+    3300162: pCube95
+    3300164: pCube96
+    3300166: pCube96 1
+    3300168: pCube96 2
+    3300170: pCube97
+    3300172: pCube97 1
+    3300174: pCube97 2
+    3300176: pCube98
+    3300178: pCube98 1
+    3300180: pCube98 2
+    3300182: pCube99
+    3300184: pCube99 1
+    3300186: pCube99 2
+    3300188: polySurface136
+    3300190: polySurface137
+    3300192: polySurface1388
+    3300194: polySurface138_MeshPart0
+    3300196: polySurface138_MeshPart1
+    3300198: polySurface1391
+    3300200: polySurface1391 1
+    3300202: polySurface1391 2
+    3300204: polySurface1392
+    3300206: polySurface1392 1
+    3300208: polySurface1392 2
+    3300210: polySurface1393
+    3300212: polySurface1393 1
+    3300214: polySurface1393 2
+    3300216: polySurface1394
+    3300218: polySurface1394 1
+    3300220: polySurface1394 2
+    3300222: polySurface1395
+    3300224: polySurface1396
+    3300226: polySurface1397
+    3300228: polySurface1398
+    3300230: polySurface1399
+    3300232: polySurface1400
+    3300234: polySurface1401
+    3300236: polySurface1402
+    3300238: polySurface1403
+    3300240: polySurface1404
+    3300242: polySurface1405
+    3300244: polySurface1406
+    3300246: polySurface1407
+    3300248: polySurface153
+    3300250: polySurface177
+    3300252: polySurface845
+    3300254: polySurface875
+    3300256: polySurface879
+    3300258: polySurface881
+    3300260: polySurface905
+    3300262: polySurface929
+    3300264: polySurface930
+    3300266: polySurface934
     4300000: house
     4300002: house_destory1
     4300004: window_1
@@ -310,6 +616,81 @@ ModelImporter:
     4300112: house_biiits:house_front1:house_front house_front1:destroy house_front1:.000
     4300114: house_biiits:house_front1:house_front house_front1:destroy house_front1:all_
     4300116: OOOMG:house_bit_upper
+    4300118: polySurface136
+    4300120: polySurface137
+    4300122: polySurface177
+    4300124: polySurface934
+    4300126: polySurface845
+    4300128: polySurface930
+    4300130: polySurface929
+    4300132: polySurface905
+    4300134: polySurface881
+    4300136: polySurface879
+    4300138: polySurface875
+    4300140: polySurface153
+    4300142: polySurface138_MeshPart0
+    4300144: polySurface138_MeshPart1
+    4300146: polySurface1388
+    4300148: group26
+    4300150: group27
+    4300152: group28
+    4300154: group29
+    4300156: group30
+    4300158: pCube93
+    4300160: pCube94
+    4300162: group31_pCylinder5
+    4300164: pCube95
+    4300166: polySurface1395
+    4300168: polySurface1396
+    4300170: polySurface1397
+    4300172: polySurface1398
+    4300174: polySurface1399
+    4300176: polySurface1400
+    4300178: polySurface1401
+    4300180: polySurface1402
+    4300182: polySurface1403
+    4300184: polySurface1404
+    4300186: polySurface1405
+    4300188: polySurface1406
+    4300190: polySurface1407
+    4300192: polySurface1391
+    4300194: polySurface1392
+    4300196: polySurface1393
+    4300198: polySurface1394
+    4300200: pCube96
+    4300202: pCube97
+    4300204: pCube98
+    4300206: pCube99
+    4300208: pCube100
+    4300210: pCube101
+    4300212: pCube102
+    4300214: pCube103
+    4300216: polySurface1391
+    4300218: polySurface1392
+    4300220: polySurface1393
+    4300222: polySurface1394
+    4300224: pCube96
+    4300226: pCube97
+    4300228: pCube98
+    4300230: pCube99
+    4300232: pCube100
+    4300234: pCube101
+    4300236: pCube102
+    4300238: pCube103
+    4300240: polySurface1391
+    4300242: polySurface1392
+    4300244: polySurface1393
+    4300246: polySurface1394
+    4300248: pCube96
+    4300250: pCube97
+    4300252: pCube98
+    4300254: pCube99
+    4300256: pCube100
+    4300258: pCube101
+    4300260: pCube102
+    4300262: pCube103
+    4300264: building_1_wall
+    4300266: building_1_wall_destroy
   materials:
     importMaterials: 1
     materialName: 0

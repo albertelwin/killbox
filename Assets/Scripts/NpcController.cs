@@ -18,12 +18,11 @@ public class NpcController : MonoBehaviour {
 
 	public NpcType type = NpcType.HUMAN;
 
-	[System.NonSerialized] public Environment.Fracture fracture;
-
 	[System.NonSerialized] public NavMeshAgent nav_agent;
 	[System.NonSerialized] public MotionPathAgent path_agent;
 	public MotionPathController motion_path;
 	public bool runs_from_player = false;
+	public bool screams = false;
 
 	Vector3 initial_pos;
 
@@ -31,8 +30,12 @@ public class NpcController : MonoBehaviour {
 
 	public static float ACTIVAITON_DIST = 2.5f;
 
+	public Transform player2_transform = null;
+
 	bool activated;
 	float emission;
+
+	[System.NonSerialized] public Transform blood;
 
 	[System.NonSerialized] public static Color[] COLOR_POOL = {
 		Util.new_color(47, 147, 246),
@@ -41,16 +44,9 @@ public class NpcController : MonoBehaviour {
 	};
 
 	void Awake() {
-		collider_ = transform.Find("Collider").GetComponent<Collider>();
-
 		nav_agent = GetComponent<NavMeshAgent>();
 		audio_source = GetComponent<AudioSource>();
 		particle_system = GetComponent<ParticleSystem>();
-
-		Transform fractured_mesh = transform.Find("FracturedMesh");
-		if(fractured_mesh != null) {
-			fracture = Environment.Fracture.new_inst(fractured_mesh);
-		}
 
 		Transform anim_transform = transform.Find("Animation");
 		if(anim_transform != null) {
@@ -64,6 +60,17 @@ public class NpcController : MonoBehaviour {
 		else {
 			Assert.invalid_path();
 		}
+
+		Component[] colliders = anim_transform.GetComponentsInChildren(typeof(Collider), true);
+		if(colliders != null && colliders.Length == 1) {
+			collider_ = (Collider)colliders[0];
+		}
+		else {
+			collider_ = transform.Find("Collider").GetComponent<Collider>();
+		}
+		Assert.is_true(collider_ != null);
+
+		blood = transform.Find("Blood");
 
 		initial_pos = transform.position;
 	}
@@ -83,26 +90,26 @@ public class NpcController : MonoBehaviour {
 			}
 		}
 
-		if(fracture != null) {
-			Environment.remove_fracture(fracture);
-		}
-
 		anim.gameObject.SetActive(true);
 		Util.offset_first_anim(anim);
 		anim.Play();
 
 		activated = false;
 		emission = 0.0f;
+
+		if(blood) {
+			blood.gameObject.SetActive(false);
+			Animation blood_anim = blood.GetComponent<Animation>();
+			blood_anim.Stop();
+		}
 	}
 
-	public static void update(GameManager game_manager, NpcController npc) {
+	public static void update(GameManager game_manager, NpcController npc, Transform player2_transform) {
 		bool entered_player_radius = false;
-		if(game_manager.player2_inst != null) {
-			Transform player2 = game_manager.player2_inst.transform;
-
+		if(player2_transform != null) {
 			if(game_manager.player_type == PlayerType.PLAYER2 && !game_manager.first_missile_hit) {
-				Vector3 closest_point = npc.collider_.ClosestPointOnBounds(player2.position);
-				float distance_to_player = Vector3.Distance(closest_point, player2.position);
+				Vector3 closest_point = npc.collider_.ClosestPointOnBounds(player2_transform.position);
+				float distance_to_player = Vector3.Distance(closest_point, player2_transform.position);
 
 				if(!npc.activated && distance_to_player < ACTIVAITON_DIST) {
 					if(npc.type == NpcType.HUMAN) {
@@ -117,7 +124,7 @@ public class NpcController : MonoBehaviour {
 						if(npc.color_index >= COLOR_POOL.Length) {
 							npc.color_index = 0;
 						}
-						npc.renderer_.material.color = COLOR_POOL[npc.color_index];
+						set_color(npc, COLOR_POOL[npc.color_index]);
 					}
 
 					entered_player_radius = true;
@@ -165,21 +172,26 @@ public class NpcController : MonoBehaviour {
 		npc.renderer_.material.SetFloat("_Emission", npc.emission);
 	}
 
-	public static void on_explosion(NpcController npc, TargetPointController target_point, Vector3 hit_pos, float force) {
-		Vector3 point_on_bounds = npc.collider_.ClosestPointOnBounds(hit_pos);
-		if(Vector3.Distance(hit_pos, point_on_bounds) < Environment.EXPLOSION_RADIUS) {
-			npc.collider_.enabled = false;
-			npc.anim.gameObject.SetActive(false);
+	public static void on_kill(NpcController npc) {
+		npc.collider_.enabled = false;
+		npc.anim.gameObject.SetActive(false);
+		npc.path_agent = null;
+	}
 
-			if(npc.fracture != null) {
-				Environment.apply_fracture(npc.fracture, hit_pos, force);
+	public static void on_explosion(GameManager game_manager, NpcController npc, TargetPointController target_point, Vector3 hit_pos) {
+		if(npc.type == NpcType.HUMAN) {
+			Vector3 point_on_bounds = npc.collider_.ClosestPointOnBounds(hit_pos);
+			if(Vector3.Distance(hit_pos, point_on_bounds) < Environment.EXPLOSION_RADIUS || npc.blood != null) {
+				npc.collider_.enabled = false;
+				npc.anim.gameObject.SetActive(false);
+				npc.path_agent = null;
+
+				if(npc.blood) {
+					npc.blood.gameObject.SetActive(true);
+					npc.blood.rotation = Quaternion.Euler(0.0f, 360.0f * Random.value, 0.0f);
+				}
 			}
-
-			Assert.is_true(npc.nav_agent == null);
-			npc.path_agent = null;
-		}
-		else {
-			if(npc.type == NpcType.HUMAN) {
+			else {
 				Util.cross_fade_anim(npc.anim, "moving");
 
 				Transform safe_point = null;
@@ -205,20 +217,35 @@ public class NpcController : MonoBehaviour {
 					}
 				}
 			}
-			else if(npc.type == NpcType.BIRD) {
-				npc.anim.gameObject.SetActive(false);
-			}
+		}
+		else if(npc.type == NpcType.BIRD) {
+			npc.anim.gameObject.SetActive(false);
+		}
+	}
+
+	public static void set_color(NpcController npc, Color color) {
+		npc.renderer_.material.color = color;
+		if(npc.blood) {
+			Renderer body = npc.blood.Find("Body").GetComponent<Renderer>();
+			body.material.color = color;
 		}
 	}
 
 	public static void on_pov_change(NpcController npc, PlayerType pov, Material material) {
 		if(npc.type == NpcType.HUMAN) {
 			npc.renderer_.material = material;
+			if(npc.blood) {
+				Renderer body = npc.blood.Find("Body").GetComponent<Renderer>();
+				body.material = npc.renderer_.material;
+			}
 
+			Color color = npc.renderer_.material.color;
 			if(pov == PlayerType.PLAYER2) {
 				npc.color_index = Util.random_index(COLOR_POOL.Length);
-				npc.renderer_.material.color = COLOR_POOL[npc.color_index];
+				color = COLOR_POOL[npc.color_index];
 			}
+
+			set_color(npc, color);
 		}
 	}
 }

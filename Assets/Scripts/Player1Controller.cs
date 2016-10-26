@@ -301,12 +301,12 @@ public static class Player1Util {
 							float look_time = 2.5f;
 							float zoom_time = 2.0f;
 
-							Player1Console.push_tutorial_key_cmd(cmd_buf, "CAM ROTATE LEFT: HOLD (A)\n", Player1Controller.ControlType.LOOK_LEFT, look_time, 0);
-							Player1Console.push_tutorial_key_cmd(cmd_buf, "CAM ROTATE RIGHT: HOLD (D)\n", Player1Controller.ControlType.LOOK_RIGHT, look_time, 1);
-							Player1Console.push_tutorial_key_cmd(cmd_buf, "CAM ROTATE UP: HOLD (W)\n", Player1Controller.ControlType.LOOK_UP, look_time, 2);
-							Player1Console.push_tutorial_key_cmd(cmd_buf, "CAM ROTATE DOWN: HOLD (S)\n", Player1Controller.ControlType.LOOK_DOWN, look_time, 3);
-							Player1Console.push_tutorial_key_cmd(cmd_buf, "CAM ZOOM IN: HOLD (J)\n", Player1Controller.ControlType.ZOOM_IN, zoom_time, 4);
-							Player1Console.push_tutorial_key_cmd(cmd_buf, "CAM ZOOM OUT: HOLD (K)\n", Player1Controller.ControlType.ZOOM_OUT, zoom_time, 5);
+							Player1Console.push_tutorial_key_cmd(cmd_buf, "CAM ROTATE LEFT: HOLD [ A ]", Player1Controller.ControlType.LOOK_LEFT, look_time, 0);
+							Player1Console.push_tutorial_key_cmd(cmd_buf, "CAM ROTATE RIGHT: HOLD [ D ]", Player1Controller.ControlType.LOOK_RIGHT, look_time, 1);
+							Player1Console.push_tutorial_key_cmd(cmd_buf, "CAM ROTATE UP: HOLD [ W ]", Player1Controller.ControlType.LOOK_UP, look_time, 2);
+							Player1Console.push_tutorial_key_cmd(cmd_buf, "CAM ROTATE DOWN: HOLD [ S ]", Player1Controller.ControlType.LOOK_DOWN, look_time, 3);
+							Player1Console.push_tutorial_key_cmd(cmd_buf, "CAM ZOOM IN: HOLD [ J ]", Player1Controller.ControlType.ZOOM_IN, zoom_time, 4);
+							Player1Console.push_tutorial_key_cmd(cmd_buf, "CAM ZOOM OUT: HOLD [ K ]", Player1Controller.ControlType.ZOOM_OUT, zoom_time, 5);
 
 							Player1Console.push_cmd(cmd_buf, Player1Console.CmdType.ENABLE_CONTROLS);
 
@@ -436,6 +436,7 @@ public static class Player1Util {
 
 public class Player1Console {
 	public enum ItemType {
+		EMPTY_SPACE,
 		TEXT_MESH,
 		LOADING_BAR,
 	};
@@ -542,6 +543,8 @@ public class Player1Console {
 
 	public Transform text_mesh_prefab;
 
+	public static float LINE_HEIGHT = 0.005f;
+
 	public static float LOADING_BAR_WIDTH = 0.4f;
 	public static float LOADING_BAR_HEIGHT = 0.04f;
 
@@ -555,12 +558,14 @@ public class Player1Console {
 	public float last_cursor_time;
 	public bool prompt;
 	public int prompt_length;
+	public AudioSource prompt_audio_source;
 
 	public int current_cmd_index;
 	public int next_cmd_index;
 	public float current_cmd_time;
 	public string current_cmd_str;
 	public int current_cmd_str_it;
+	public bool current_cmd_first_pass;
 	public Item current_cmd_item;
 
 	public string[] user_str_table;
@@ -696,8 +701,7 @@ public class Player1Console {
 	}
 
 	public static void push_confirm_deaths_cmd(CmdBuf cmd_buf) {
-		//TODO: Time out!!
-		push_user_str_cmd(cmd_buf, UserStrId.DEATH_COUNT, 2, true, false, 5.0f);
+		push_user_str_cmd(cmd_buf, UserStrId.DEATH_COUNT, 2, true, false, 10.0f);
 
 		push_delay_cmd(cmd_buf);
 		push_print_str_cmd(cmd_buf, "\n");
@@ -753,6 +757,15 @@ public class Player1Console {
 		inst.item_queue[index] = item;
 	}
 
+	public static Item push_empty_space(Player1Console inst, float height) {
+		Item item = new Item();
+		item.transform = Util.new_transform(inst.transform, "EmptySpace");
+		item.height = height;
+		item.type = ItemType.EMPTY_SPACE;
+		push_back_item(inst, item);
+		return item;
+	}
+
 	public static Item push_text_mesh(Player1Console inst, string str) {
 		Transform transform = (Transform)Object.Instantiate(inst.text_mesh_prefab, inst.transform.position, Quaternion.identity);
 		transform.name = "TextMesh";
@@ -763,11 +776,9 @@ public class Player1Console {
 
 		TextMesh text_mesh = transform.GetComponent<TextMesh>();
 		text_mesh.text = str;
-		//TODO: Do we need this??
-		// text_mesh.richText = true;
 
 		Renderer renderer = transform.GetComponent<Renderer>();
-		float height = renderer.bounds.size.y;
+		float height = renderer.bounds.size.y + LINE_HEIGHT;
 
 		Item item = new Item();
 		item.transform = transform;
@@ -811,7 +822,7 @@ public class Player1Console {
 		bar.localPosition = new Vector3((-LOADING_BAR_WIDTH + bar.localScale.x) * 0.5f, 0.0f, 0.0f);
 	}
 
-	public static Player1Console new_inst(Transform transform) {
+	public static Player1Console new_inst(Transform transform, Audio audio) {
 		Player1Console inst = new Player1Console();
 
 		inst.transform = transform;
@@ -834,6 +845,9 @@ public class Player1Console {
 		inst.last_cursor_time = -0.5f;
 		inst.prompt = false;
 		inst.prompt_length = 0;
+		inst.prompt_audio_source = Util.new_audio_source(transform, "PromptAudioSource");
+		inst.prompt_audio_source.loop = true;
+		inst.prompt_audio_source.clip = Audio.get_clip(audio, Audio.Clip.CONSOLE_PROMPT);
 
 		inst.cmd_buf = new_cmd_buf(MAX_CMD_COUNT);
 		inst.current_cmd_index = Player1Util.parse_script(inst.cmd_buf, "killbox_script");
@@ -842,13 +856,14 @@ public class Player1Console {
 		inst.current_cmd_time = 0.0f;
 		inst.current_cmd_str = "";
 		inst.current_cmd_str_it = 0;
+		inst.current_cmd_first_pass = true;
 		inst.current_cmd_item = null;
 
 		inst.user_str_table = new string[(int)UserStrId.COUNT];
 		for(int i = 0; i < inst.user_str_table.Length; i++) {
 			inst.user_str_table[i] = "";
 		}
-		inst.user_str_table[(int)UserStrId.DEATH_COUNT] = "3";
+		inst.user_str_table[(int)UserStrId.DEATH_COUNT] = "4";
 		inst.logged_user_details = false;
 
 		return inst;
@@ -1015,8 +1030,6 @@ public class Player1Console {
 							}
 						}
 
-						inst.prompt = true;
-
 						break;
 					}
 
@@ -1097,23 +1110,48 @@ public class Player1Console {
 						Player1Controller.Control control = player1.controls[(int)cmd.control_type];
 						control.enabled = true;
 
-						if(inst.current_cmd_item == null) {
-							//TODO: Actually parse the working buffer and push as many text meshes as needed!!
+						if(inst.current_cmd_first_pass) {
+							// Item tail = get_tail_item(inst);
+							// if(tail.type == ItemType.TEXT_MESH) {
+							// 	tail.text_mesh.text = "";
+							// }
+
+							// inst.current_cmd_item = push_loading_bar(inst);
+							// push_text_mesh(inst, "");
+
 							Item tail = get_tail_item(inst);
 							if(tail.type == ItemType.TEXT_MESH) {
-								tail.text_mesh.text = "";
+								tail.text_mesh.text = inst.str_builder.ToString();
+								inst.str_builder.Remove(0, inst.str_builder.Length);
+							}
+							else {
+								Assert.invalid_path();
 							}
 
-							inst.current_cmd_item = push_loading_bar(inst);
+							push_empty_space(inst, LINE_HEIGHT * 2.0f);
 							push_text_mesh(inst, "");
 						}
 
 						if(game_manager.get_key(control.key)) {
-							inst.current_cmd_time += time_left;
+							float new_time = inst.current_cmd_time + time_left;
 
-							set_loading_bar_progress(inst.current_cmd_item, inst.current_cmd_time / cmd.duration);
+							int step_count = 12;
+							int current_progress = (int)((inst.current_cmd_time / cmd.duration) * step_count);
+							int new_progress = (int)((new_time / cmd.duration) * step_count);
+							if(new_progress > current_progress) {
+								inst.str_builder.Append(CURSOR_SYM);
+								inst.str_builder.Append(" ");
+								Audio.play(game_manager.audio, Audio.Clip.CONSOLE_FILL);
+							}
+
+							inst.current_cmd_time = new_time;
+
+							// set_loading_bar_progress(inst.current_cmd_item, inst.current_cmd_time / cmd.duration);
 
 							if(inst.current_cmd_time >= cmd.duration) {
+								inst.str_builder.Append("\n");
+								Audio.play(game_manager.audio, Audio.Clip.CONSOLE_DONE);
+
 								time_left = inst.current_cmd_time - cmd.duration;
 								done = true;
 							}
@@ -1122,7 +1160,6 @@ public class Player1Console {
 						}
 
 						if(skip) {
-							set_loading_bar_progress(inst.current_cmd_item, 1.0f);
 							time_left = 0.0f;
 							done = true;
 						}
@@ -1184,12 +1221,14 @@ public class Player1Console {
 					inst.current_cmd_time = 0.0f;
 					inst.current_cmd_str = "";
 					inst.current_cmd_str_it = 0;
+					inst.current_cmd_first_pass = true;
 					inst.current_cmd_item = null;
 
 					inst.prompt = false;
 					inst.prompt_length = 0;
 				}
 				else {
+					inst.current_cmd_first_pass = false;
 					time_left = 0.0f;
 				}
 
@@ -1232,20 +1271,25 @@ public class Player1Console {
 
 				tail_item.text_mesh.text = inst.str_builder.ToString();
 
+				bool stop_prompt = true;
+
 				if(inst.prompt) {
 					float rate = 24.0f;
 					float delay = 0.5f;
 
 					if(inst.cursor_time > delay) {
-						if(Player1Util.flash(inst.cursor_time, rate)) {
-							if(!Player1Util.flash(inst.last_cursor_time, rate)) {
-								Audio.play(game_manager.audio, Audio.Clip.CONSOLE_CURSOR_FLASH);
-								inst.prompt_length++;
-							}
+						int current_progress = (int)(inst.last_cursor_time * rate);
+						int new_progress = (int)(inst.cursor_time * rate);
+						if(new_progress > current_progress) {
+							inst.prompt_length++;
 						}
-					}
-					else {
-						inst.prompt_length = 0;
+
+						//TODO: Need a loop!!
+						if(!inst.prompt_audio_source.isPlaying) {
+							inst.prompt_audio_source.Play();
+						}
+
+						stop_prompt = false;
 					}
 
 					string prompt_str = "";
@@ -1269,8 +1313,13 @@ public class Player1Console {
 							Audio.play(game_manager.audio, Audio.Clip.CONSOLE_CURSOR_FLASH);
 						}
 					}
+				}
 
+				if(stop_prompt) {
 					inst.prompt_length = 0;
+					if(inst.prompt_audio_source.isPlaying) {
+						inst.prompt_audio_source.Stop();
+					}
 				}
 
 				inst.last_cursor_time = inst.cursor_time;
@@ -1411,7 +1460,7 @@ public class Player1Controller : MonoBehaviour {
 
 	float zero_fov = 40.0f;
 	float min_fov = 10.0f;
-	float max_fov = 60.0f;
+	float max_fov = 65.0f;
 	float zoom_speed = 12.0f;
 
 	MissileController missile_controller;
@@ -1438,7 +1487,6 @@ public class Player1Controller : MonoBehaviour {
 	[System.NonSerialized] public Player1Console console_;
 
 	[System.NonSerialized] public AudioSource[] audio_sources;
-	[System.NonSerialized] public AudioSource flash_audio_source;
 
 	public static void set_marker_color(Marker marker, Color color, Color ir_color) {
 		marker.color = color;
@@ -1578,7 +1626,6 @@ public class Player1Controller : MonoBehaviour {
 			Transform occluder = ui_camera.transform.Find("Occluder");
 			occluder.localPosition = new Vector3(0.0f, occluder_pos_y * adjusted_aspect_ratio_y, 0.5f);
 			occluder.localScale = new Vector3(2.0f, 1.0f, 1.0f) * adjusted_aspect_ratio_y;
-			occluder.gameObject.SetActive(false);
 		}
 
 		audio_sources = new AudioSource[2];
@@ -1597,7 +1644,7 @@ public class Player1Controller : MonoBehaviour {
 			Debug.Log("LOG: Showing network player2");
 		}
 
-		console_ = Player1Console.new_inst(console_transform);
+		console_ = Player1Console.new_inst(console_transform, game_manager.audio);
 		console_.enabled = false;
 		StartCoroutine(start_console());
 	}

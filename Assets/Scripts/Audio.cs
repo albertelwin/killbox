@@ -8,6 +8,7 @@ public class Audio {
 		PLAYER_LAND,
 
 		NPC,
+		SCREAM,
 		COLLECTABLE,
 
 		MISSILE,
@@ -15,6 +16,9 @@ public class Audio {
 		EXPLOSION_BIRDS,
 
 		CONSOLE_CURSOR_FLASH,
+		CONSOLE_PROMPT,
+		CONSOLE_FILL,
+		CONSOLE_DONE,
 		CONSOLE_TYPING,
 
 		COUNT,
@@ -56,6 +60,7 @@ public class Audio {
 
 		//TODO: Figure out a way to automate this!!
 		audio.clip_groups[(int)Clip.NPC].count = 9;
+		audio.clip_groups[(int)Clip.SCREAM].count = 4;
 		audio.clip_groups[(int)Clip.COLLECTABLE].count = 12;
 
 		int total_clip_count = 0;
@@ -85,15 +90,20 @@ public class Audio {
 		return audio;
 	}
 
-	public static AudioClip get_first_clip(Audio audio, Clip clip) {
+	public static AudioClip get_clip(Audio audio, Clip clip, int index = 0) {
 		ClipGroup clip_group = audio.clip_groups[(int)clip];
-		return audio.clips[clip_group.first_index];
+		if(index >= clip_group.count) {
+			//TODO: Should this be valid behaviour??
+			index = index % clip_group.count;
+		}
+
+		return audio.clips[clip_group.first_index + index];
 	}
 
 	public static AudioClip get_random_clip(Audio audio, Clip clip) {
 		ClipGroup clip_group = audio.clip_groups[(int)clip];
-		int clip_index = clip_group.first_index + (int)(Random.value * clip_group.count);
-		return audio.clips[clip_index];
+		int index = clip_group.first_index + (int)(Random.value * clip_group.count);
+		return audio.clips[index];
 	}
 
 	public static void play(Audio audio, AudioClip clip, float volume = 1.0f, float pitch = 1.0f) {
@@ -111,7 +121,7 @@ public class Audio {
 	}
 
 	public static void play(Audio audio, Clip clip, float volume = 1.0f, float pitch = 1.0f) {
-		AudioClip audio_clip = get_first_clip(audio, clip);
+		AudioClip audio_clip = get_clip(audio, clip);
 		play(audio, audio_clip, volume, pitch);
 	}
 }

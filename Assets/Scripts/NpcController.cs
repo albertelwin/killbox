@@ -21,6 +21,7 @@ public class NpcController : MonoBehaviour {
 	[System.NonSerialized] public NavMeshAgent nav_agent;
 	[System.NonSerialized] public MotionPathAgent path_agent;
 	public MotionPathController motion_path;
+	public Transform safe_point = null;
 	public bool runs_from_player = false;
 	public bool screams = false;
 
@@ -29,8 +30,6 @@ public class NpcController : MonoBehaviour {
 	[System.NonSerialized] public int color_index;
 
 	public static float ACTIVAITON_DIST = 2.5f;
-
-	public Transform player2_transform = null;
 
 	bool activated;
 	float emission;
@@ -70,6 +69,8 @@ public class NpcController : MonoBehaviour {
 		}
 		Assert.is_true(collider_ != null);
 
+		Assert.is_true(safe_point != null);
+
 		blood = transform.Find("Blood");
 
 		initial_pos = transform.position;
@@ -105,9 +106,10 @@ public class NpcController : MonoBehaviour {
 	}
 
 	public static void update(GameManager game_manager, NpcController npc, Transform player2_transform) {
-		bool entered_player_radius = false;
-		if(player2_transform != null) {
-			if(game_manager.player_type == PlayerType.PLAYER2 && !game_manager.first_missile_hit) {
+		if(!game_manager.first_missile_hit) {
+			bool entered_player_radius = false;
+
+			if(player2_transform != null && game_manager.player_type == PlayerType.PLAYER2) {
 				Vector3 closest_point = npc.collider_.ClosestPointOnBounds(player2_transform.position);
 				float distance_to_player = Vector3.Distance(closest_point, player2_transform.position);
 
@@ -134,40 +136,38 @@ public class NpcController : MonoBehaviour {
 					npc.activated = false;
 				}
 			}
-			else {
-				npc.activated = false;
-			}
-		}
 
-		MotionPathAgent path_agent = npc.path_agent;
-		if(path_agent != null) {
-			if(!game_manager.first_missile_hit) {
+			MotionPathAgent path_agent = npc.path_agent;
+			if(path_agent != null) {
 				MotionPath.move_agent(path_agent, Time.deltaTime, entered_player_radius && npc.runs_from_player);
-			}
+				if(path_agent.started) {
+					Util.cross_fade_anim(npc.anim, "moving");
+				}
+				else if(path_agent.stopped && path_agent.prev_node != null) {
+					switch(path_agent.prev_node.stop_animation) {
+						case MotionPathAnimationType.IDLE: {
+							Util.cross_fade_anim(npc.anim, "idle");
+							break;
+						}
 
-			if(path_agent.started) {
-				Util.cross_fade_anim(npc.anim, "moving");
-			}
-			else if(path_agent.stopped && path_agent.prev_node != null) {
-				switch(path_agent.prev_node.stop_animation) {
-					case MotionPathAnimationType.IDLE: {
-						Util.cross_fade_anim(npc.anim, "idle");
-						break;
-					}
+						case MotionPathAnimationType.MOVING: {
+							Util.cross_fade_anim(npc.anim, "moving");
+							break;
+						}
 
-					case MotionPathAnimationType.MOVING: {
-						Util.cross_fade_anim(npc.anim, "moving");
-						break;
-					}
-
-					case MotionPathAnimationType.ACTION: {
-						Util.cross_fade_anim(npc.anim, "action");
-						break;
+						case MotionPathAnimationType.ACTION: {
+							Util.cross_fade_anim(npc.anim, "action");
+							break;
+						}
 					}
 				}
 			}
 		}
+		else {
+			npc.activated = false;
+		}
 
+		//TODO: We don't need to be doing this every frame!!
 		npc.emission = Mathf.Lerp(npc.emission, npc.activated ? 0.5f : 0.0f, Time.deltaTime * 8.0f);
 		npc.renderer_.material.SetFloat("_Emission", npc.emission);
 	}
@@ -181,9 +181,14 @@ public class NpcController : MonoBehaviour {
 	public static void on_explosion(GameManager game_manager, NpcController npc, TargetPointController target_point, Vector3 hit_pos) {
 		if(npc.type == NpcType.HUMAN) {
 			Vector3 point_on_bounds = npc.collider_.ClosestPointOnBounds(hit_pos);
-			if(Vector3.Distance(hit_pos, point_on_bounds) < Environment.EXPLOSION_RADIUS || npc.blood != null) {
+			float blast_radius = Environment.EXPLOSION_RADIUS * 2.0f;
+			if(Vector3.Distance(hit_pos, point_on_bounds) < blast_radius) {
 				npc.collider_.enabled = false;
 				npc.anim.gameObject.SetActive(false);
+
+				if(npc.nav_agent && npc.nav_agent.isOnNavMesh) {
+					npc.nav_agent.Stop();
+				}
 				npc.path_agent = null;
 
 				if(npc.blood) {
@@ -194,27 +199,10 @@ public class NpcController : MonoBehaviour {
 			else {
 				Util.cross_fade_anim(npc.anim, "moving");
 
-				Transform safe_point = null;
-				float shortest_distance = Mathf.Infinity;
-				for(int index = 0; index < target_point.safe_points.childCount; index++) {
-					Transform safe_point_transform = target_point.safe_points.GetChild(index);
-
-					float dist = Vector3.Distance(npc.transform.position, safe_point_transform.position);
-					if(dist < shortest_distance) {
-						shortest_distance = dist;
-						safe_point = safe_point_transform;
-					}
-				}
-
 				if(npc.nav_agent) {
-					if(safe_point) {
-						npc.nav_agent.enabled = true;
-						npc.nav_agent.speed = 7.0f;
-						npc.nav_agent.SetDestination(safe_point.position);
-					}
-					else {
-						npc.nav_agent.enabled = false;
-					}
+					npc.nav_agent.enabled = true;
+					npc.nav_agent.speed = 7.0f;
+					npc.nav_agent.SetDestination(npc.safe_point.position);
 				}
 			}
 		}

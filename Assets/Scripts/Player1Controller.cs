@@ -870,23 +870,6 @@ public class Player1Console {
 	}
 
 	public static void update(Player1Console inst, Player1Controller player1) {
-		if(!inst.logged_user_details) {
-			string user = inst.user_str_table[(int)UserStrId.USERNAME];
-			string pass = inst.user_str_table[(int)UserStrId.PASSWORD];
-
-			if(user != null && user != "" && pass != null && pass != "") {
-				System.DateTime date = System.DateTime.Now;
-				System.Globalization.CultureInfo locale = new System.Globalization.CultureInfo("en-GB");
-
-				string details_str = string.Format("{0} - username: {1}, password: {2}\n", date.ToString(locale), user, pass);
-				Debug.Log(details_str);
-#if !UNITY_EDITOR && UNITY_STANDALONE_WIN
-				System.IO.File.AppendAllText(Application.dataPath + "/passwords.txt", details_str);
-#endif
-				inst.logged_user_details = true;
-			}
-		}
-
 		if(inst.enabled) {
 			GameManager game_manager = player1.game_manager;
 
@@ -1086,6 +1069,23 @@ public class Player1Console {
 					}
 
 					case CmdType.LOG_OFF: {
+						string username = inst.user_str_table[(int)UserStrId.USERNAME];
+						string password = inst.user_str_table[(int)UserStrId.PASSWORD];
+						string kills = inst.user_str_table[(int)UserStrId.DEATH_COUNT];
+
+						System.DateTime date = System.DateTime.Now;
+						System.Globalization.CultureInfo locale = new System.Globalization.CultureInfo("en-GB");
+
+						int hours = (int)game_manager.total_playing_time / 60;
+						int mins = (int)game_manager.total_playing_time % 60;
+						string time = string.Format("{0:00}:{1:00}", hours, mins);
+
+						string details_str = string.Format("{0} - username: {1}, password: {2}, kills: {3}, length: {4}\n", date.ToString(locale), username, password, kills, time);
+						Debug.Log(details_str);
+#if !UNITY_EDITOR && UNITY_STANDALONE_WIN
+						System.IO.File.AppendAllText(Application.dataPath + "/passwords.txt", details_str);
+#endif
+
 						player1.StartCoroutine(player1.log_off());
 
 						done = true;
@@ -1928,7 +1928,7 @@ public class Player1Controller : MonoBehaviour {
 		Vector3 missile_position = main_camera.transform.position - missile_direction * 4000.0f;
 		float missile_speed = Settings.USE_TRANSITIONS ? 100.0f : 1000.0f;
 		float missile_time = Mathf.Sqrt((2.0f * Vector3.Distance(missile_position, game_manager.env.target_point.pos)) / missile_speed);
-		// Debug.Log(missile_time.ToString());
+		Debug.Log(missile_time.ToString());
 
 		if(!Settings.LAN_MODE) {
 			if(!game_manager.connected_to_another_player()) {

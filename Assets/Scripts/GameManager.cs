@@ -99,24 +99,8 @@ public class GameManager : MonoBehaviour {
 	public class EndScreen {
 		public Transform transform;
 
-		// public TextMesh passage;
-		public TextMesh passage0;
-		public TextMesh passage1;
-		public TextMesh hint;
-
-		public TextMesh info;
-
-		public Transform cursor;
-
-		public Transform play_button;
-		public Collider play_collider;
-		public Renderer play_circle;
-		public TextMesh play_text;
-
-		public Transform info_button;
-		public Collider info_collider;
-		public Renderer info_circle;
-		public TextMesh info_text;
+		public Renderer outro_renderer;
+		public MovieTexture outro_movie;
 	}
 
 	public class PauseScreen {
@@ -238,13 +222,11 @@ public class GameManager : MonoBehaviour {
 			}
 
 			if(game_manager.player2_inst != null) {
-				game_manager.player2_inst.mesh_renderer.material.SetFloat("_Brightness", 1.0f);
-				game_manager.player2_inst.anim_renderer.material.SetFloat("_Brightness", 1.0f);
+				game_manager.player2_inst.renderer_.material.SetFloat("_Brightness", 1.0f);
 			}
 
 			if(game_manager.network_player2_inst != null) {
-				game_manager.network_player2_inst.mesh_renderer.material.SetFloat("_Brightness", 1.0f);
-				game_manager.network_player2_inst.anim_renderer.material.SetFloat("_Brightness", 1.0f);
+				game_manager.network_player2_inst.renderer_.material.SetFloat("_Brightness", 1.0f);
 			}
 		}
 	}
@@ -364,174 +346,31 @@ public class GameManager : MonoBehaviour {
 	}
 
 	public IEnumerator show_stats_(Camera camera) {
+		// bool show_info = persistent_player_type != PlayerType.NONE;
 		bool show_info = true;
-		if(persistent_player_type == PlayerType.NONE) {
-			persistent_player_type = player_type == PlayerType.PLAYER1 ? PlayerType.PLAYER2 : PlayerType.PLAYER1;
-			show_info = false;
-		}
-
 		if(show_info) {
 			camera.gameObject.SetActive(false);
 
 			menu_camera.gameObject.SetActive(true);
 			main_screen.transform.gameObject.SetActive(false);
+			lan_screen.transform.gameObject.SetActive(false);
 			end_screen.transform.gameObject.SetActive(true);
 
 			showing_stats = true;
 			set_pause(this, false);
 
-			end_screen.hint.color = Util.white_no_alpha;
-			end_screen.passage0.color = Util.white_no_alpha;
-			end_screen.passage1.color = Util.white_no_alpha;
+			end_screen.outro_renderer.enabled = true;
+			end_screen.outro_movie.Stop();
+			end_screen.outro_movie.Play();
 
-			yield return Util.wait_for_1s;
-
-			yield return StartCoroutine(Util.lerp_text_alpha(end_screen.passage0, 1.0f));
-			yield return new WaitForSeconds(3.0f);
-			yield return StartCoroutine(Util.lerp_text_alpha(end_screen.passage1, 1.0f));
-			yield return new WaitForSeconds(4.0f);
-
-			{
-				float time_out = 30.0f;
-				float t = 0.0f;
-				while(!Input.anyKey && t < time_out) {
-					end_screen.hint.color = Util.new_color(Color.white, t);
-
-					t += Time.deltaTime;
-					yield return Util.wait_for_frame;
-				}
-			}
-
-			{
-				StartCoroutine(Util.lerp_text_alpha(end_screen.passage0, 0.0f));
-				StartCoroutine(Util.lerp_text_alpha(end_screen.passage1, 0.0f));
-
-				float hint_a = end_screen.hint.color.a;
-
-				float t = 0.0f;
-				while(t < 1.0f) {
-					end_screen.hint.color = Util.new_color(Color.white, Mathf.Lerp(hint_a, 0.0f, t));
-
-					t += Time.deltaTime;
-					yield return Util.wait_for_frame;
-				}
-			}
-
-			end_screen.hint.color = Util.white_no_alpha;
-		}
-
-		//NOTE: We never want to show info screen in an installation build!!
-		if(!Settings.INSTALLATION_BUILD && show_info) {
-			//TODO: Network disconnect here!!
-			yield return Util.wait_for_1s;
-
-			end_screen.play_button.gameObject.SetActive(true);
-			end_screen.play_circle.material.color = Util.white_no_alpha;
-			end_screen.play_text.color = Util.white_no_alpha;
-
-			end_screen.info_button.gameObject.SetActive(true);
-			end_screen.info_circle.material.color = Util.white_no_alpha;
-			end_screen.info_text.color = Util.white_no_alpha;
-
-			yield return StartCoroutine(Util.lerp_material_alpha(end_screen.play_circle, 1.0f));
-			yield return StartCoroutine(Util.lerp_material_alpha(end_screen.info_circle, 1.0f));
-
-			Renderer cursor_renderer = end_screen.cursor.GetComponent<Renderer>();
-			cursor_renderer.material.color = Util.white_no_alpha;
-
-			Cursor.lockState = CursorLockMode.None;
-			move_cursor_(end_screen.cursor);
-			end_screen.cursor.gameObject.SetActive(true);
-			yield return StartCoroutine(Util.lerp_material_alpha(cursor_renderer, 1.0f));
-			// Cursor.lockState = CursorLockMode.None;
-
-			bool hit_play_button = true;
-			while(true) {
-				Ray cursor_ray = move_cursor_(end_screen.cursor);
-
-				if(Util.raycast_collider(end_screen.play_collider, cursor_ray)) {
-					end_screen.play_text.color = Util.white;
-
-					if(Input.GetKey(KeyCode.Mouse0)) {
-						hit_play_button = true;
-						break;
-					}
-				}
-				else {
-					end_screen.play_text.color = Util.white_no_alpha;
-				}
-
-				if(Util.raycast_collider(end_screen.info_collider, cursor_ray)) {
-					end_screen.info_text.color = Util.white;
-
-					if(Input.GetKey(KeyCode.Mouse0)) {
-						hit_play_button = false;
-						break;
-					}
-				}
-				else {
-					end_screen.info_text.color = Util.white_no_alpha;
-				}
-
+			while(end_screen.outro_movie.isPlaying) {
 				yield return Util.wait_for_frame;
 			}
 
-			end_screen.play_text.color = Util.white_no_alpha;
-			end_screen.info_text.color = Util.white_no_alpha;
-
-			float fade_duration = 0.25f;
-
-			if(hit_play_button) {
-				StartCoroutine(Util.lerp_material_color(end_screen.info_circle, end_screen.info_circle.material.color, Util.white_no_alpha, fade_duration));
-				yield return StartCoroutine(Util.lerp_material_alpha(cursor_renderer, 0.0f, fade_duration));
-				end_screen.cursor.gameObject.SetActive(false);
-
-				yield return StartCoroutine(Util.lerp_material_color(end_screen.play_circle, end_screen.play_circle.material.color, Util.white_no_alpha));
-			}
-			else {
-				StartCoroutine(move_cursor(end_screen.cursor, 4.0f + fade_duration));
-
-				yield return StartCoroutine(Util.lerp_material_color(end_screen.play_circle, end_screen.play_circle.material.color, Util.white_no_alpha, fade_duration));
-				yield return StartCoroutine(Util.lerp_material_color(end_screen.info_circle, end_screen.info_circle.material.color, Util.white_no_alpha));
-
-				yield return Util.wait_for_1s;
-
-				end_screen.info.gameObject.SetActive(true);
-				end_screen.info.color = Util.white_no_alpha;
-				end_screen.play_button.transform.localPosition = new Vector3(0.0f, -0.6f, 0.0f);
-
-				yield return StartCoroutine(Util.lerp_text_color(end_screen.info, end_screen.info.color, Util.white));
-
-				yield return new WaitForSeconds(2.5f);
-
-				yield return StartCoroutine(Util.lerp_material_color(end_screen.play_circle, Util.white_no_alpha, Util.white));
-
-				while(true) {
-					Ray cursor_ray = move_cursor_(end_screen.cursor);
-
-					if(Util.raycast_collider(end_screen.play_collider, cursor_ray)) {
-						end_screen.play_text.color = Util.white;
-
-						if(Input.GetKey(KeyCode.Mouse0)) {
-							break;
-						}
-					}
-					else {
-						end_screen.play_text.color = Util.white_no_alpha;
-					}
-
-					yield return Util.wait_for_frame;
-				}
-
-				end_screen.play_text.color = Util.white_no_alpha;
-				yield return StartCoroutine(Util.lerp_material_alpha(cursor_renderer, 0.0f, fade_duration));
-				end_screen.cursor.gameObject.SetActive(false);
-
-				yield return StartCoroutine(Util.lerp_text_color(end_screen.info, end_screen.info.color, Util.white_no_alpha));
-				yield return StartCoroutine(Util.lerp_material_color(end_screen.play_circle, end_screen.play_circle.material.color, Util.white_no_alpha));
-			}
-
-			yield return Util.wait_for_1s;
+			end_screen.outro_renderer.enabled = false;
+		}
+		else {
+			persistent_player_type = player_type == PlayerType.PLAYER1 ? PlayerType.PLAYER2 : PlayerType.PLAYER1;
 		}
 
 		game_over(show_info);
@@ -893,7 +732,9 @@ public class GameManager : MonoBehaviour {
 				killbox_movie.gameObject.SetActive(true);
 				killbox_movie.material.color = Util.white_no_alpha;
 
+#if !UNITY_EDITOR
 				yield return Util.wait_for_3s;
+#endif
 
 				MovieTexture killbox_texture = (MovieTexture)killbox_movie.material.mainTexture;
 				killbox_texture.loop = true;
@@ -1121,27 +962,8 @@ public class GameManager : MonoBehaviour {
 
 		end_screen = new EndScreen();
 		end_screen.transform = transform.Find("Camera/End");
-		end_screen.passage0 = end_screen.transform.Find("Passage0").GetComponent<TextMesh>();
-		end_screen.passage1 = end_screen.transform.Find("Passage1").GetComponent<TextMesh>();
-		end_screen.hint = end_screen.transform.Find("Hint").GetComponent<TextMesh>();
-		end_screen.info = end_screen.transform.Find("Info").GetComponent<TextMesh>();
-		end_screen.cursor = end_screen.transform.Find("Cursor");
-
-		end_screen.play_button = end_screen.transform.Find("PlayButton");
-		end_screen.play_collider = end_screen.play_button.GetComponent<Collider>();
-		end_screen.play_circle = end_screen.play_button.Find("Circle").GetComponent<Renderer>();
-		end_screen.play_text = end_screen.play_button.Find("Text").GetComponent<TextMesh>();
-
-		end_screen.info_button = end_screen.transform.Find("InfoButton");
-		end_screen.info_collider = end_screen.info_button.GetComponent<Collider>();
-		end_screen.info_circle = end_screen.info_button.Find("Circle").GetComponent<Renderer>();
-		end_screen.info_text = end_screen.info_button.Find("Text").GetComponent<TextMesh>();
-
-		//TODO: Should this be here??
-		end_screen.info.gameObject.SetActive(false);
-		end_screen.cursor.gameObject.SetActive(false);
-		end_screen.play_button.gameObject.SetActive(false);
-		end_screen.info_button.gameObject.SetActive(false);
+		end_screen.outro_renderer = end_screen.transform.Find("OutroMovie").GetComponent<Renderer>();
+		end_screen.outro_movie = (MovieTexture)end_screen.outro_renderer.material.mainTexture;
 
 		pause_screen = new PauseScreen();
 		pause_screen.transform = transform.Find("PauseCamera");

@@ -58,10 +58,9 @@ public class Player2Controller : MonoBehaviour {
 	[System.NonSerialized] public float ending_speed;
 
 	Transform mesh;
-	[System.NonSerialized] public Renderer mesh_renderer;
 	[System.NonSerialized] public float mesh_radius = 1.0f;
 	Animation anim;
-	[System.NonSerialized] public Renderer anim_renderer;
+	// [System.NonSerialized] public Renderer anim_renderer;
 
 	AudioSource[] audio_sources = null;
 	AudioSource sfx_audio_source = null;
@@ -70,11 +69,13 @@ public class Player2Controller : MonoBehaviour {
 	float walk_sfx_volume;
 	float walk_sfx_volume_pos;
 
-
 	bool first_missile_fired = false;
 	float first_missile_fired_time = 0.0f;
 	bool second_missile_fired = false;
 	bool fade_out_triggered = false;
+
+	[System.NonSerialized] public ParticleSystem ash_particles = null;
+	[System.NonSerialized] public ParticleSystem dust_particles = null;
 
 	[RPC]
 	public void missile_fired(Vector3 position, Vector3 direction, float time) {
@@ -127,6 +128,10 @@ public class Player2Controller : MonoBehaviour {
 			}
 
 			Environment.play_screams(game_manager.env);
+
+			dust_particles.Stop();
+			dust_particles.Clear();
+			ash_particles.Play();
 		}
 
 		if(!in_blast_radius) {
@@ -198,10 +203,18 @@ public class Player2Controller : MonoBehaviour {
 			}
 		}
 
-		Environment.stop_screams(game_manager.env);
+		Environment env = game_manager.env;
+		Environment.stop_screams(env);
+		for(int i = 0; i < env.npcs.Length; i++) {
+			NpcController.on_explosion(game_manager, env.npcs[i], env.target_point, hit_pos);
+		}
 
 		user_has_control = false;
 		camera_fade.alpha = 1.0f;
+
+		renderer_.enabled = false;
+		ash_particles.Stop();
+		ash_particles.Clear();
 
 		yield return Util.wait_for_2s;
 
@@ -243,6 +256,8 @@ public class Player2Controller : MonoBehaviour {
 	}
 
 	IEnumerator fade_in_and_start() {
+		dust_particles.Play();
+
 		if(Settings.USE_TRANSITIONS) {
 			camera_fade.alpha = 1.0f;
 
@@ -307,19 +322,17 @@ public class Player2Controller : MonoBehaviour {
 		ending_speed = 1.0f;
 
 		mesh = transform.Find("Mesh");
-		mesh_renderer = mesh.GetComponent<Renderer>();
 		mesh_radius = mesh.localScale.y * 0.5f;
 
 		anim = mesh.Find("Animation").GetComponent<Animation>();
-		anim_renderer = GetComponentInChildren<SkinnedMeshRenderer>();
-
-		renderer_ = anim_renderer;
+		renderer_ = GetComponentInChildren<SkinnedMeshRenderer>();
 		collider_ = mesh.GetComponent<Collider>();
 
 		string material_id = Environment.get_pov_material_id(game_manager.env.pov);
-		Material material = (Material)Resources.Load("other_" + material_id + "_mat");
-		mesh_renderer.material = material;
-		anim_renderer.material = material;
+		renderer_.material = (Material)Resources.Load("other_" + material_id + "_mat");
+
+		ash_particles = mesh.Find("AshParticleSystem").GetComponent<ParticleSystem>();
+		dust_particles = mesh.Find("DustParticleSystem").GetComponent<ParticleSystem>();
 
 		network_view = GetComponent<NetworkView>();
 		bool is_local_inst = network_view.isMine || (game_manager.connection_type == ConnectionType.OFFLINE);

@@ -3,6 +3,14 @@ using UnityEngine;
 using System.Collections;
 
 public class Player2Controller : MonoBehaviour {
+	public class ControlsHint {
+		public GameObject go;
+		public TextMesh text_mesh;
+		public Renderer renderer;
+		public string text;
+		public bool hidden;
+	}
+
 	GameManager game_manager = null;
 
 	[System.NonSerialized] public Renderer renderer_;
@@ -14,22 +22,24 @@ public class Player2Controller : MonoBehaviour {
 	[System.NonSerialized] public float speed;
 	[System.NonSerialized] public float max_velocity_change = 0.9f;
 
-	// float jump_speed = 14.0f;
 	float jump_speed = 12.0f;
 	float angular_speed = 4.0f;
 	float max_angular_speed = 15.0f;
 
-	bool user_has_control = false;
+	public static int HAS_LOOKED = 0x1;
+	public static int HAS_LOOKED_UP = 0x2;
+	public static int HAS_MOVED = 0x4;
+	public static int HAS_JUMPED = 0x8;
+	public static int CAN_LOOK = 0x10;
+	public static int CAN_MOVE = 0x20;
+	public static int CAN_JUMP = 0x40;
+	int control_flags = 0;
+
 	bool jump_key = false;
-
-	bool has_moved = false;
-	bool has_looked = false;
-	bool has_jumped = false;
-
-	bool can_look = false;
-	bool can_jump = true;
-
 	bool on_ground = true;
+	float look_time = 0.0f;
+
+	[System.NonSerialized] public ControlsHint hint = null;
 
 	Transform transform_ref = null;
 	Transform transform_ref_ = null;
@@ -39,7 +49,6 @@ public class Player2Controller : MonoBehaviour {
 	[System.NonSerialized] public UnityStandardAssets.ImageEffects.MotionBlur camera_blur_effect;
 	[System.NonSerialized] public ColorGradingImageEffect camera_grading_effect;
 
-	Quaternion camera_rotation = Quaternion.identity;
 	float camera_dist;
 	float camera_theta;
 	bool camera_looking_up;
@@ -53,9 +62,7 @@ public class Player2Controller : MonoBehaviour {
 
 		COUNT,
 	};
-
 	[System.NonSerialized] public CameraType camera_type;
-	[System.NonSerialized] public float ending_speed;
 
 	Transform mesh;
 	[System.NonSerialized] public float mesh_radius = 1.0f;
@@ -114,10 +121,7 @@ public class Player2Controller : MonoBehaviour {
 		bool in_blast_radius = (Vector3.Distance(hit_pos, mesh.position) < (Environment.EXPLOSION_RADIUS + mesh_radius));
 		speed = default_speed * 0.5f;
 
-		has_moved = true;
-		has_looked = true;
-		has_jumped = true;
-		can_jump = false;
+		control_flags &= ~CAN_JUMP;
 
 		if(!in_blast_radius && Settings.USE_DEATH_VIEW) {
 			Environment.play_explosion(game_manager, this, game_manager.env, hit_pos);
@@ -209,7 +213,7 @@ public class Player2Controller : MonoBehaviour {
 			NpcController.on_explosion(game_manager, env.npcs[i], env.target_point, hit_pos);
 		}
 
-		user_has_control = false;
+		control_flags = 0;
 		camera_fade.alpha = 1.0f;
 
 		renderer_.enabled = false;
@@ -240,7 +244,7 @@ public class Player2Controller : MonoBehaviour {
 
 		yield return StartCoroutine(GameManager.set_world_brightness(game_manager, 1.0f, 0.0f, 5.0f));
 
-		user_has_control = false;
+		control_flags &= ~(CAN_LOOK | CAN_MOVE | CAN_JUMP);
 		GameManager.set_world_brightness_(game_manager, 0.0f);
 
 		StartCoroutine(Util.lerp_audio_volume(audio_sources[0], 1.0f, 0.0f, 2.0f));
@@ -255,34 +259,96 @@ public class Player2Controller : MonoBehaviour {
 		yield return null;
 	}
 
-	IEnumerator fade_in_and_start() {
-		dust_particles.Play();
+	IEnumerator fade_in_hint_str(ControlsHint hint, string str) {
+		float fade = 1.0f;
+		float r_fade = 1.0f / fade;
 
+		float t = 0.0f;
+		while(t < 1.0f) {
+			float a = t * t;
+			string a_hex = ((int)(a * 255.0f)).ToString("X2");
+
+			hint.text_mesh.text = hint.text + "<color=#FFFFFF" + a_hex + ">" + str + "</color>";
+
+			t += Time.deltaTime * r_fade;
+			yield return Util.wait_for_frame;
+		}
+
+		hint.text += str;
+		hint.text_mesh.text = hint.text;
+	}
+
+	IEnumerator fade_in_and_start() {
 		if(Settings.USE_TRANSITIONS) {
 			camera_fade.alpha = 1.0f;
 
 			yield return StartCoroutine(Util.lerp_audio_volume(audio_sources[1], 0.0f, 1.0f, 3.0f));
 			StartCoroutine(Util.lerp_audio_volume(audio_sources[0], 0.0f, 1.0f, 2.0f));
 
-			user_has_control = true;
+			control_flags |= CAN_LOOK;
+			if(!first_missile_fired) {
+				control_flags |= CAN_JUMP;
+			}
 			speed = 0.0f;
-			can_jump = false;
-			can_look = false;
 
 			GameManager.set_world_brightness_(game_manager, 0.0f);
 			yield return StartCoroutine(FadeImageEffect.lerp_alpha(camera_fade, 0.0f, 2.0f));
 
 			speed = default_speed;
-			can_jump = true;
-			can_look = true;
+
+			GameObject hint_prefab = game_manager.env.transform.Find("Controls").gameObject;
+
+			hint = new ControlsHint();
+			hint.go = (GameObject)Object.Instantiate(hint_prefab, hint_prefab.transform.position, hint_prefab.transform.rotation);
+			hint.go.SetActive(true);
+			hint.renderer = hint.go.GetComponent<Renderer>();
+			hint.text_mesh = hint.go.GetComponent<TextMesh>();
+			hint.text_mesh.text = hint.text = "";
+			hint.hidden = false;
 
 			yield return StartCoroutine(GameManager.set_world_brightness(game_manager, 0.0f, 1.0f, 2.0f));
+			dust_particles.Play();
+
+			yield return StartCoroutine(fade_in_hint_str(hint, "WAZIRISTAN, PAKISTAN\n"));
+
+			yield return StartCoroutine(fade_in_hint_str(hint, "LOOK: MOUSE\n"));
+			while((control_flags & HAS_LOOKED) == 0) {
+				yield return Util.wait_for_frame;
+			}
+
+			yield return StartCoroutine(fade_in_hint_str(hint, "LOOK UP: LEFT CLICK & HOLD\n"));
+			while((control_flags & HAS_LOOKED_UP) == 0) {
+				yield return Util.wait_for_frame;
+			}
+
+			yield return StartCoroutine(fade_in_hint_str(hint, "JUMP: SPACE\n"));
+			while(!first_missile_fired && (control_flags & HAS_JUMPED) == 0) {
+				yield return Util.wait_for_frame;
+			}
+
+			control_flags |= CAN_MOVE;
+
+			yield return StartCoroutine(fade_in_hint_str(hint, "MOVE: W\n"));
+			while((control_flags & HAS_MOVED) != 0) {
+				yield return Util.wait_for_frame;
+			}
+
+			float t = 0.0f;
+			while(t < 1.0f) {
+				float a = 1.0f - t * t;
+				hint.text_mesh.color = Util.new_color(Util.white, a);
+
+				t += Time.deltaTime;
+				yield return Util.wait_for_frame;
+			}
+			hint.go.SetActive(false);
 		}
 		else {
-			user_has_control = true;
+			control_flags |= CAN_LOOK | CAN_MOVE | CAN_JUMP;
 			yield return StartCoroutine(Util.lerp_audio_volume(audio_sources[1], 0.0f, 1.0f, 3.0f));
 			StartCoroutine(Util.lerp_audio_volume(audio_sources[0], 0.0f, 1.0f, 2.0f));
 			camera_fade.alpha = 0.0f;
+			dust_particles.Play();
 		}
 
 		yield return null;
@@ -291,6 +357,9 @@ public class Player2Controller : MonoBehaviour {
 	public static void destroy(Player2Controller player2) {
 		Destroy(player2.camera_ref.gameObject);
 		Network.Destroy(player2.gameObject);
+		if(player2.hint != null) {
+			Destroy(player2.hint.go);
+		}
 	}
 
 	public void set_walk_sfx_volume(float volume) {
@@ -312,14 +381,12 @@ public class Player2Controller : MonoBehaviour {
 		camera_blur_effect = camera_.GetComponent<UnityStandardAssets.ImageEffects.MotionBlur>();
 		camera_grading_effect = camera_.GetComponent<ColorGradingImageEffect>();
 
-		camera_rotation = camera_.transform.localRotation;
 		camera_dist = camera_.transform.localPosition.magnitude;
 		camera_theta = camera_.transform.localRotation.eulerAngles.x;
 		camera_looking_up = false;
 		camera_fade = camera_.GetComponent<FadeImageEffect>();
 
 		camera_type = CameraType.ALIVE;
-		ending_speed = 1.0f;
 
 		mesh = transform.Find("Mesh");
 		mesh_radius = mesh.localScale.y * 0.5f;
@@ -330,9 +397,6 @@ public class Player2Controller : MonoBehaviour {
 
 		string material_id = Environment.get_pov_material_id(game_manager.env.pov);
 		renderer_.material = (Material)Resources.Load("other_" + material_id + "_mat");
-
-		ash_particles = mesh.Find("AshParticleSystem").GetComponent<ParticleSystem>();
-		dust_particles = mesh.Find("DustParticleSystem").GetComponent<ParticleSystem>();
 
 		network_view = GetComponent<NetworkView>();
 		bool is_local_inst = network_view.isMine || (game_manager.connection_type == ConnectionType.OFFLINE);
@@ -389,6 +453,9 @@ public class Player2Controller : MonoBehaviour {
 			walk_sfx_volume = 0.0f;
 			walk_sfx_volume_pos = 0.0f;
 
+			ash_particles = mesh.Find("AshParticleSystem").GetComponent<ParticleSystem>();
+			dust_particles = mesh.Find("DustParticleSystem").GetComponent<ParticleSystem>();
+
 			StartCoroutine(fade_in_and_start());
 		}
 		else {
@@ -397,19 +464,6 @@ public class Player2Controller : MonoBehaviour {
 	}
 
 	void Update() {
-#if UNITY_EDITOR
-		if(game_manager.get_key_down(KeyCode.Alpha4)) {
-			camera_type = CameraType.ENDING;
-			camera_ref.position = game_manager.env.target_point.pos + Vector3.up * mesh_radius;
-			user_has_control = false;
-		}
-
-		if(game_manager.get_key_down(KeyCode.Alpha5)) {
-			camera_type = CameraType.ALIVE;
-			user_has_control = true;
-		}
-#endif
-
 		walk_sfx_volume_pos += Time.deltaTime / 0.1f;
 		walk_sfx_source.volume = Mathf.Lerp(walk_sfx_source.volume, walk_sfx_volume, walk_sfx_volume_pos);
 
@@ -430,7 +484,7 @@ public class Player2Controller : MonoBehaviour {
 				bool auto_fire = game_manager.total_playing_time > time_until_auto_fire;
 #if UNITY_EDITOR
 				auto_fire = false;
-				if(game_manager.get_key_down(KeyCode.Alpha2)) {
+				if(game_manager.get_key_down(KeyCode.Alpha1)) {
 					auto_fire = true;
 				}
 #endif
@@ -459,7 +513,6 @@ public class Player2Controller : MonoBehaviour {
 					}
 				}
 
-				//TODO: Tweak this!!
 				float max_playing_time = 240.0f;
 				if(connected_playing_time > max_playing_time) {
 					fade_out_triggered = true;
@@ -471,25 +524,18 @@ public class Player2Controller : MonoBehaviour {
 		float mouse_x = 0.0f;
 		float mouse_y = 0.0f;
 
-		if(user_has_control) {
+		if((control_flags & CAN_LOOK) != 0) {
 			mouse_x = game_manager.get_axis("Mouse X");
 			mouse_y = game_manager.get_axis("Mouse Y");
 
-			if(mouse_x == 0.0f) {
-				// mouse_x = game_manager.get_axis("RightStickX");
-			}
-
 			if(mouse_x != 0.0f || mouse_y != 0.0f) {
-				has_looked = true;
+				look_time += Time.deltaTime;
+				if(look_time > 0.1f) {
+					control_flags |= HAS_LOOKED;
+				}
 			}
 
 			camera_looking_up = game_manager.get_key(KeyCode.Mouse0);
-			// if(game_manager.get_key_down(KeyCode.Mouse0)) {
-			// 	camera_looking_up = !camera_looking_up;
-			// }
-		}
-		else {
-			// camera_looking_up = false;
 		}
 
 		float rotation_y = Mathf.Clamp(mouse_x * angular_speed, -max_angular_speed, max_angular_speed);
@@ -502,25 +548,26 @@ public class Player2Controller : MonoBehaviour {
 				camera_ref.position = transform.position + Vector3.up * mesh_radius;
 				camera_ref.rotation = Quaternion.Slerp(camera_ref.rotation, transform_ref_.rotation, slerp_t);
 
-				// float rotation_x = Mathf.Clamp(mouse_y * angular_speed, -max_angular_speed, max_angular_speed) * 0.5f;
 				float rotation_x = angular_speed;
 				if(camera_looking_up) {
 					rotation_x *= -1.0f;
 				}
 
 				float min_theta = -30.0f;
-				// float max_theta = 30.0f;
 				float max_theta = 15.0f;
 
-				camera_theta += rotation_x;
-				camera_theta = Mathf.Clamp(camera_theta, min_theta, max_theta);
-
-				camera_rotation = Quaternion.Euler(camera_theta, 0.0f, 0.0f);
-				camera_.transform.localRotation = Quaternion.Slerp(camera_.transform.localRotation, camera_rotation, slerp_t);
+				camera_theta = Mathf.Clamp(camera_theta + rotation_x, min_theta, max_theta);
+				camera_.transform.localRotation = Quaternion.Slerp(camera_.transform.localRotation, Quaternion.Euler(camera_theta, 0.0f, 0.0f), slerp_t);
 
 				float smooth_theta = camera_.transform.localRotation.eulerAngles.x;
 				if(smooth_theta > 180.0f) {
 					smooth_theta -= 360.0f;
+				}
+
+				if(camera_looking_up) {
+					if(smooth_theta < Mathf.Lerp(max_theta, min_theta, 0.9f)) {
+						control_flags |= HAS_LOOKED_UP;
+					}
 				}
 
 				Vector3 camera_offset = -camera_.transform.forward * camera_dist;
@@ -577,33 +624,26 @@ public class Player2Controller : MonoBehaviour {
 			}
 		}
 
-		if(user_has_control) {
-			float min_ground_distance = 0.01f;
+		float min_ground_distance = 0.01f;
 
-			RaycastHit hit_info_;
-			if(Physics.SphereCast(mesh.position + Vector3.up * min_ground_distance, mesh_radius, -mesh.up, out hit_info_, min_ground_distance * 2.0f)) {
-				transform_ref.rotation = transform_ref_.rotation;
-				mesh.rotation = transform_ref.rotation;
+		RaycastHit hit_info_;
+		if(Physics.SphereCast(mesh.position + Vector3.up * min_ground_distance, mesh_radius, -mesh.up, out hit_info_, min_ground_distance * 2.0f)) {
+			transform_ref.rotation = transform_ref_.rotation;
+			mesh.rotation = transform_ref.rotation;
 
-				if(can_jump) {
-					// if(game_manager.get_key_down(KeyCode.Space) || game_manager.get_key_down(KeyCode.JoystickButton1)) {
-					if(game_manager.get_key_down(KeyCode.Space)) {
-						jump_key = true;
-						has_jumped = true;
-					}
+			if((control_flags & CAN_JUMP) != 0) {
+				if(game_manager.get_key_down(KeyCode.Space)) {
+					jump_key = true;
+					control_flags |= HAS_JUMPED;
 				}
 			}
-		}
-
-		if(has_moved && has_looked && has_jumped) {
-			Environment.hide_controls_hint(game_manager, game_manager.env);
 		}
 	}
 
 	void FixedUpdate() {
 		Vector3 acceleration = Vector3.zero;
 
-		// if(user_has_control) {
+		if(!camera_looking_up && (control_flags & CAN_MOVE) != 0) {
 			if(game_manager.get_key(KeyCode.W)) {
 				acceleration += Vector3.forward;
 			}
@@ -621,13 +661,7 @@ public class Player2Controller : MonoBehaviour {
 			}
 
 			acceleration = acceleration.normalized;
-
-			// Vector2 left_stick = new Vector2(game_manager.get_axis("LeftStickX"), -game_manager.get_axis("LeftStickY"));
-			Vector2 left_stick = Vector2.zero;
-
-			acceleration.x += left_stick.x;
-			acceleration.z += left_stick.y;
-		// }
+		}
 
 		float min_ground_distance = 0.01f;
 
@@ -648,19 +682,15 @@ public class Player2Controller : MonoBehaviour {
 		}
 
 		if(on_ground) {
-			if(camera_looking_up || acceleration == Vector3.zero || !user_has_control) {
+			if(acceleration == Vector3.zero) {
 				anim.CrossFade("idle");
 				set_walk_sfx_volume(0.0f);
 			}
 			else {
-				has_moved = true;
+				control_flags |= HAS_MOVED;
 				anim.CrossFade("walk");
 				set_walk_sfx_volume(camera_.gameObject.activeSelf ? 1.0f : 0.0f);
 			}
-		}
-
-		if(!user_has_control || camera_looking_up) {
-			acceleration = Vector3.zero;
 		}
 
 		Vector3 velocity = transform_ref.TransformDirection(acceleration) * speed;
@@ -671,7 +701,7 @@ public class Player2Controller : MonoBehaviour {
 
 		rigidbody_.AddForce(velocity_change, ForceMode.VelocityChange);
 
-		if(user_has_control && !camera_looking_up && jump_key) {
+		if(!camera_looking_up && jump_key) {
 			rigidbody_.velocity += transform.up * jump_speed;
 			anim.CrossFade("jump");
 			set_walk_sfx_volume(0.0f);

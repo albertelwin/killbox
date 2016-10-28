@@ -9,10 +9,11 @@ Shader "Custom/VideoFilterImageEffect" {
 	SubShader {
 		Pass {
 		ZTest Always Cull Off ZWrite Off
-				
+
 		CGPROGRAM
 		#pragma vertex vert_img
 		#pragma fragment frag
+		// #pragma target 3.0
 		#include "UnityCG.cginc"
 
 		uniform sampler2D _MainTex;
@@ -123,7 +124,7 @@ Shader "Custom/VideoFilterImageEffect" {
 			float wa = scan(pos,-1.0);
 			float wb = scan(pos, 0.0);
 			float wc = scan(pos, 1.0);
-			
+
 			return a * wa + b * wb + c * wc;
 		}
 

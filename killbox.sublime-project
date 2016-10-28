@@ -2,20 +2,27 @@
 	"folders":
 	[
 		{
-			"path": "Assets\\Scripts",
-			"file_exclude_patterns":
-			[
+			"path": "Assets",
+			"file_exclude_patterns": [
 				"*.dll",
-				"*.meta"
-			]
-		},
-		{
-			"path": "Assets\\Editor",
-			"file_exclude_patterns":
-			[
-				"*.dll",
-				"*.meta"
-			]
+				"*.meta",
+				"*.mat",
+				"*.asset",
+				"*.prefab",
+				"*.unity",
+				"*.png",
+				"*.jpg",
+				"*.jpeg",
+				"*.gif",
+				"*.ogv",
+				"*.mov",
+				"*.ogg",
+				"*.wav",
+				"*.mp3",
+				"*.obj",
+				"*.fbx",
+				"*.dae",
+			],
 		}
-	]
+	],
 }

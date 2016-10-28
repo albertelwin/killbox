@@ -163,6 +163,12 @@ public static class Player1Util {
 		return input.str.Substring(2, input.str.Length - 4);
 	}
 
+	public static void parser_assert(Parser parser, int at, string name, bool expr) {
+		if(!expr) {
+			Debug.LogError("ERROR[" + name + "]: KIL(" + parser.str.Substring(at));
+		}
+	}
+
 	public static int parse_script(Player1Console.CmdBuf cmd_buf, string script_path) {
 		TextAsset script_asset = (TextAsset)Resources.Load(script_path);
 
@@ -217,8 +223,8 @@ public static class Player1Util {
 						}
 
 						case "go_to": {
-							Assert.is_true(cmd.input_count == 2);
-							Assert.is_true(cmd.inputs[1].type == ParsedCmdInputType.STR);
+							parser_assert(passage_parser, cmd_start, passage_name, cmd.input_count == 2);
+							parser_assert(passage_parser, cmd_start, passage_name, cmd.inputs[1].type == ParsedCmdInputType.STR);
 
 							Player1Console.push_go_to_cmd(cmd_buf, get_cmd_input_branch(cmd.inputs[1]));
 
@@ -226,8 +232,8 @@ public static class Player1Util {
 						}
 
 						case "wait": {
-							Assert.is_true(cmd.input_count == 2);
-							Assert.is_true(cmd.inputs[1].type == ParsedCmdInputType.NUM);
+							parser_assert(passage_parser, cmd_start, passage_name, cmd.input_count == 2);
+							parser_assert(passage_parser, cmd_start, passage_name, cmd.inputs[1].type == ParsedCmdInputType.NUM);
 
 							float wait_time = cmd.inputs[1].num;
 							if(wait_time > 0.0f) {
@@ -238,13 +244,13 @@ public static class Player1Util {
 						}
 
 						case "delay": {
-							Assert.is_true(cmd.input_count == 1);
+							parser_assert(passage_parser, cmd_start, passage_name, cmd.input_count == 1);
 							Player1Console.push_delay_cmd(cmd_buf);
 							break;
 						}
 
 						case "wait_key": {
-							Assert.is_true(cmd.input_count >= 2 && cmd.input_count <= 4);
+							parser_assert(passage_parser, cmd_start, passage_name, cmd.input_count >= 2 && cmd.input_count <= 4);
 
 							KeyCode key = get_cmd_input_key(cmd.inputs[1]);
 							string branch = cmd.input_count >= 3 ? get_cmd_input_branch(cmd.inputs[2]) : "";
@@ -257,7 +263,7 @@ public static class Player1Util {
 						}
 
 						case "log_in": {
-							Assert.is_true(cmd.input_count == 1);
+							parser_assert(passage_parser, cmd_start, passage_name, cmd.input_count == 1);
 
 							Player1Console.push_print_str_cmd(cmd_buf, "USERNAME: ");
 							Player1Console.push_user_str_cmd(cmd_buf, Player1Console.UserStrId.USERNAME, 16);
@@ -270,7 +276,7 @@ public static class Player1Util {
 						}
 
 						case "chatter": {
-							Assert.is_true(cmd.input_count == 1);
+							parser_assert(passage_parser, cmd_start, passage_name, cmd.input_count == 1);
 
 							Player1Console.push_cmd(cmd_buf, Player1Console.CmdType.CHATTER);
 
@@ -278,35 +284,38 @@ public static class Player1Util {
 						}
 
 						case "log_off": {
-							Assert.is_true(cmd.input_count == 1);
+							parser_assert(passage_parser, cmd_start, passage_name, cmd.input_count == 1);
 							Player1Console.push_cmd(cmd_buf, Player1Console.CmdType.LOG_OFF);
 							break;
 						}
 
 						case "display_on": {
-							Assert.is_true(cmd.input_count == 1);
+							parser_assert(passage_parser, cmd_start, passage_name, cmd.input_count == 1);
 							Player1Console.push_cmd(cmd_buf, Player1Console.CmdType.SWITCH_ON_DISPLAY);
 							break;
 						}
 
 						case "display_off": {
-							Assert.is_true(cmd.input_count == 1);
+							parser_assert(passage_parser, cmd_start, passage_name, cmd.input_count == 1);
 							Player1Console.push_cmd(cmd_buf, Player1Console.CmdType.SWITCH_OFF_DISPLAY);
 							break;
 						}
 
 						case "tutorial": {
-							Assert.is_true(cmd.input_count == 1);
+							parser_assert(passage_parser, cmd_start, passage_name, cmd.input_count == 1);
 
 							float look_time = 2.5f;
 							float zoom_time = 2.0f;
 
-							Player1Console.push_tutorial_key_cmd(cmd_buf, "CAM ROTATE LEFT: HOLD [ A ]", Player1Controller.ControlType.LOOK_LEFT, look_time, 0);
-							Player1Console.push_tutorial_key_cmd(cmd_buf, "CAM ROTATE RIGHT: HOLD [ D ]", Player1Controller.ControlType.LOOK_RIGHT, look_time, 1);
-							Player1Console.push_tutorial_key_cmd(cmd_buf, "CAM ROTATE UP: HOLD [ W ]", Player1Controller.ControlType.LOOK_UP, look_time, 2);
-							Player1Console.push_tutorial_key_cmd(cmd_buf, "CAM ROTATE DOWN: HOLD [ S ]", Player1Controller.ControlType.LOOK_DOWN, look_time, 3);
-							Player1Console.push_tutorial_key_cmd(cmd_buf, "CAM ZOOM IN: HOLD [ J ]", Player1Controller.ControlType.ZOOM_IN, zoom_time, 4);
-							Player1Console.push_tutorial_key_cmd(cmd_buf, "CAM ZOOM OUT: HOLD [ K ]", Player1Controller.ControlType.ZOOM_OUT, zoom_time, 5);
+							Player1Console.push_tutorial_key_cmd(cmd_buf, "CAM ROTATE LEFT: HOLD [ A ]", Player1Controller.ControlType.LOOK_LEFT, look_time);
+							Player1Console.push_tutorial_key_cmd(cmd_buf, "CAM ROTATE RIGHT: HOLD [ D ]", Player1Controller.ControlType.LOOK_RIGHT, look_time);
+							Player1Console.push_tutorial_key_cmd(cmd_buf, "CAM ROTATE UP: HOLD [ W ]", Player1Controller.ControlType.LOOK_UP, look_time);
+							Player1Console.push_tutorial_key_cmd(cmd_buf, "CAM ROTATE DOWN: HOLD [ S ]", Player1Controller.ControlType.LOOK_DOWN, look_time);
+							Player1Console.push_tutorial_key_cmd(cmd_buf, "CAM ZOOM IN: HOLD [ J ]", Player1Controller.ControlType.ZOOM_IN, zoom_time);
+							Player1Console.push_tutorial_key_cmd(cmd_buf, "CAM ZOOM OUT: HOLD [ K ]", Player1Controller.ControlType.ZOOM_OUT, zoom_time);
+
+							Player1Console.push_tutorial_key_cmd(cmd_buf, "IR MODE ON: PRESS [ R ]", Player1Controller.ControlType.TOGGLE_INFRARED, 0.0f, true);
+							Player1Console.push_tutorial_key_cmd(cmd_buf, "IR MODE OFF: PRESS [ R ]", Player1Controller.ControlType.TOGGLE_INFRARED, 0.0f, false);
 
 							Player1Console.push_cmd(cmd_buf, Player1Console.CmdType.ENABLE_CONTROLS);
 
@@ -314,25 +323,25 @@ public static class Player1Util {
 						}
 
 						case "acquire": {
-							Assert.is_true(cmd.input_count == 1);
+							parser_assert(passage_parser, cmd_start, passage_name, cmd.input_count == 1);
 							Player1Console.push_cmd(cmd_buf, Player1Console.CmdType.ACQUIRE_TARGET);
 							break;
 						}
 
 						case "lock": {
-							Assert.is_true(cmd.input_count == 1);
+							parser_assert(passage_parser, cmd_start, passage_name, cmd.input_count == 1);
 							Player1Console.push_cmd(cmd_buf, Player1Console.CmdType.LOCK_TARGET);
 							break;
 						}
 
 						case "fire": {
-							Assert.is_true(cmd.input_count == 1);
+							parser_assert(passage_parser, cmd_start, passage_name, cmd.input_count == 1);
 							Player1Console.push_fire_missile_cmd(cmd_buf);
 							break;
 						}
 
 						case "death_count": {
-							Assert.is_true(cmd.input_count == 1);
+							parser_assert(passage_parser, cmd_start, passage_name, cmd.input_count == 1);
 
 							Player1Console.push_print_str_cmd(cmd_buf, "\nENTER NUMBER OF TARGETS NEUTRALISED: ");
 							Player1Console.push_confirm_deaths_cmd(cmd_buf);
@@ -357,7 +366,7 @@ public static class Player1Util {
 				}
 
 				if(passage_parser.at < passage_parser.len) {
-					Assert.is_true(is_new_line(passage_parser.str[passage_parser.at]));
+					parser_assert(passage_parser, cmd_start, passage_name, is_new_line(passage_parser.str[passage_parser.at]));
 					passage_parser.at++;
 				}
 
@@ -681,15 +690,28 @@ public class Player1Console {
 		push_wait_cmd(cmd_buf, duration, true);
 	}
 
-	public static void push_tutorial_key_cmd(CmdBuf cmd_buf, string str, Player1Controller.ControlType control_type, float duration, int id) {
+	public static void push_tutorial_key_cmd(CmdBuf cmd_buf, string str, Player1Controller.ControlType control_type, float duration, bool enabled = false) {
 		push_print_str_cmd(cmd_buf, str);
 
-		Cmd cmd = push_cmd(cmd_buf, CmdType.TUTORIAL_KEY);
-		cmd.control_type = control_type;
-		cmd.duration = duration;
-		cmd.num = id;
+		if(control_type == Player1Controller.ControlType.TOGGLE_INFRARED) {
+			push_print_str_cmd(cmd_buf, "\n");
+			push_wait_key_cmd(cmd_buf, KeyCode.R);
 
-		push_delay_cmd(cmd_buf, "\n");
+			Cmd cmd = Player1Console.push_cmd(cmd_buf, Player1Console.CmdType.ENABLE_CONTROLS);
+			cmd.control_type = Player1Controller.ControlType.TOGGLE_INFRARED;
+			cmd.num = enabled ? 1 : 0;
+
+			push_delay_cmd(cmd_buf);
+			push_print_str_cmd(cmd_buf, "\n");
+		}
+		else {
+			Cmd cmd = push_cmd(cmd_buf, CmdType.TUTORIAL_KEY);
+			cmd.control_type = control_type;
+			cmd.duration = duration;
+
+			push_delay_cmd(cmd_buf, "\n");
+		}
+
 	}
 
 	public static void push_fire_missile_cmd(CmdBuf cmd_buf) {
@@ -1111,14 +1133,6 @@ public class Player1Console {
 						control.enabled = true;
 
 						if(inst.current_cmd_first_pass) {
-							// Item tail = get_tail_item(inst);
-							// if(tail.type == ItemType.TEXT_MESH) {
-							// 	tail.text_mesh.text = "";
-							// }
-
-							// inst.current_cmd_item = push_loading_bar(inst);
-							// push_text_mesh(inst, "");
-
 							Item tail = get_tail_item(inst);
 							if(tail.type == ItemType.TEXT_MESH) {
 								tail.text_mesh.text = inst.str_builder.ToString();
@@ -1145,8 +1159,6 @@ public class Player1Console {
 							}
 
 							inst.current_cmd_time = new_time;
-
-							// set_loading_bar_progress(inst.current_cmd_item, inst.current_cmd_time / cmd.duration);
 
 							if(inst.current_cmd_time >= cmd.duration) {
 								inst.str_builder.Append("\n");
@@ -1176,8 +1188,16 @@ public class Player1Console {
 					}
 
 					case CmdType.ENABLE_CONTROLS: {
-						for(int i = 0; i < player1.controls.Length; i++) {
-							player1.controls[i].enabled = true;
+						if(cmd.control_type == Player1Controller.ControlType.COUNT) {
+							for(int i = 0; i < player1.controls.Length; i++) {
+								player1.controls[i].enabled = true;
+							}
+						}
+						else {
+							if(cmd.control_type == Player1Controller.ControlType.TOGGLE_INFRARED) {
+								Player1Controller.set_infrared_mode(player1, cmd.num > 0 ? true : false);
+								time_left = 0.0f;
+							}
 						}
 
 						done = true;
@@ -1544,6 +1564,16 @@ public class Player1Controller : MonoBehaviour {
 		Network.Destroy(player.gameObject);
 	}
 
+	public static void set_infrared_mode(Player1Controller player1, bool enabled) {
+		GameManager.set_infrared_mode(enabled);
+
+		player1.infrared_mode = enabled;
+		Color ui_color = enabled ? Util.green : Util.white;
+		for(int i = 0; i < player1.ui_text_meshes.Length; i++) {
+			player1.ui_text_meshes[i].color = ui_color;
+		}
+	}
+
 	void Start() {
 		camera_aa = main_camera.GetComponent<UnityStandardAssets.ImageEffects.Antialiasing>();
 		camera_aa.enabled = true;
@@ -1770,18 +1800,10 @@ public class Player1Controller : MonoBehaviour {
 			camera_zoom += Time.deltaTime * zoom_speed;
 		}
 
-#if UNITY_EDITOR
 		Control toggle_infrared = controls[(int)ControlType.TOGGLE_INFRARED];
 		if(toggle_infrared.enabled && game_manager.get_key_down(toggle_infrared.key)) {
-			infrared_mode = !infrared_mode;
-			GameManager.set_infrared_mode(infrared_mode);
-
-			Color ui_color = infrared_mode ? Util.green : Util.white;
-			for(int i = 0; i < ui_text_meshes.Length; i++) {
-				ui_text_meshes[i].color = ui_color;
-			}
+			set_infrared_mode(this, !infrared_mode);
 		}
-#endif
 
 		camera_xy.y = Mathf.Clamp(camera_xy.y, -45.0f, 20.0f);
 
@@ -1928,7 +1950,7 @@ public class Player1Controller : MonoBehaviour {
 		Vector3 missile_position = main_camera.transform.position - missile_direction * 4000.0f;
 		float missile_speed = Settings.USE_TRANSITIONS ? 100.0f : 1000.0f;
 		float missile_time = Mathf.Sqrt((2.0f * Vector3.Distance(missile_position, game_manager.env.target_point.pos)) / missile_speed);
-		Debug.Log(missile_time.ToString());
+		// Debug.Log(missile_time.ToString());
 
 		if(!Settings.LAN_MODE) {
 			if(!game_manager.connected_to_another_player()) {

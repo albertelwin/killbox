@@ -90,9 +90,6 @@ public class Environment {
 
 	public Crater crater;
 
-	public Renderer controls_hint;
-	public bool controls_hidden;
-
 	public PlayerType pov;
 
 	public static Environment new_inst(GameManager game_manager, Transform transform) {
@@ -217,9 +214,6 @@ public class Environment {
 			env.crater.after.gameObject.SetActive(false);
 		}
 
-		env.controls_hint = transform.Find("Controls").GetComponent<Renderer>();
-		env.controls_hidden = false;
-
 		return env;
 	}
 
@@ -290,10 +284,6 @@ public class Environment {
 			env.crater.before.gameObject.SetActive(true);
 			env.crater.after.gameObject.SetActive(false);
 		}
-
-		env.controls_hint.gameObject.SetActive(true);
-		env.controls_hint.material.color = Util.white;
-		env.controls_hidden = false;
 	}
 
 	public static void update_collectables(GameManager game_manager, Environment env) {
@@ -433,30 +423,6 @@ public class Environment {
 			cell.transform.localPosition = cell.initial_local_pos;
 			cell.transform.localRotation = Quaternion.Euler(270.0f, 0.0f, 0.0f);
 		}
-	}
-
-	public static void hide_controls_hint(GameManager game_manager, Environment env) {
-		if(!env.controls_hidden) {
-			env.controls_hidden = true;
-			game_manager.StartCoroutine(hide_controls_hint_(env.controls_hint));
-		}
-	}
-
-	public static IEnumerator hide_controls_hint_(Renderer hint) {
-		Color hint_color = hint.material.color;
-
-		float f = 0.5f;
-		float t = 0.0f;
-		while(t < 1.0f) {
-			float a = t * t;
-			Color color = new Color(hint_color.r, hint_color.g, hint_color.b, 1.0f - a);
-			hint.material.color = color;
-
-			t += Time.deltaTime * (1.0f / f);
-			yield return Util.wait_for_frame;
-		}
-
-		hint.gameObject.SetActive(false);
 	}
 
 	public static IEnumerator play_explosion_smoke(MonoBehaviour player, Renderer sphere) {

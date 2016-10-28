@@ -19,6 +19,7 @@ Shader "Custom/Water" {
                 #pragma multi_compile_fog
                 #pragma multi_compile_fwdbase
                 #pragma fragmentoption ARB_precision_hint_fastest
+                // #pragma target 4.0
 
                 #include "UnityCG.cginc"
                 #include "AutoLight.cginc"

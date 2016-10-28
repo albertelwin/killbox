@@ -5,15 +5,13 @@ DOING:
 
 TODO:
 	1 deaths confirmed
-	Clear smoke quicker
 	Optimise pilot view (clear -> render camera feeds -> render ui)
 	Camera clipping
-	Fix intrusive firewall pop-up
-	Log death count and session time
 	Dump password/kills/etc. to Google Drive
 	Load scene async
 
 DONE:
+	Log death count and session time
 	Bucket physics
 	Capsule colliders for adult npcs
 	Npc blood
@@ -217,9 +215,9 @@ public class GameManager : MonoBehaviour {
 
 		//TODO: Tidy this up somehow??
 		if(game_manager != null) {
-			if(game_manager.env.controls_hint != null) {
-				game_manager.env.controls_hint.GetComponent<Renderer>().material.color = Util.white * brightness;
-			}
+			// if(game_manager.env.controls_hint != null) {
+			// 	game_manager.env.controls_hint.renderer.material.color = Util.white * brightness;
+			// }
 
 			if(game_manager.player2_inst != null) {
 				game_manager.player2_inst.renderer_.material.SetFloat("_Brightness", 1.0f);
@@ -346,8 +344,7 @@ public class GameManager : MonoBehaviour {
 	}
 
 	public IEnumerator show_stats_(Camera camera) {
-		// bool show_info = persistent_player_type != PlayerType.NONE;
-		bool show_info = true;
+		bool show_info = persistent_player_type != PlayerType.NONE;
 		if(show_info) {
 			camera.gameObject.SetActive(false);
 
@@ -426,9 +423,6 @@ public class GameManager : MonoBehaviour {
 				for(int i = 0; i < env.collectables.Length; i++) {
 					Collectable.mark_as_used(env.collectables[i]);
 				}
-
-				env.controls_hint.gameObject.SetActive(false);
-				env.controls_hidden = true;
 
 				QualitySettings.shadowCascades = 0;
 				QualitySettings.shadowDistance = 400.0f;

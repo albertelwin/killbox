@@ -40,22 +40,29 @@ Category {
 				float4 vertex : SV_POSITION;
 				fixed4 color : COLOR;
 				float2 texcoord : TEXCOORD0;
-				UNITY_FOG_COORDS(1)
+				// UNITY_FOG_COORDS(1)
 			};
 
 			v2f vert(appdata_t v) {
 				v2f o;
 				o.vertex = mul(UNITY_MATRIX_MVP, v.vertex);
 				o.color = v.color;
+				if(_InfraredAmount > 0.0) {
+					o.color *= _Temperature;
+				}
+				else {
+					o.color *= _TintColor;
+				}
+				o.color *= 2.0;
 				o.color.rgb *= _Brightness;
 				o.texcoord = TRANSFORM_TEX(v.texcoord,_MainTex);
-				UNITY_TRANSFER_FOG(o,o.vertex);
+				// UNITY_TRANSFER_FOG(o,o.vertex);
 				return o;
 			}
 
 			fixed4 frag(v2f i) : SV_Target {
-				fixed4 col = 2.0f * i.color * lerp(_TintColor, _Temperature, _InfraredAmount) * tex2D(_MainTex, i.texcoord);
-				UNITY_APPLY_FOG(i.fogCoord, col);
+				fixed4 col = i.color * tex2D(_MainTex, i.texcoord);
+				// UNITY_APPLY_FOG(i.fogCoord, col);
 				return col;
 			}
 			ENDCG

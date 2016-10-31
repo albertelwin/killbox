@@ -329,7 +329,7 @@ public class Player2Controller : MonoBehaviour {
 			control_flags |= CAN_MOVE;
 
 			yield return StartCoroutine(fade_in_hint_str(hint, "MOVE: W\n"));
-			while((control_flags & HAS_MOVED) != 0) {
+			while((control_flags & HAS_MOVED) == 0) {
 				yield return Util.wait_for_frame;
 			}
 

@@ -39,8 +39,15 @@
 			}
 
 			fixed4 frag(v2f i) : SV_Target {
-				fixed4 col = float4(lerp(_Color.xyz, _Temperature.xyz, _InfraredAmount), _Color.a);
-				return col;
+				fixed4 color;
+				if(_InfraredAmount > 0.0) {
+					color.rgb = _Temperature.rgb;
+				}
+				else {
+					color.rgb = _Color.rgb;
+				}
+				color.a = _Color.a;
+				return color;
 			}
 
 			ENDCG

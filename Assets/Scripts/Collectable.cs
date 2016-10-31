@@ -53,4 +53,66 @@ public class Collectable {
 			}
 		}
 	}
+
+	public static void update_collectables(GameManager game_manager, Collectable[] collectables) {
+		Player2Controller player2 = game_manager.player2_inst;
+		if(player2 != null) {
+			Vector3 player_pos = player2.transform.position + Vector3.up * player2.mesh_radius;
+
+			float time = Time.time;
+			float dt = Time.deltaTime;
+
+			float radius = 0.25f;
+			float radius2 = radius * 2.0f;
+			float collision_dist = radius + player2.mesh_radius;
+			float collision_dist_sqr = collision_dist * collision_dist;
+
+			float cull_radius = 75.0f;
+			float cull_radius_sqr = cull_radius * cull_radius;
+
+			for(int i = 0; i < collectables.Length; i++) {
+				Collectable collectable = collectables[i];
+				if(!collectable.used && collectable.renderer.isVisible) {
+					Transform transform = collectable.transform;
+
+					Vector3 dir_to_player = player_pos - transform.position;
+					float player_dist_sqr = dir_to_player.x * dir_to_player.x + dir_to_player.y * dir_to_player.y + dir_to_player.z * dir_to_player.z;
+
+					if(player_dist_sqr < cull_radius_sqr) {
+						float x = transform.position.x;
+						float y = collectable.initial_pos.y + Mathf.Sin(time + collectable.rnd_offset) * 0.1f;
+						float z = transform.position.z;
+
+						if(player_dist_sqr < collision_dist_sqr) {
+							Collectable.mark_as_used(collectable, true);
+							collectable.audio_source.clip = Audio.get_random_clip(game_manager.audio, Audio.Clip.COLLECTABLE);
+							collectable.audio_source.Play();
+						}
+						else {
+							float dist = Mathf.Max(Mathf.Sqrt(player_dist_sqr) - 0.5f, 0.0f);
+							float max_dist = 5.0f;
+							float base_height = collectable.initial_pos.y - radius2;
+
+							if(dist < max_dist && base_height < player_pos.y) {
+								float distance_to_move = dt * (max_dist / dist);
+								if(distance_to_move > dist) {
+									distance_to_move = dist;
+								}
+
+								x += dir_to_player.x * distance_to_move;
+								z += dir_to_player.z * distance_to_move;
+							}
+							else {
+								float t = dt * 0.5f;
+								x = x * (1.0f - t) + collectable.initial_pos.x * t;
+								z = z * (1.0f - t) + collectable.initial_pos.z * t;
+							}
+						}
+
+						transform.position = new Vector3(x, y, z);
+					}
+				}
+			}
+		}
+	}
 }

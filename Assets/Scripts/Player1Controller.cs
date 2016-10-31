@@ -508,7 +508,6 @@ public class Player1Console {
 		public CmdType type;
 		public int index;
 		public int next_index;
-		public int next_index2;
 
 		public bool cursor_on;
 		public bool play_audio;
@@ -521,7 +520,6 @@ public class Player1Console {
 		public int num;
 
 		public string str;
-		public string str2;
 		public UserStrId str_id;
 		public int max_str_len;
 		public bool numeric_only;
@@ -596,7 +594,6 @@ public class Player1Console {
 		cmd.type = cmd_type;
 		cmd.index = cmd_buf.elem_count;
 		cmd.next_index = -1;
-		cmd.next_index2 = -1;
 
 		cmd.cursor_on = false;
 		cmd.play_audio = false;
@@ -609,7 +606,6 @@ public class Player1Console {
 		cmd.num = 0;
 
 		cmd.str = "";
-		cmd.str2 = "";
 		cmd.str_id = UserStrId.NONE;
 
 		cmd_buf.elems[cmd_buf.elem_count++] = cmd;
@@ -635,7 +631,6 @@ public class Player1Console {
 	}
 
 	public static Cmd push_print_str_cmd(CmdBuf cmd_buf, string str) {
-		//TODO: Extract html tags, we don't want to print them!!
 		Assert.is_true(str.Length > 0);
 
 		Cmd cmd = push_cmd(cmd_buf, CmdType.PRINT_STR);
@@ -711,7 +706,6 @@ public class Player1Console {
 
 			push_delay_cmd(cmd_buf, "\n");
 		}
-
 	}
 
 	public static void push_fire_missile_cmd(CmdBuf cmd_buf) {
@@ -723,12 +717,16 @@ public class Player1Console {
 	}
 
 	public static void push_confirm_deaths_cmd(CmdBuf cmd_buf) {
-		push_user_str_cmd(cmd_buf, UserStrId.DEATH_COUNT, 2, true, false, 10.0f);
+		Cmd cmd = push_user_str_cmd(cmd_buf, UserStrId.DEATH_COUNT, 2, true, false, 10.0f);
 
 		push_delay_cmd(cmd_buf);
 		push_print_str_cmd(cmd_buf, "\n");
 		push_print_str_cmd(cmd_buf, UserStrId.DEATH_COUNT);
-		push_print_str_cmd(cmd_buf, " DEATHS CONFIRMED\n\n");
+		push_print_str_cmd(cmd_buf, " ");
+		Cmd deaths_cmd = push_print_str_cmd(cmd_buf, "DEATHS");
+		push_print_str_cmd(cmd_buf, " CONFIRMED\n\n");
+
+		cmd.num = deaths_cmd.index;
 	}
 
 	public static Item get_item(Player1Console inst, int it) {
@@ -1031,6 +1029,9 @@ public class Player1Console {
 
 							if(str.Length > 0) {
 								Assert.is_true(cmd.str_id != UserStrId.NONE);
+								if(cmd.str_id == UserStrId.DEATH_COUNT && str.Equals("1")) {
+									inst.cmd_buf.elems[cmd.num].str = "DEATH";
+								}
 								inst.user_str_table[(int)cmd.str_id] = str;
 							}
 						}

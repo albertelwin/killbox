@@ -13,9 +13,7 @@
 
 <tw-storydata name="killbox_script 2" startnode="1" creator="Twine" creator-version="2.0.11" ifid="9728C063-616F-455B-83BA-EBAD6402EA78" format="Harlowe" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css">
 
-
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">
-
 
 </script><tw-passagedata pid="1" name="boot" tags="" position="678,258">KIL(wait, 4.0)
 
@@ -23,293 +21,198 @@ KIL(go_to, [[log_in]])</tw-passagedata>
 <tw-passagedata pid="2" name="log_in" tags="" position="645,686">KIL(log_in)
 
 USAF CREECH AIRBASE 432D
-NEVADA 36.35′32″ 115.40′00″
+NEV 36.35′32″ 115.40′00″
 J09NV0399
 KIL(delay)
 
-LINEVU:         JP.95.TS.D
-COGENT:        B/3/H0E
+LINEVU: JP.95.TS.D
+COGENT: B/3/H0E
 KIL(wait, 1.0)
-AGENTAREA:  6X9EU_5Y8.FN.TB6
-AGM:              2X AGM117-HELLFIRE
-SENSCOM:    OPR B8
+AGENTAREA: 6X9EU_5Y8.FN.TB6
+AGM117: 2XHF
+SENSCOM: OPR B8
 KIL(wait, 1.5)
-TELEM:          4Y0D9-KA-DSAT
-D-LINK:          NULL
+TELEM: 4Y0D9-KA-DSAT
+D-LINK: NULL
 KIL(wait, 1.0)
 
 KIL(go_to, [[locate]])</tw-passagedata>
-<tw-passagedata pid="3" name="locate" tags="" position="421,1103">LINK AVAILABLE: PRESS [ L ] TO CONNECT
+<tw-passagedata pid="3" name="locate" tags="" position="421,1103">D-LINK AVAILABLE: PRESS [ L ] TO LINK
 KIL(wait_key, L, [[search]], 5.0)
 KIL(delay)
 
 PRESS [ L ] FOR LINK
 KIL(wait_key, L, [[search]])</tw-passagedata>
-<tw-passagedata pid="4" name="search" tags="" position="728,1376">SEARCHING...
+<tw-passagedata pid="4" name="search" tags="" position="728,1376">
+SEARCHING...
 
-KIL(delay)
-UAV LOCATED:  WAZIRISTAN, PAKISTAN
-32.26.03.1&quot; 69.43.27.0&quot;
+KIL(wait, 2.0)
+UAV LOCATED: 32.26.03.1&quot; 69.43.27.0&quot;
+WAZIRISTAN, PAKISTAN
 KIL(wait, 1.0)
 
 D-LINK CONNECTING...
 
-KIL(wait, 1.6)
-UHF:      Y
-VHF:      Y
-CBND:   N
-KBND:   Y
-
-US COMSAT RR/909_DSAT US404
+KIL(wait, 2.0)
+UHF: Y
+VHF: Y
+CBND: N
+KBND: Y (US COMSAT RR/909_DSAT US404)
 KIL(delay)
 
 LINK ACTIVE: GAAS MQ-1A PREDATOR 6664-RPV_HFR
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
+KIL(chatter)
+KIL(wait, 1.5)
+
 SYSTEM CHECK...
 KIL(delay)
 
-ALT:             24,886.407
-SPEED:       192.057K
-EXT TEMP:  -30.05
-W DR:          37.N
-W SPEED:    2. 4
-TOT:             39H:26M
-DOF:            7616.8234M
-BEAR:          91.35
-ROUTE:        RAMSTEIN_DL
-KIL(wait, 0.82)
-LATENCY:    0.82s
-KIL(delay)
-M1:               AGM-117 ARMED
-M2:               AGM-117 ARMED
+ALT: 24,886.407
+SPEED: 192.057K
+EXT TEMP: -30.05
+W DIR: 37.N
+W SPEED: 2.4
+TOT: 39H:26M
+DOF: 7616.8234M
+BEARING:91.35
+ROUTE: RAMSTEIN_DL
+LATENCY: 0.82s
+KIL(wait, 1.0)
+M1: AGM-117
+M2: AGM-117
 KIL(delay)
 
 SYSTEM OK:
-OS: UAV OS6.2.2
-.
-.
-.
-.
-.
-.
-.
-.
+GA/USAF UAVOS 6.2.2
 KIL(wait, 0.5)
-CMND: CONNECTING….
-SNSR:  CONNECTING….
-INTEL:  CONNECTING….
-KIL(delay)
-SNSR:  CONNECTED….
-KIL(chatter)
-KIL(wait, 1.4)
-CMND: CONNECTED….
-KIL(wait, 0.9)
-INTEL:  CONNECTED….
-KIL(delay)
-.
-.
-.
-.
-.
-.
-.
-.
-.
-CAM:  CONNECTING…
-KIL(delay)
+CONNECTED
+KIL(wait,1.0)
 KIL(display_on)
-KIL(wait, 0.6)
-CAM:   CONNECTED
 KIL(delay)
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
--
--
--
--
--
--
--
--
--
--
--
--
-.
-.
-.
-KIL(wait, 2.0)
-SNSR:     HOUR 39 OF CURRENT SURVELLANCE
-KIL(delay)
-SNSR:     INITIATING CALIBRATION TEST
-KIL(delay)
-.
-.
-.
-.
-.
-.
-.
-.
-.
-KIL(tutorial)
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
 
-SNSR:     ALL SYSTEMS OPERATIONAL
+KIL(wait, 2.0)
+CALIBRATION
+KIL(delay)
+
+KIL(tutorial)
+ALL SYSTEMS OPERATIONAL
 KIL(wait, 15.0)
 
-INTEL:     POSITIVE TARGET ID
-KIL(wait, 2.0)
-INTEL:     PID: 22.9./OPER606
-KIL(delay)
-CMND:    PID: 22.9./OPER606 CONFIRMED
-KIL(wait, 1.0)
-CMND:     PILOT IS CLEARED TO ENGAGE
-KIL(delay)
+TARGETID: 22.09.8GND/OPER606
+KIL(wait, 5.0)
 KIL(acquire)
-KIL(wait, 2.0)
-SNSR:     POSITIVE VISUAL ON TARGET
+TARGET ACQUIRED
+CLEAR TO ENGAGE
 KIL(wait,2.0)
-.
-CMND:     PILOT IS CLEARED HOT
-KIL(delay)
-SNSR:     LASER FIRING
-KIL(wait, 0.6)
-SNSR:     PILOT CONFIRM TARGET
-KIL(delay)
-CONFIRM TARGET PRESS [ T ]
+CONFIRM TARGET: PRESS [ T ]
 KIL(wait_key, T)
 
+LOCKING ON...
 KIL(delay)
 
 KIL(wait, 3.0)
-SNSR:     TARGET IS LOCKED
-SNSR:     LASER IS ON LOOKING GOOD
+TARGET LOCKED...
 KIL(lock)
-KIL(delay)
-CMND:     TARGET CLEARED HOT
+KIL(wait, 3.0)
+CLEARED HOT
 KIL(wait, 1.0)
-
-KIL(wait, 0.5)
 AGM-117 LAUNCH 1: PRESS [ M ]
 KIL(wait_key, M)
-SNSR:    RIFLE RIFLE RIFLE.
 KIL(fire)
-KIL(delay)
-SNSR:    SPLASH
-KIL(wait, 2.0)
-.
-.
-.
-CMND:    INTEL REPORT
-KIL(delay)
-INTEL:   CONFIRMING….
-KIL(wait, 3.0)
-INTEL:   NEGATIVE EYES ON TARGET
-KIL(wait, 1.8)
-SNSR:    I THOUGHT WE GOT THEM
-KIL(wait, 1.8)
-CMND:    PILOT PREPARE FOR SECONDARY
-KIL(delay)
-.
-.
-.
-.
-SNSR:    IS THAT A KID?
-KIL(delay)
-KIL(delay)
-INTEL:   NEGATIVE
-KIL(wait, 3.0)
-INTEL:   VISUAL IS A DOG
-KIL(wait, 3.0)
-KIL(delay)
-CMND:    CONFIRM TARGET REMOVED
-KIL(delay)
-INTEL:   UNCONFIRMED REMOVAL
-KIL(wait, 2.1)
-CMND:    LAUNCH SECONDARY
-KIL(delay)
-SNSR:    LASER ON
-KIL(wait, 2.0)
-
-
-
 AGM-117 LAUNCH 2: PRESS [ M ]
 KIL(wait_key, M, [[fire2]], 15.0)
-CMND:    DISENGAGE PILOT
-KIL(wait, 2.0)
-SNSR:
+
+PILOT DISENGAGED...
 KIL(wait, 1.0)
-CMND:    REPEAT: DISENGAGE PILOT
-KIL(wait, 1.3)
-INTEL:    PLEASE CONFIRM DOUBLE TAP
-KIL(wait, 0.3)
-SNSR:    DISENGAGING PILOT
-KIL(delay)
-.
-.
-.
-.
-.
-.
 TRANSFERRING...
 KIL(delay)
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-_________________________
 
 AUTOPILOT ENGAGED
 KIL(go_to, [[fire2]])</tw-passagedata>
-<tw-passagedata pid="5" name="fire2" tags="" position="1255,1425">KIL(fire)
+<tw-passagedata pid="5" name="reboot" tags="" position="156,486">
+LOGGING OFF
+KIL(delay)
+5115807881-N
+1195701866-1
+7033328446-0
+6992099498-0
+4292411636-1
+0040077538-1
+7341584709-0
+6704209448-0
+5918659412-0
+4075467077-N
+5084099524-1
+×ß¼
+HÑ
+¶
+vÀ!È’
+
+
+
+d‹
+
+
+
+
+
+
+
+
+ÝÞï&amp;  Éj_
+ý¼þî
+
+Ë8_
+
+Ï
+¼ ú
+•
+Û»¿ÿ
+
+
+
+
+
+
+
+
+•
+Ÿ &#39;«$
+ô²ÓÀ
+aë†åÁ~…A
+§
+‹A÷Oí
+I
+
+´um
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+KIL(go_to, [[boot]])</tw-passagedata>
+<tw-passagedata pid="6" name="fire2" tags="" position="1255,1425">KIL(fire)
 KIL(wait, 5.0)
 KIL(death_count)
 KIL(wait, 9.0)

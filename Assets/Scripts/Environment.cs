@@ -237,12 +237,16 @@ public class Environment {
 			prop.renderer.enabled = true;
 			prop.rigidbody.detectCollisions = true;
 			prop.collider.enabled = true;
-			prop.transform.position = prop.initial_pos;
-			prop.transform.rotation = Quaternion.identity;
 
 			if(prop.fracture != null) {
 				remove_fracture(prop.fracture);
 			}
+
+			prop.transform.position = prop.initial_pos;
+			prop.transform.rotation = Quaternion.identity;
+
+			prop.rigidbody.velocity = Vector3.zero;
+			prop.rigidbody.angularVelocity = Vector3.zero;
 		}
 
 		for(int i = 0; i < env.animals.Length; i++) {
@@ -286,71 +290,6 @@ public class Environment {
 		}
 	}
 
-	public static void update_collectables(GameManager game_manager, Environment env) {
-		Player2Controller player2 = game_manager.player2_inst;
-		if(player2 != null) {
-			Vector3 player_pos = player2.transform.position + Vector3.up * player2.mesh_radius;
-			//NOTE: Scratch memory, is this really needed??
-			Vector3 pos = Vector3.zero;
-
-			float time = Time.time;
-			float dt = Time.deltaTime;
-
-			float radius = 0.25f;
-			float radius2 = radius * 2.0f;
-			float collision_dist = radius + player2.mesh_radius;
-			float collision_dist_sqr = collision_dist * collision_dist;
-
-			float cull_radius = 75.0f;
-			float cull_radius_sqr = cull_radius * cull_radius;
-
-			for(int i = 0; i < env.collectables.Length; i++) {
-				Collectable collectable = env.collectables[i];
-				if(!collectable.used && collectable.renderer.isVisible) {
-					Transform transform = collectable.transform;
-
-					Vector3 dir_to_player = player_pos - transform.position;
-					float player_dist_sqr = dir_to_player.x * dir_to_player.x + dir_to_player.y * dir_to_player.y + dir_to_player.z * dir_to_player.z;
-
-					if(player_dist_sqr < cull_radius_sqr) {
-						float x = transform.position.x;
-						float y = collectable.initial_pos.y + Mathf.Sin(time + collectable.rnd_offset) * 0.1f;
-						float z = transform.position.z;
-
-						if(player_dist_sqr < collision_dist_sqr) {
-							Collectable.mark_as_used(collectable, true);
-							collectable.audio_source.clip = Audio.get_random_clip(game_manager.audio, Audio.Clip.COLLECTABLE);
-							collectable.audio_source.Play();
-						}
-						else {
-							float dist = Mathf.Max(Mathf.Sqrt(player_dist_sqr) - 0.5f, 0.0f);
-							float max_dist = 5.0f;
-							float base_height = collectable.initial_pos.y - radius2;
-
-							if(dist < max_dist && base_height < player_pos.y) {
-								float distance_to_move = dt * (max_dist / dist);
-								if(distance_to_move > dist) {
-									distance_to_move = dist;
-								}
-
-								x += dir_to_player.x * distance_to_move;
-								z += dir_to_player.z * distance_to_move;
-							}
-							else {
-								float t = dt * 0.5f;
-								x = x * (1.0f - t) + collectable.initial_pos.x * t;
-								z = z * (1.0f - t) + collectable.initial_pos.z * t;
-							}
-						}
-
-						pos.Set(x, y, z);
-						transform.position = pos;
-					}
-				}
-			}
-		}
-	}
-
 	public static void update(GameManager game_manager, Environment env) {
 		Player2Controller player2 = game_manager.player2_inst;
 		Transform player2_transform = null;
@@ -362,7 +301,7 @@ public class Environment {
 			NpcController.update(game_manager, env.npcs[i], player2_transform);
 		}
 
-		update_collectables(game_manager, env);
+		Collectable.update_collectables(game_manager, env.collectables);
 
 		Foliage.update(game_manager, env.foliage);
 	}

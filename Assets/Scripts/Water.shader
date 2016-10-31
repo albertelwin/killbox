@@ -19,7 +19,7 @@ Shader "Custom/Water" {
                 #pragma multi_compile_fog
                 #pragma multi_compile_fwdbase
                 #pragma fragmentoption ARB_precision_hint_fastest
-                // #pragma target 4.0
+                #pragma target 4.0
 
                 #include "UnityCG.cginc"
                 #include "AutoLight.cginc"
@@ -90,15 +90,15 @@ Shader "Custom/Water" {
                     i.light_dir = normalize(i.light_dir);
                     i.view_dir = normalize(i.view_dir);
 
-                    float nl = saturate(dot(i.normal, i.light_dir));
-                    fixed atten = saturate(LIGHT_ATTENUATION(i) * nl);
+                    float dot_nl = saturate(dot(i.normal, i.light_dir));
+                    fixed light = LIGHT_ATTENUATION(i) * dot_nl;
 
                     float3 h = normalize(i.light_dir + i.view_dir);
-                    float nh = saturate(dot(i.normal, h));
-                    float spec = saturate(pow(nh, _Spec.y)) * _Spec.x;
+                    float dot_nh = saturate(dot(i.normal, h));
+                    float spec = saturate(pow(dot_nh, _Spec.y)) * _Spec.x;
 
                     fixed4 color = fixed4(0.0, 0.0, 0.0, 0.0);
-                    color += _Color * _LightColor0 * atten;
+                    color += _Color * _LightColor0 * light;
                     color += UNITY_LIGHTMODEL_AMBIENT;
                     color.a = _Color.a;
 

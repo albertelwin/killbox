@@ -4,13 +4,13 @@
 DOING:
 
 TODO:
-	1 deaths confirmed
 	Optimise pilot view (clear -> render camera feeds -> render ui)
 	Camera clipping
 	Dump password/kills/etc. to Google Drive
 	Load scene async
 
 DONE:
+	1 deaths confirmed
 	Log death count and session time
 	Bucket physics
 	Capsule colliders for adult npcs
@@ -928,6 +928,9 @@ public class GameManager : MonoBehaviour {
 					break;
 				}
 			}
+
+			QualitySettings.vSyncCount = 1;
+			QualitySettings.antiAliasing = 4;
 		}
 #endif
 

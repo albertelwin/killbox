@@ -4,6 +4,7 @@
 DOING:
 
 TODO:
+	Shuffle npc colors
 	Optimise pilot view (clear -> render camera feeds -> render ui)
 	Camera clipping
 	Dump password/kills/etc. to Google Drive
@@ -930,6 +931,7 @@ public class GameManager : MonoBehaviour {
 			}
 
 			QualitySettings.vSyncCount = 1;
+			// QualitySettings.vSyncCount = 0;
 			QualitySettings.antiAliasing = 4;
 		}
 #endif

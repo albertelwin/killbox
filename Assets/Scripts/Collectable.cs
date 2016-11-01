@@ -5,11 +5,8 @@ using System.Collections;
 public class Collectable {
 	public Transform transform;
 	public Renderer renderer;
-	public Collider collider;
-	public ParticleSystem particle_system = null;
-	public AudioSource audio_source = null;
+	public ParticleSystem particle_system;
 
-	public bool dropped = false;
 	public bool used = false;
 
 	public Vector3 initial_pos;
@@ -20,10 +17,7 @@ public class Collectable {
 		collectable.transform = transform;
 
 		collectable.renderer = transform.GetComponent<Renderer>();
-		collectable.collider = transform.GetComponent<Collider>();
 		collectable.particle_system = transform.GetComponent<ParticleSystem>();
-		collectable.audio_source = transform.GetComponent<AudioSource>();
-		collectable.audio_source.loop = false;
 
 		float height_above_ground = 0.5f;
 		collectable.transform.position += Vector3.up * height_above_ground;
@@ -37,8 +31,6 @@ public class Collectable {
 	public static void reset(Collectable collectable) {
 		collectable.transform.position = collectable.initial_pos;
 		collectable.renderer.enabled = true;
-		collectable.collider.enabled = true;
-		collectable.dropped = false;
 		collectable.used = false;
 	}
 
@@ -46,7 +38,6 @@ public class Collectable {
 		if(!collectable.used) {
 			collectable.used = true;
 			collectable.renderer.enabled = false;
-			collectable.collider.enabled = false;
 
 			if(emit_particles) {
 				collectable.particle_system.Emit(collectable.particle_system.maxParticles);
@@ -67,8 +58,12 @@ public class Collectable {
 			float collision_dist = radius + player2.mesh_radius;
 			float collision_dist_sqr = collision_dist * collision_dist;
 
-			float cull_radius = 75.0f;
+			float cull_radius = 40.0f;
 			float cull_radius_sqr = cull_radius * cull_radius;
+
+			float blend_radius = 20.0f;
+			float r_blend_radius = 1.0f / blend_radius;
+			float blend_start = (cull_radius - blend_radius) * r_blend_radius;
 
 			for(int i = 0; i < collectables.Length; i++) {
 				Collectable collectable = collectables[i];
@@ -79,21 +74,25 @@ public class Collectable {
 					float player_dist_sqr = dir_to_player.x * dir_to_player.x + dir_to_player.y * dir_to_player.y + dir_to_player.z * dir_to_player.z;
 
 					if(player_dist_sqr < cull_radius_sqr) {
+						float player_dist = Mathf.Sqrt(player_dist_sqr);
+
+						float y_blend = 1.0f - Mathf.Max(0.0f, player_dist * r_blend_radius - blend_start);
+
 						float x = transform.position.x;
-						float y = collectable.initial_pos.y + Mathf.Sin(time + collectable.rnd_offset) * 0.1f;
+						float y = collectable.initial_pos.y + Mathf.Sin(time + collectable.rnd_offset) * 0.1f * y_blend;
 						float z = transform.position.z;
 
 						if(player_dist_sqr < collision_dist_sqr) {
 							Collectable.mark_as_used(collectable, true);
-							collectable.audio_source.clip = Audio.get_random_clip(game_manager.audio, Audio.Clip.COLLECTABLE);
-							collectable.audio_source.Play();
+							AudioClip clip = Audio.get_random_clip(game_manager.audio, Audio.Clip.COLLECTABLE);
+							Audio.play(game_manager.audio, clip);
 						}
 						else {
-							float dist = Mathf.Max(Mathf.Sqrt(player_dist_sqr) - 0.5f, 0.0f);
+							float dist = Mathf.Max(0.0f, player_dist - 0.5f);
 							float max_dist = 5.0f;
-							float base_height = collectable.initial_pos.y - radius2;
+							float min_y = collectable.initial_pos.y - radius2;
 
-							if(dist < max_dist && base_height < player_pos.y) {
+							if(dist < max_dist && min_y < player_pos.y) {
 								float distance_to_move = dt * (max_dist / dist);
 								if(distance_to_move > dist) {
 									distance_to_move = dist;

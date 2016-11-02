@@ -180,6 +180,7 @@ public class Environment {
 				audio_source.loop = true;
 				audio_source.spatialBlend = 1.0f;
 				audio_source.maxDistance = 150.0f;
+				audio_source.dopplerLevel = 0.0f;
 				audio_source.clip = Audio.get_clip(game_manager.audio, Audio.Clip.SCREAM, npc_scream_index);
 				env.npc_scream_sources[npc_scream_index] = audio_source;
 				npc_scream_index++;

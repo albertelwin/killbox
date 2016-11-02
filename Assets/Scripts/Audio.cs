@@ -7,15 +7,18 @@ public class Audio {
 		PLAYER_JUMP,
 		PLAYER_LAND,
 
-		NPC,
+		NPC_ADULT,
+		NPC_CHILD,
+		NPC_CHICKEN,
 		SCREAM,
 		COLLECTABLE,
 
 		MISSILE,
-		//TOOD: This!!
-		// MISSILE_FLASH,
 		EXPLOSION,
 		EXPLOSION_BIRDS,
+
+		PLAYER1_AIR,
+		PLAYER1_CHATTER,
 
 		CONSOLE_CURSOR_FLASH,
 		CONSOLE_PROMPT,
@@ -25,6 +28,8 @@ public class Audio {
 		CONSOLE_USER_TYPING,
 		CONSOLE_USER_KEY,
 		CONSOLE_UI_CHANGE,
+		CONSOLE_MISSILE_FLASH,
+		CONSOLE_LASER,
 
 		COUNT,
 	}
@@ -40,8 +45,14 @@ public class Audio {
 
 	public AudioSource[] source_pool;
 	public AudioClip[] clips;
+	public int clip_count;
 
 	public ClipGroup[] clip_groups;
+
+	public static void push_audio_clip(Audio audio, AudioClip audio_clip) {
+		Assert.is_true(audio.clip_count < audio.clips.Length);
+		audio.clips[audio.clip_count++] = audio_clip;
+	}
 
 	public static Audio new_inst() {
 		Audio audio = new Audio();
@@ -54,42 +65,40 @@ public class Audio {
 			audio.source_pool[i] = source;
 		}
 
+		audio.clip_count = 0;
+		audio.clips = new AudioClip[256];
+
 		audio.clip_groups = new ClipGroup[(int)Clip.COUNT];
 		for(int i = 0; i < audio.clip_groups.Length; i++) {
 			ClipGroup clip_group = new ClipGroup();
 			clip_group.clip = (Clip)i;
-			clip_group.count = 1;
+			clip_group.first_index = audio.clip_count;
+			clip_group.count = 0;
 
-			audio.clip_groups[i] = clip_group;
-		}
+			string clip_id = ((Clip)i).ToString().ToLower();
 
-		//TODO: Figure out a way to automate this!!
-		audio.clip_groups[(int)Clip.NPC].count = 9;
-		audio.clip_groups[(int)Clip.SCREAM].count = 4;
-		audio.clip_groups[(int)Clip.COLLECTABLE].count = 12;
-
-		int total_clip_count = 0;
-		for(int i = 0; i < audio.clip_groups.Length; i++) {
-			total_clip_count += audio.clip_groups[i].count;
-		}
-
-		audio.clips = new AudioClip[total_clip_count];
-
-		int clip_index = 0;
-		for(int i = 0; i < audio.clip_groups.Length; i++) {
-			ClipGroup clip_group = audio.clip_groups[i];
-			clip_group.first_index = clip_index;
-
-			if(clip_group.count > 1) {
-				for(int ii = 0; ii < clip_group.count; ii++) {
-					string name = ((Clip)i).ToString().ToLower() + ii;
-					audio.clips[clip_index++] = (AudioClip)Resources.Load(name);
-				}
+			AudioClip single_clip = (AudioClip)Resources.Load(clip_id);
+			if(single_clip != null) {
+				clip_group.count = 1;
+				push_audio_clip(audio, single_clip);
 			}
 			else {
-				string name = ((Clip)i).ToString().ToLower();
-				audio.clips[clip_index++] = (AudioClip)Resources.Load(name);
+				while(true) {
+					AudioClip multi_clip = (AudioClip)Resources.Load(clip_id + clip_group.count);
+					if(multi_clip != null) {
+						clip_group.count++;
+						push_audio_clip(audio, multi_clip);
+					}
+					else {
+						break;
+					}
+				}
 			}
+
+			Assert.is_true(clip_group.count > 0, "Missing audio file(s): " + clip_id);
+			// Debug.Log(clip_id + ": " + clip_group.count);
+
+			audio.clip_groups[i] = clip_group;
 		}
 
 		return audio;
@@ -128,5 +137,23 @@ public class Audio {
 	public static void play(Audio audio, Clip clip, float volume = 1.0f, float pitch = 1.0f) {
 		AudioClip audio_clip = get_clip(audio, clip);
 		play(audio, audio_clip, volume, pitch);
+	}
+
+	public static AudioSource new_source(Audio audio, Transform parent, Clip clip) {
+		AudioSource source = Util.new_audio_source(parent, clip.ToString() + "AudioSource");
+		source.clip = get_clip(audio, clip);
+		source.loop = true;
+		return source;
+	}
+
+	public static void play_or_continue_loop(AudioSource source) {
+		source.loop = true;
+		if(!source.isPlaying) {
+			source.Play();
+		}
+	}
+
+	public static void stop_on_next_loop(AudioSource source) {
+		source.loop = false;
 	}
 }

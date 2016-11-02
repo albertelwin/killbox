@@ -12082,7 +12082,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffa11f2c31065e44b9eaa99a4e097c6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  type: 1
+  type: 2
   motion_path: {fileID: 828861216}
   safe_point: {fileID: 2064907707}
   runs_from_player: 1
@@ -25563,7 +25563,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffa11f2c31065e44b9eaa99a4e097c6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  type: 1
+  type: 2
   motion_path: {fileID: 1194287017}
   safe_point: {fileID: 2064907707}
   runs_from_player: 1
@@ -31815,7 +31815,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffa11f2c31065e44b9eaa99a4e097c6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  type: 1
+  type: 2
   motion_path: {fileID: 1171742266}
   safe_point: {fileID: 2064907707}
   runs_from_player: 1
@@ -33055,7 +33055,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffa11f2c31065e44b9eaa99a4e097c6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  type: 0
+  type: 1
   motion_path: {fileID: 2010429055}
   safe_point: {fileID: 781204207}
   runs_from_player: 1
@@ -38194,7 +38194,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffa11f2c31065e44b9eaa99a4e097c6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  type: 0
+  type: 1
   motion_path: {fileID: 15899436}
   safe_point: {fileID: 781204207}
   runs_from_player: 1
@@ -41864,7 +41864,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffa11f2c31065e44b9eaa99a4e097c6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  type: 0
+  type: 1
   motion_path: {fileID: 819041953}
   safe_point: {fileID: 781204207}
   runs_from_player: 1
@@ -49291,7 +49291,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffa11f2c31065e44b9eaa99a4e097c6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  type: 0
+  type: 1
   motion_path: {fileID: 2133717105}
   safe_point: {fileID: 781204207}
   runs_from_player: 1
@@ -52361,7 +52361,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffa11f2c31065e44b9eaa99a4e097c6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  type: 1
+  type: 2
   motion_path: {fileID: 16975360}
   safe_point: {fileID: 2064907707}
   runs_from_player: 1
@@ -62832,7 +62832,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffa11f2c31065e44b9eaa99a4e097c6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  type: 0
+  type: 1
   motion_path: {fileID: 1125439609}
   safe_point: {fileID: 1169367888}
   runs_from_player: 1
@@ -66075,7 +66075,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffa11f2c31065e44b9eaa99a4e097c6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  type: 1
+  type: 2
   motion_path: {fileID: 1844380160}
   safe_point: {fileID: 2064907707}
   runs_from_player: 1
@@ -68484,7 +68484,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffa11f2c31065e44b9eaa99a4e097c6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  type: 0
+  type: 1
   motion_path: {fileID: 2109960160}
   safe_point: {fileID: 781204207}
   runs_from_player: 1
@@ -71045,7 +71045,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffa11f2c31065e44b9eaa99a4e097c6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  type: 0
+  type: 1
   motion_path: {fileID: 989234586}
   safe_point: {fileID: 781204207}
   runs_from_player: 1
@@ -72264,7 +72264,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffa11f2c31065e44b9eaa99a4e097c6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  type: 1
+  type: 2
   motion_path: {fileID: 1068870848}
   safe_point: {fileID: 2064907707}
   runs_from_player: 1
@@ -75274,7 +75274,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffa11f2c31065e44b9eaa99a4e097c6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  type: 0
+  type: 1
   motion_path: {fileID: 1135748898}
   safe_point: {fileID: 781204207}
   runs_from_player: 1
@@ -78765,7 +78765,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffa11f2c31065e44b9eaa99a4e097c6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  type: 0
+  type: 1
   motion_path: {fileID: 809719770}
   safe_point: {fileID: 1169367888}
   runs_from_player: 1
@@ -90481,7 +90481,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffa11f2c31065e44b9eaa99a4e097c6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  type: 0
+  type: 1
   motion_path: {fileID: 25310373}
   safe_point: {fileID: 781204207}
   runs_from_player: 1
@@ -91003,7 +91003,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffa11f2c31065e44b9eaa99a4e097c6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  type: 1
+  type: 2
   motion_path: {fileID: 410701829}
   safe_point: {fileID: 2064907707}
   runs_from_player: 1

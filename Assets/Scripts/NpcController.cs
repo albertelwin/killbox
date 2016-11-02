@@ -3,8 +3,9 @@ using UnityEngine;
 using System.Collections;
 
 public enum NpcType {
-	HUMAN,
-	ANIMAL,
+	ADULT,
+	CHILD,
+	CHICKEN,
 	BIRD,
 }
 
@@ -16,7 +17,8 @@ public class NpcController : MonoBehaviour {
 	[System.NonSerialized] public AudioSource audio_source;
 	[System.NonSerialized] public ParticleSystem particle_system;
 
-	public NpcType type = NpcType.HUMAN;
+	public NpcType type = NpcType.ADULT;
+	[System.NonSerialized] public bool is_human;
 
 	[System.NonSerialized] public NavMeshAgent nav_agent;
 	[System.NonSerialized] public MotionPathAgent path_agent;
@@ -74,6 +76,8 @@ public class NpcController : MonoBehaviour {
 		blood = transform.Find("Blood");
 
 		initial_pos = transform.position;
+
+		is_human = type == NpcType.ADULT || type == NpcType.CHILD;
 	}
 
 	public void Start() {
@@ -114,10 +118,24 @@ public class NpcController : MonoBehaviour {
 				float distance_to_player = Vector3.Distance(closest_point, player2_transform.position);
 
 				if(!npc.activated && distance_to_player < ACTIVAITON_DIST) {
-					if(npc.type == NpcType.HUMAN) {
-						npc.audio_source.clip = Audio.get_random_clip(game_manager.audio, Audio.Clip.NPC);
-						npc.audio_source.Play();
+					//TODO: Cache this!!
+					Audio.Clip clip_pool = Audio.Clip.COUNT;
+					if(npc.type == NpcType.ADULT) {
+						clip_pool = Audio.Clip.NPC_ADULT;
+					}
+					else if(npc.type == NpcType.CHILD) {
+						clip_pool = Audio.Clip.NPC_CHILD;
+					}
+					else if(npc.type == NpcType.CHICKEN) {
+						clip_pool = Audio.Clip.NPC_CHICKEN;
+					}
 
+					if(clip_pool != Audio.Clip.COUNT) {
+						npc.audio_source.clip = Audio.get_random_clip(game_manager.audio, clip_pool);
+						npc.audio_source.Play();
+					}
+
+					if(npc.is_human) {
 						if(npc.particle_system != null) {
 							npc.particle_system.Emit(npc.particle_system.maxParticles);
 						}
@@ -179,7 +197,7 @@ public class NpcController : MonoBehaviour {
 	}
 
 	public static void on_explosion(GameManager game_manager, NpcController npc, TargetPointController target_point, Vector3 hit_pos) {
-		if(npc.type == NpcType.HUMAN) {
+		if(npc.is_human) {
 			Vector3 point_on_bounds = npc.collider_.ClosestPointOnBounds(hit_pos);
 			float blast_radius = Environment.EXPLOSION_RADIUS * 2.0f;
 			if(Vector3.Distance(hit_pos, point_on_bounds) < blast_radius) {
@@ -221,7 +239,7 @@ public class NpcController : MonoBehaviour {
 	}
 
 	public static void on_pov_change(NpcController npc, PlayerType pov, Material material) {
-		if(npc.type == NpcType.HUMAN) {
+		if(npc.is_human) {
 			npc.renderer_.material = material;
 			if(npc.blood) {
 				Renderer body = npc.blood.Find("Body").GetComponent<Renderer>();

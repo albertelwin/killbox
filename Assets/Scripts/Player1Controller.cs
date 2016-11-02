@@ -231,6 +231,14 @@ public static class Player1Util {
 							break;
 						}
 
+						case "cls": {
+							parser_assert(passage_parser, cmd_start, passage_name, cmd.input_count == 1);
+
+							Player1Console.push_cls_cmd(cmd_buf);
+
+							break;
+						}
+
 						case "wait": {
 							parser_assert(passage_parser, cmd_start, passage_name, cmd.input_count == 2);
 							parser_assert(passage_parser, cmd_start, passage_name, cmd.inputs[1].type == ParsedCmdInputType.NUM);
@@ -574,7 +582,10 @@ public class Player1Console {
 	public float last_cursor_time;
 	public bool prompt;
 	public int prompt_length;
-	public AudioSource prompt_audio_source;
+
+	public AudioSource print_source;
+	public AudioSource prompt_source;
+	public AudioSource laser_source;
 
 	public int current_cmd_index;
 	public int next_cmd_index;
@@ -653,6 +664,10 @@ public class Player1Console {
 		Cmd cmd = push_cmd(cmd_buf, CmdType.PRINT_STR);
 		cmd.str_id = str_id;
 		return cmd;
+	}
+
+	public static Cmd push_cls_cmd(CmdBuf cmd_buf) {
+		return Player1Console.push_print_str_cmd(cmd_buf, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
 	}
 
 	public static Cmd push_user_str_cmd(CmdBuf cmd_buf, UserStrId str_id, int max_str_len, bool numeric_only = false, bool hide_str = false, float timeout = Mathf.Infinity) {
@@ -874,9 +889,10 @@ public class Player1Console {
 		inst.last_cursor_time = -0.5f;
 		inst.prompt = false;
 		inst.prompt_length = 0;
-		inst.prompt_audio_source = Util.new_audio_source(transform, "PromptAudioSource");
-		inst.prompt_audio_source.loop = true;
-		inst.prompt_audio_source.clip = Audio.get_clip(audio, Audio.Clip.CONSOLE_PROMPT);
+
+		inst.print_source = Audio.new_source(audio, transform, Audio.Clip.CONSOLE_PRINT);
+		inst.prompt_source = Audio.new_source(audio, transform, Audio.Clip.CONSOLE_PROMPT);
+		inst.laser_source = Audio.new_source(audio, transform, Audio.Clip.CONSOLE_LASER);
 
 		inst.cmd_buf = new_cmd_buf(MAX_CMD_COUNT);
 		inst.current_cmd_index = Player1Util.parse_script(inst.cmd_buf, "killbox_script");
@@ -912,6 +928,8 @@ public class Player1Console {
 			}
 #endif
 
+			Audio.stop_on_next_loop(inst.print_source);
+
 			while(time_left > 0.0f && inst.current_cmd_index < inst.cmd_buf.elem_count) {
 				Cmd cmd = inst.cmd_buf.elems[inst.current_cmd_index];
 				bool done = false;
@@ -939,7 +957,7 @@ public class Player1Console {
 						inst.str_builder.Append(cmd.str);
 
 						if(cmd.play_audio) {
-							Audio.play(game_manager.audio, Audio.Clip.CONSOLE_PRINT);
+							Audio.play_or_continue_loop(inst.print_source);
 						}
 
 						done = true;
@@ -958,10 +976,6 @@ public class Player1Console {
 							inst.str_builder.Append(str[inst.current_cmd_str_it++]);
 						}
 
-						if(chars_to_print > 0) {
-							Audio.play(game_manager.audio, Audio.Clip.CONSOLE_PRINT);
-						}
-
 						if(inst.current_cmd_str_it >= str.Length) {
 							time_left = inst.current_cmd_time;
 							done = true;
@@ -978,6 +992,8 @@ public class Player1Console {
 							time_left = 0.0f;
 							done = true;
 						}
+
+						Audio.play_or_continue_loop(inst.print_source);
 
 						inst.cursor_time = inst.last_cursor_time = 0.0f;
 						break;
@@ -1011,6 +1027,8 @@ public class Player1Console {
 									else {
 										if(Player1Util.is_new_line(input_char)) {
 											if(str.Length > 0) {
+												Audio.play(game_manager.audio, Audio.Clip.CONSOLE_USER_KEY);
+
 												done = true;
 												break;
 											}
@@ -1038,6 +1056,7 @@ public class Player1Console {
 
 							if(str.Length > 0) {
 								Assert.is_true(cmd.str_id != UserStrId.NONE);
+								//TODO: This is a hack!!
 								if(cmd.str_id == UserStrId.DEATH_COUNT && str.Equals("1")) {
 									inst.cmd_buf.elems[cmd.num].str = "DEATH";
 								}
@@ -1096,7 +1115,7 @@ public class Player1Console {
 					}
 
 					case CmdType.CHATTER: {
-						player1.audio_sources[1].Play();
+						player1.chatter_source.Play();
 
 						done = true;
 						break;
@@ -1220,6 +1239,12 @@ public class Player1Console {
 						if(cmd.num < player1.crosshair.materials.Length) {
 							player1.crosshair.style_id = cmd.num;
 							Audio.play(game_manager.audio, Audio.Clip.CONSOLE_UI_CHANGE);
+							if(player1.crosshair.style_id == 2) {
+								Audio.play_or_continue_loop(inst.laser_source);
+							}
+							else {
+								Audio.stop_on_next_loop(inst.laser_source);
+							}
 						}
 						else {
 							Assert.invalid_path();
@@ -1316,7 +1341,6 @@ public class Player1Console {
 				bool stop_prompt = true;
 
 				if(inst.prompt) {
-					// float rate = 24.0f;
 					float rate = 48.0f;
 					float delay = 0.5f;
 
@@ -1327,10 +1351,7 @@ public class Player1Console {
 							inst.prompt_length++;
 						}
 
-						//TODO: Need a loop!!
-						if(!inst.prompt_audio_source.isPlaying) {
-							inst.prompt_audio_source.Play();
-						}
+						Audio.play_or_continue_loop(inst.prompt_source);
 
 						stop_prompt = false;
 					}
@@ -1360,9 +1381,7 @@ public class Player1Console {
 
 				if(stop_prompt) {
 					inst.prompt_length = 0;
-					if(inst.prompt_audio_source.isPlaying) {
-						inst.prompt_audio_source.Stop();
-					}
+					Audio.stop_on_next_loop(inst.prompt_source);
 				}
 
 				inst.last_cursor_time = inst.cursor_time;
@@ -1537,7 +1556,8 @@ public class Player1Controller : MonoBehaviour {
 
 	[System.NonSerialized] public Player1Console console_;
 
-	[System.NonSerialized] public AudioSource[] audio_sources;
+	[System.NonSerialized] public AudioSource air_source;
+	[System.NonSerialized] public AudioSource chatter_source;
 
 	void Awake() {
 		game_manager = GameObject.Find("GameManager").GetComponent<GameManager>();
@@ -1699,14 +1719,8 @@ public class Player1Controller : MonoBehaviour {
 			occluder.localScale = new Vector3(2.0f, 1.0f, 1.0f) * adjusted_aspect_ratio_y;
 		}
 
-		audio_sources = new AudioSource[2];
-		for(int i = 0; i < audio_sources.Length; i++) {
-			AudioSource source = Util.new_audio_source(transform, "AudioSource" + i);
-			source.clip = (AudioClip)Resources.Load("player1_track" + i);
-			source.loop = true;
-
-			audio_sources[i] = source;
-		}
+		air_source = Audio.new_source(game_manager.audio, transform, Audio.Clip.PLAYER1_AIR);
+		chatter_source = Audio.new_source(game_manager.audio, transform, Audio.Clip.PLAYER1_CHATTER);
 
 		if(game_manager.network_player2_inst != null) {
 			game_manager.network_player2_inst.renderer_.enabled = true;
@@ -1733,13 +1747,13 @@ public class Player1Controller : MonoBehaviour {
 		}
 
 		float flash_duration = 0.25f;
-		float inv_flash_duration = 1.0f / flash_duration;
+		float flash_hz = 1.0f / (flash_duration * 2.0f);
 
 		float total_time = Mathf.Infinity;
 
 		float t = 0.0f;
 		while(t < total_time) {
-			bool flash_off = ((int)(t * inv_flash_duration)) % 2 == 0;
+			bool flash_off = Player1Util.flash(t, flash_hz);
 			marker.renderer.material.color = flash_off ? Util.white_no_alpha : Util.red;
 			indicator.fill.material.color = flash_off ? Util.white_no_alpha : Util.new_color(Color.red, ui_indicator_alpha);
 			indicator.fill.material.SetColor("_Temperature", flash_off ? Util.white_no_alpha : Util.new_color(Color.green, ui_indicator_alpha));
@@ -1750,6 +1764,10 @@ public class Player1Controller : MonoBehaviour {
 			if(!firing_missile && total_time == Mathf.Infinity) {
 				int flash_count = Mathf.CeilToInt(t / flash_duration) | 1;
 				total_time = flash_duration * flash_count;
+			}
+
+			if(flash_off && !Player1Util.flash(t, flash_hz)) {
+				Audio.play(game_manager.audio, Audio.Clip.CONSOLE_MISSILE_FLASH);
 			}
 		}
 
@@ -1768,15 +1786,15 @@ public class Player1Controller : MonoBehaviour {
 	IEnumerator start_console() {
 		FadeImageEffect.set_alpha(camera_fade, 1.0f);
 
-		audio_sources[0].volume = 0.0f;
-		audio_sources[0].Play();
+		air_source.volume = 0.0f;
+		air_source.Play();
 
 		if(Settings.USE_TRANSITIONS) {
-			StartCoroutine(Util.lerp_audio_volume(audio_sources[0], 0.0f, 3.0f));
+			StartCoroutine(Util.lerp_audio_volume(air_source, 0.0f, 3.0f));
 			yield return Util.wait_for_4s;
 		}
 		else {
-			audio_sources[0].volume = 1.0f;
+			air_source.volume = 1.0f;
 		}
 
 		console_.enabled = true;
@@ -1791,11 +1809,10 @@ public class Player1Controller : MonoBehaviour {
 		ui_camera.transform.parent = main_camera.transform;
 		console_.enabled = false;
 
-		StartCoroutine(Util.lerp_audio_volume(audio_sources[0], 1.0f, 0.0f, 2.0f));
-		yield return StartCoroutine(Util.lerp_audio_volume(audio_sources[1], 1.0f, 0.0f, 2.0f));
-		for(int i = 0; i < audio_sources.Length; i++) {
-			audio_sources[i].Stop();
-		}
+		StartCoroutine(Util.lerp_audio_volume(air_source, 1.0f, 0.0f, 2.0f));
+		yield return StartCoroutine(Util.lerp_audio_volume(chatter_source, 1.0f, 0.0f, 2.0f));
+		air_source.Stop();
+		chatter_source.Stop();
 
 		game_manager.show_stats(main_camera);
 		yield return null;

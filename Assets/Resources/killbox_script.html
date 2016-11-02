@@ -42,7 +42,7 @@ D-LINK:          NULL
 KIL(wait, 1.0)
 
 KIL(go_to, [[locate]])</tw-passagedata>
-<tw-passagedata pid="3" name="locate" tags="" position="421,1103">LINK AVAILABLE: PRESS [ L ] TO CONNECT
+<tw-passagedata pid="3" name="locate" tags="" position="421,1103">D-LINK AVAILABLE: PRESS [ L ] TO LINK
 KIL(wait_key, L, [[search]], 5.0)
 KIL(delay)
 
@@ -51,7 +51,7 @@ KIL(wait_key, L, [[search]])</tw-passagedata>
 <tw-passagedata pid="4" name="search" tags="" position="728,1376">SEARCHING...
 
 KIL(delay)
-UAV LOCATED:  32.26.03.1&quot; 69.43.27.0&quot; 
+UAV LOCATED:  32.26.03.1&quot; 69.43.27.0&quot;
 WAZIRISTAN, PAKISTAN
 
 KIL(wait, 1.0)
@@ -62,7 +62,7 @@ KIL(wait, 1.6)
 UHF:      Y
 VHF:      Y
 CBND:   N
-KBND:   Y 
+KBND:   Y
 
 US COMSAT RR/909_DSAT US404
 KIL(delay)
@@ -107,29 +107,7 @@ KIL(delay)
 SYSTEM OK:
 OS: UAV OS6.2.2
 KIL(delay)
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
+KIL(cls)
 KIL(wait, 0.5)
 COMM CHECK
 KIL(delay)
@@ -147,24 +125,7 @@ CMND: ONLINE
 KIL(wait, 0.9)
 INTL: ONLINE
 KIL(delay)
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
+KIL(cls)
 WAITING FOR CAM LINK
 KIL(delay)
 CAM AVAILABLE
@@ -191,35 +152,35 @@ CMND:   INTEL REPORT
 KIL(wait, 3.0)
 INTL:     POSITIVE ID ON TARGET
 KIL(wait, 2.0)
-INTL:     PID: 22.9./OPER606 
+INTL:     PID: 22.9./OPER606
 KIL(delay)
 CMND:   PID: 22.9./OPER606 CONFIRMED
-KIL(wait, 1.0)  
-KIL(target_style, 1) 
+KIL(wait, 1.0)
+KIL(target_style, 1)
 .
 .
 .
 .
 KIL(wait, 0.7)
-SNSR:    VISUAL  
+SNSR:    VISUAL
 KIL(delay)
-KIL(crosshair_style, 2) 
+KIL(crosshair_style, 2)
 KIL(wait, 0.6)
 SNSR:     LASER ON
 KIL(wait, 0.6)
-CONFIRM TARGET PID: 22.9./OPER606 
+CONFIRM TARGET PID: 22.9./OPER606
 PRESS [ T ]
-KIL(wait_key, T) 
+KIL(wait_key, T)
 
 KIL(target_style, 2)
 
 KIL(delay)
-SNSR:     LASER GOOD 
+SNSR:     LASER GOOD
 KIL(wait, 1.2)
 SNSR:     TARGET ON
 KIL(delay)
 CMND:     TARGET  CONFIRMED
-KIL(wait, 1.0) 
+KIL(wait, 1.0)
 CMND:     PILOT CLEARED HOT
 KIL(wait, 1.0)
 
@@ -228,7 +189,7 @@ AGM-117 LAUNCH 1: PRESS [ M ]
 KIL(wait_key, M)
 .
 .
-SNSR:   RIFLE  
+SNSR:   RIFLE
 SNSR:   8.7 SECONDS
 KIL(fire)
 
@@ -236,7 +197,7 @@ KIL(delay)
 KIL(wait, 2.0)
 
 KIL(crosshair_style, 1)
-KIL(wait, 0.6) 
+KIL(wait, 0.6)
 KIL(target_style, 1)
 .
 .
@@ -260,31 +221,13 @@ AGM-117 LAUNCH 2: PRESS [ M ]
 KIL(wait_key, M, [[fire2]], 15.0)
 CMND:    LAUNCH SECONDARY AGM
 KIL(wait, 4.0)
-CMND:    REMOVE PILOT 
-KIL(wait, 4.0) 
+CMND:    REMOVE PILOT
+KIL(wait, 4.0)
 SNSR:    DISENGAGING
 KIL(delay)
 TRANSFERRING...
 KIL(delay)
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-_________________________
-
+KIL(cls)
 AUTOPILOT ENGAGED
 KIL(go_to, [[fire2]])</tw-passagedata>
 <tw-passagedata pid="5" name="fire2" tags="" position="1255,1425">KIL(crosshair_style, 2)

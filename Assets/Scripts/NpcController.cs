@@ -201,7 +201,8 @@ public class NpcController : MonoBehaviour {
 
 				if(npc.nav_agent) {
 					npc.nav_agent.enabled = true;
-					npc.nav_agent.speed = 7.0f;
+					//TODO: Tweak this!!
+					npc.nav_agent.speed = 5.0f + Random.value * 5.0f;
 					npc.nav_agent.SetDestination(npc.safe_point.position);
 				}
 			}

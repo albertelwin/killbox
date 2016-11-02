@@ -14,7 +14,9 @@
 <tw-storydata name="killbox_script 2" startnode="1" creator="Twine" creator-version="2.0.11" ifid="9728C063-616F-455B-83BA-EBAD6402EA78" format="Harlowe" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css">
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">
+
 
 
 </script><tw-passagedata pid="1" name="boot" tags="" position="678,258">KIL(wait, 4.0)
@@ -22,8 +24,10 @@
 KIL(go_to, [[log_in]])</tw-passagedata>
 <tw-passagedata pid="2" name="log_in" tags="" position="645,686">KIL(log_in)
 
+36.35′32″ 115.40′00″
+NEVADA USA
 USAF CREECH AIRBASE 432D
-NEVADA 36.35′32″ 115.40′00″
+
 J09NV0399
 KIL(delay)
 
@@ -31,7 +35,6 @@ LINEVU:         JP.95.TS.D
 COGENT:        B/3/H0E
 KIL(wait, 1.0)
 AGENTAREA:  6X9EU_5Y8.FN.TB6
-AGM:              2X AGM117-HELLFIRE
 SENSCOM:    OPR B8
 KIL(wait, 1.5)
 TELEM:          4Y0D9-KA-DSAT
@@ -48,8 +51,9 @@ KIL(wait_key, L, [[search]])</tw-passagedata>
 <tw-passagedata pid="4" name="search" tags="" position="728,1376">SEARCHING...
 
 KIL(delay)
-UAV LOCATED:  WAZIRISTAN, PAKISTAN
-32.26.03.1&quot; 69.43.27.0&quot;
+UAV LOCATED:  32.26.03.1&quot; 69.43.27.0&quot; 
+WAZIRISTAN, PAKISTAN
+
 KIL(wait, 1.0)
 
 D-LINK CONNECTING...
@@ -58,13 +62,13 @@ KIL(wait, 1.6)
 UHF:      Y
 VHF:      Y
 CBND:   N
-KBND:   Y
+KBND:   Y 
 
 US COMSAT RR/909_DSAT US404
 KIL(delay)
 
 LINK ACTIVE: GAAS MQ-1A PREDATOR 6664-RPV_HFR
-.
+KIL(wait, 2.0)
 .
 .
 .
@@ -97,10 +101,27 @@ LATENCY:    0.82s
 KIL(delay)
 M1:               AGM-117 ARMED
 M2:               AGM-117 ARMED
+KIL(crosshair_style, 1)
 KIL(delay)
 
 SYSTEM OK:
 OS: UAV OS6.2.2
+KIL(delay)
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
 .
 .
 .
@@ -110,16 +131,21 @@ OS: UAV OS6.2.2
 .
 .
 KIL(wait, 0.5)
-CMND: CONNECTING….
-SNSR:  CONNECTING….
-INTEL:  CONNECTING….
+COMM CHECK
 KIL(delay)
-SNSR:  CONNECTED….
+
+WAITING FOR COMMAND ((CMND))
+WAITING FOR SENSOR ((SNSR))
+WAITING FOR GROUND INTEL ((INTL))
+KIL(wait, 2)
+..........................
+KIL(delay)
+SNSR: ONLINE
 KIL(chatter)
 KIL(wait, 1.4)
-CMND: CONNECTED….
+CMND: ONLINE
 KIL(wait, 0.9)
-INTEL:  CONNECTED….
+INTL: ONLINE
 KIL(delay)
 .
 .
@@ -130,162 +156,114 @@ KIL(delay)
 .
 .
 .
-CAM:  CONNECTING…
+.
+.
+.
+.
+.
+.
+.
+.
+.
+WAITING FOR CAM LINK
 KIL(delay)
+CAM AVAILABLE
+PRESS [C]
+KIL(wait_key, C)
 KIL(display_on)
 KIL(wait, 0.6)
-CAM:   CONNECTED
+CAM ONLINE
 KIL(delay)
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
--
--
--
--
--
--
--
--
--
--
--
--
-.
-.
-.
-KIL(wait, 2.0)
-SNSR:     HOUR 39 OF CURRENT SURVELLANCE
+CONTROL CHECK
 KIL(delay)
-SNSR:     INITIATING CALIBRATION TEST
-KIL(delay)
-.
-.
-.
-.
-.
-.
-.
-.
-.
 KIL(tutorial)
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
 
-SNSR:     ALL SYSTEMS OPERATIONAL
+
+
+
+
+
+
+SYSTEMS OK
 KIL(wait, 15.0)
 
-INTEL:     POSITIVE TARGET ID
-KIL(wait, 2.0)
-INTEL:     PID: 22.9./OPER606
-KIL(delay)
-CMND:    PID: 22.9./OPER606 CONFIRMED
-KIL(wait, 1.0)
-CMND:     PILOT IS CLEARED TO ENGAGE
-KIL(delay)
-KIL(acquire)
-KIL(wait, 2.0)
-SNSR:     POSITIVE VISUAL ON TARGET
-KIL(wait,2.0)
-.
-CMND:     PILOT IS CLEARED HOT
-KIL(delay)
-SNSR:     LASER FIRING
-KIL(wait, 0.6)
-SNSR:     PILOT CONFIRM TARGET
-KIL(delay)
-CONFIRM TARGET PRESS [ T ]
-KIL(wait_key, T)
-
-KIL(delay)
-
+CMND:   INTEL REPORT
 KIL(wait, 3.0)
-SNSR:     TARGET IS LOCKED
-SNSR:     LASER IS ON LOOKING GOOD
-KIL(lock)
+INTL:     POSITIVE ID ON TARGET
+KIL(wait, 2.0)
+INTL:     PID: 22.9./OPER606 
 KIL(delay)
-CMND:     TARGET CLEARED HOT
+CMND:   PID: 22.9./OPER606 CONFIRMED
+KIL(wait, 1.0)  
+KIL(target_style, 1) 
+.
+.
+.
+.
+KIL(wait, 0.7)
+SNSR:    VISUAL  
+KIL(delay)
+KIL(crosshair_style, 2) 
+KIL(wait, 0.6)
+SNSR:     LASER ON
+KIL(wait, 0.6)
+CONFIRM TARGET PID: 22.9./OPER606 
+PRESS [ T ]
+KIL(wait_key, T) 
+
+KIL(target_style, 2)
+
+KIL(delay)
+SNSR:     LASER GOOD 
+KIL(wait, 1.2)
+SNSR:     TARGET ON
+KIL(delay)
+CMND:     TARGET  CONFIRMED
+KIL(wait, 1.0) 
+CMND:     PILOT CLEARED HOT
 KIL(wait, 1.0)
 
 KIL(wait, 0.5)
 AGM-117 LAUNCH 1: PRESS [ M ]
 KIL(wait_key, M)
-SNSR:    RIFLE RIFLE RIFLE.
+.
+.
+SNSR:   RIFLE  
+SNSR:   8.7 SECONDS
 KIL(fire)
+
 KIL(delay)
-SNSR:    SPLASH
-KIL(wait, 2.0)
-.
-.
-.
-CMND:    INTEL REPORT
-KIL(delay)
-INTEL:   CONFIRMING….
-KIL(wait, 3.0)
-INTEL:   NEGATIVE EYES ON TARGET
-KIL(wait, 1.8)
-SNSR:    I THOUGHT WE GOT THEM
-KIL(wait, 1.8)
-CMND:    PILOT PREPARE FOR SECONDARY
-KIL(delay)
-.
-.
-.
-.
-SNSR:    IS THAT A KID?
-KIL(delay)
-KIL(delay)
-INTEL:   NEGATIVE
-KIL(wait, 3.0)
-INTEL:   VISUAL IS A DOG
-KIL(wait, 3.0)
-KIL(delay)
-CMND:    CONFIRM TARGET REMOVED
-KIL(delay)
-INTEL:   UNCONFIRMED REMOVAL
-KIL(wait, 2.1)
-CMND:    LAUNCH SECONDARY
-KIL(delay)
-SNSR:    LASER ON
 KIL(wait, 2.0)
 
+KIL(crosshair_style, 1)
+KIL(wait, 0.6) 
+KIL(target_style, 1)
+.
+.
+CMND:    REPORT
+KIL(delay)
+INTL:      CONFIRMING
+KIL(wait, 6.0)
+INTL:      NEGATIVE VISUAL
+KIL(wait, 5)
+INTL:      CANNOT CONFIRM TARGET HIT
+KIL(delay)
+CMND:   LAUNCH SECONDARY
+KIL(wait, 4.6)
+SNSR:    LASER FIRING
+KIL(wait, 1.0)
 
-
+KIL(crosshair_style, 2)
+KIL(wait, 1.0)
+SNSR:     LASER ON
 AGM-117 LAUNCH 2: PRESS [ M ]
 KIL(wait_key, M, [[fire2]], 15.0)
-CMND:    DISENGAGE PILOT
-KIL(wait, 2.0)
-SNSR:
-KIL(wait, 1.0)
-CMND:    REPEAT: DISENGAGE PILOT
-KIL(wait, 1.3)
-INTEL:    PLEASE CONFIRM DOUBLE TAP
-KIL(wait, 0.3)
-SNSR:    DISENGAGING PILOT
+CMND:    LAUNCH SECONDARY AGM
+KIL(wait, 4.0)
+CMND:    REMOVE PILOT 
+KIL(wait, 4.0) 
+SNSR:    DISENGAGING
 KIL(delay)
-.
-.
-.
-.
-.
-.
 TRANSFERRING...
 KIL(delay)
 .
@@ -309,8 +287,10 @@ _________________________
 
 AUTOPILOT ENGAGED
 KIL(go_to, [[fire2]])</tw-passagedata>
-<tw-passagedata pid="5" name="fire2" tags="" position="1255,1425">KIL(fire)
+<tw-passagedata pid="5" name="fire2" tags="" position="1255,1425">KIL(crosshair_style, 2)
+KIL(fire)
 KIL(wait, 5.0)
+KIL(crosshair_style, 1)
 KIL(death_count)
 KIL(wait, 9.0)
 KIL(display_off)

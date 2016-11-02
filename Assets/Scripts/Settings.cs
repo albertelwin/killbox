@@ -2,8 +2,6 @@ using UnityEngine;
 using System.Collections;
 
 public static class Settings {
-	public static bool QUALITY_LEVEL_SETTINGS = true;
-
 	public static bool INSTALLATION_BUILD = true;
 
 	public static bool LAN_MODE = false;

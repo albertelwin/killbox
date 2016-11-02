@@ -65,6 +65,7 @@ public struct Foliage {
 
 	public static void update(GameManager game_manager, Foliage foliage) {
 		Camera camera_ = game_manager.player2_inst != null ? game_manager.player2_inst.camera_ : null;
+		// camera_ = null;
 		if(camera_ != null) {
 			Vector3 camera_pos = camera_.transform.position;
 			Plane[] frustum_planes = GeometryUtility.CalculateFrustumPlanes(camera_);

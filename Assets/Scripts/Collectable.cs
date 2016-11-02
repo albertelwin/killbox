@@ -58,10 +58,10 @@ public class Collectable {
 			float collision_dist = radius + player2.mesh_radius;
 			float collision_dist_sqr = collision_dist * collision_dist;
 
-			float cull_radius = 40.0f;
+			float cull_radius = 75.0f;
 			float cull_radius_sqr = cull_radius * cull_radius;
 
-			float blend_radius = 20.0f;
+			float blend_radius = 25.0f;
 			float r_blend_radius = 1.0f / blend_radius;
 			float blend_start = (cull_radius - blend_radius) * r_blend_radius;
 
@@ -76,10 +76,10 @@ public class Collectable {
 					if(player_dist_sqr < cull_radius_sqr) {
 						float player_dist = Mathf.Sqrt(player_dist_sqr);
 
-						float y_blend = 1.0f - Mathf.Max(0.0f, player_dist * r_blend_radius - blend_start);
+						float y_blend = Mathf.Max(0.0f, player_dist * r_blend_radius - blend_start);
 
 						float x = transform.position.x;
-						float y = collectable.initial_pos.y + Mathf.Sin(time + collectable.rnd_offset) * 0.1f * y_blend;
+						float y = (collectable.initial_pos.y + Mathf.Sin(time + collectable.rnd_offset) * 0.1f) * (1.0f - y_blend) + transform.position.y * y_blend;
 						float z = transform.position.z;
 
 						if(player_dist_sqr < collision_dist_sqr) {

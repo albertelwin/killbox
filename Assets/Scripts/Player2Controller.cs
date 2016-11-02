@@ -5,10 +5,10 @@ using System.Collections;
 public class Player2Controller : MonoBehaviour {
 	public class ControlsHint {
 		public GameObject go;
+		public Transform transform;
 		public TextMesh text_mesh;
 		public Renderer renderer;
-		public string text;
-		public bool hidden;
+		// public string text;
 	}
 
 	GameManager game_manager = null;
@@ -143,7 +143,7 @@ public class Player2Controller : MonoBehaviour {
 			exp_source.clip = Audio.get_random_clip(game_manager.audio, Audio.Clip.EXPLOSION_BIRDS);
 			exp_source.Play();
 
-			camera_fade.alpha = 1.0f;
+			FadeImageEffect.set_alpha(camera_fade, 1.0f);
 			camera_blur_effect.enabled = true;
 
 			float time_step = 0.01f;
@@ -161,7 +161,7 @@ public class Player2Controller : MonoBehaviour {
 				t += time_step;
 
 				bool flash = Random.value < (0.5f * x);
-				camera_fade.alpha = flash ? 1.0f : 0.0f;
+				FadeImageEffect.set_alpha(camera_fade, flash ? 1.0f : 0.0f);
 				if((flash || t >= d) && !camera_grading_effect.enabled) {
 					camera_grading_effect.enabled = true;
 				}
@@ -193,7 +193,7 @@ public class Player2Controller : MonoBehaviour {
 
 				rigidbody_.isKinematic = true;
 
-				camera_fade.alpha = 1.0f;
+				FadeImageEffect.set_alpha(camera_fade, 1.0f);
 				yield return new WaitForSeconds(3.0f);
 				yield return StartCoroutine(FadeImageEffect.lerp_alpha(camera_fade, 0.0f, 5.0f));
 
@@ -214,7 +214,7 @@ public class Player2Controller : MonoBehaviour {
 		}
 
 		control_flags = 0;
-		camera_fade.alpha = 1.0f;
+		FadeImageEffect.set_alpha(camera_fade, 1.0f);
 
 		renderer_.enabled = false;
 		ash_particles.Stop();
@@ -252,40 +252,61 @@ public class Player2Controller : MonoBehaviour {
 		audio_sources[0].Stop();
 		audio_sources[1].Stop();
 
-		camera_fade.alpha = 0.0f;
+		FadeImageEffect.set_alpha(camera_fade, 0.0f);
 		yield return StartCoroutine(FadeImageEffect.lerp_alpha(camera_fade, 1.0f, 5.0f));
 
 		game_manager.show_stats(camera_);
 		yield return null;
 	}
 
-	IEnumerator fade_in_hint_str(ControlsHint hint, string str) {
-		float fade = 1.0f;
+	IEnumerator fade_in_hint(ControlsHint hint, string str, bool fade_out = true) {
+		float fade = 2.0f;
 		float r_fade = 1.0f / fade;
 
-		float t = 0.0f;
-		while(t < 1.0f) {
-			float a = t * t;
-			string a_hex = ((int)(a * 255.0f)).ToString("X2");
+		if(fade_out) {
+			string text = hint.text_mesh.text;
 
-			hint.text_mesh.text = hint.text + "<color=#FFFFFF" + a_hex + ">" + str + "</color>";
+			float t = 0.0f;
+			while(t < 1.0f) {
+				float a = 1.0f - t * t;
+				string a_hex = ((int)(a * 255.0f)).ToString("X2");
 
-			t += Time.deltaTime * r_fade;
-			yield return Util.wait_for_frame;
+				hint.text_mesh.text = "<color=#FFFFFF" + a_hex + ">" + text + "</color>";
+
+				t += Time.deltaTime * r_fade;
+				yield return Util.wait_for_frame;
+			}
 		}
 
-		hint.text += str;
-		hint.text_mesh.text = hint.text;
+		hint.text_mesh.text = "";
+		yield return Util.wait_for_1s;
+
+		{
+			float t = 0.0f;
+			while(t < 1.0f) {
+				float a = t * t;
+				string a_hex = ((int)(a * 255.0f)).ToString("X2");
+
+				hint.text_mesh.text = "<color=#FFFFFF" + a_hex + ">" + str + "</color>";
+
+				t += Time.deltaTime * r_fade;
+				yield return Util.wait_for_frame;
+			}
+		}
+
+		hint.text_mesh.text = str;
 	}
 
 	IEnumerator fade_in_and_start() {
 		if(Settings.USE_TRANSITIONS) {
-			camera_fade.alpha = 1.0f;
+			Color sky_color = camera_.backgroundColor;
+			camera_.backgroundColor = Util.black;
+			FadeImageEffect.set_alpha(camera_fade, 1.0f);
 
 			yield return StartCoroutine(Util.lerp_audio_volume(audio_sources[1], 0.0f, 1.0f, 3.0f));
 			StartCoroutine(Util.lerp_audio_volume(audio_sources[0], 0.0f, 1.0f, 2.0f));
 
-			control_flags |= CAN_LOOK;
+			control_flags |= CAN_LOOK | CAN_MOVE;
 			if(!first_missile_fired) {
 				control_flags |= CAN_JUMP;
 			}
@@ -296,50 +317,55 @@ public class Player2Controller : MonoBehaviour {
 
 			speed = default_speed;
 
-			GameObject hint_prefab = game_manager.env.transform.Find("Controls").gameObject;
+			// yield return StartCoroutine(GameManager.set_world_brightness(game_manager, 0.0f, 1.0f, 2.0f));
+			StartCoroutine(GameManager.set_world_brightness(game_manager, 0.0f, 1.0f, 2.0f));
+			float world_fade = 2.0f;
+			float r_world_fade = 1.0f / world_fade;
+			StartCoroutine(FadeImageEffect.lerp_alpha(camera_fade, 0.0f, world_fade));
+			{
+				float t = 0.0f;
+				while(t < 1.0f) {
+					camera_.backgroundColor = Color.Lerp(Util.black, sky_color, t);
 
-			hint = new ControlsHint();
-			hint.go = (GameObject)Object.Instantiate(hint_prefab, hint_prefab.transform.position, hint_prefab.transform.rotation);
-			hint.go.SetActive(true);
-			hint.renderer = hint.go.GetComponent<Renderer>();
-			hint.text_mesh = hint.go.GetComponent<TextMesh>();
-			hint.text_mesh.text = hint.text = "";
-			hint.hidden = false;
+					t += Time.deltaTime * r_world_fade;
+					yield return Util.wait_for_frame;
+				}
 
-			yield return StartCoroutine(GameManager.set_world_brightness(game_manager, 0.0f, 1.0f, 2.0f));
+				camera_.backgroundColor = sky_color;
+			}
 			dust_particles.Play();
 
-			yield return StartCoroutine(fade_in_hint_str(hint, "WAZIRISTAN, PAKISTAN\n"));
+			yield return StartCoroutine(fade_in_hint(hint, "WAZIRISTAN, PAKISTAN", false));
 
-			yield return StartCoroutine(fade_in_hint_str(hint, "LOOK: MOUSE\n"));
+			yield return StartCoroutine(fade_in_hint(hint, "LOOK: MOUSE"));
 			while((control_flags & HAS_LOOKED) == 0) {
 				yield return Util.wait_for_frame;
 			}
 
-			yield return StartCoroutine(fade_in_hint_str(hint, "LOOK UP: LEFT CLICK & HOLD\n"));
+			yield return StartCoroutine(fade_in_hint(hint, "LOOK UP: LEFT CLICK & HOLD"));
 			while((control_flags & HAS_LOOKED_UP) == 0) {
 				yield return Util.wait_for_frame;
 			}
 
-			yield return StartCoroutine(fade_in_hint_str(hint, "JUMP: SPACE\n"));
+			yield return StartCoroutine(fade_in_hint(hint, "JUMP: SPACE"));
 			while(!first_missile_fired && (control_flags & HAS_JUMPED) == 0) {
 				yield return Util.wait_for_frame;
 			}
 
-			control_flags |= CAN_MOVE;
-
-			yield return StartCoroutine(fade_in_hint_str(hint, "MOVE: W\n"));
+			yield return StartCoroutine(fade_in_hint(hint, "MOVE: W"));
 			while((control_flags & HAS_MOVED) == 0) {
 				yield return Util.wait_for_frame;
 			}
 
-			float t = 0.0f;
-			while(t < 1.0f) {
-				float a = 1.0f - t * t;
-				hint.text_mesh.color = Util.new_color(Util.white, a);
+			{
+				float t = 0.0f;
+				while(t < 1.0f) {
+					float a = 1.0f - t * t;
+					hint.text_mesh.color = Util.new_color(Util.white, a);
 
-				t += Time.deltaTime;
-				yield return Util.wait_for_frame;
+					t += Time.deltaTime;
+					yield return Util.wait_for_frame;
+				}
 			}
 			hint.go.SetActive(false);
 		}
@@ -347,7 +373,7 @@ public class Player2Controller : MonoBehaviour {
 			control_flags |= CAN_LOOK | CAN_MOVE | CAN_JUMP;
 			yield return StartCoroutine(Util.lerp_audio_volume(audio_sources[1], 0.0f, 1.0f, 3.0f));
 			StartCoroutine(Util.lerp_audio_volume(audio_sources[0], 0.0f, 1.0f, 2.0f));
-			camera_fade.alpha = 0.0f;
+			FadeImageEffect.set_alpha(camera_fade, 0.0f);
 			dust_particles.Play();
 		}
 
@@ -431,6 +457,13 @@ public class Player2Controller : MonoBehaviour {
 			camera_ref.transform.localPosition = new Vector3(0.0f, mesh_radius, 0.0f);
 			camera_ref.transform.parent = null;
 
+			hint = new ControlsHint();
+			hint.transform = camera_.transform.Find("Hint");
+			hint.go = hint.transform.gameObject;
+			hint.renderer = hint.go.GetComponent<Renderer>();
+			hint.text_mesh = hint.go.GetComponent<TextMesh>();
+			hint.text_mesh.text = "";
+
 			audio_sources = new AudioSource[2];
 			for(int i = 0; i < audio_sources.Length; i++) {
 				AudioSource source = Util.new_audio_source(transform, "AudioSource" + i);
@@ -464,6 +497,9 @@ public class Player2Controller : MonoBehaviour {
 	}
 
 	void Update() {
+		// TODO: Temp!!
+		// control_flags = 0;
+
 		walk_sfx_volume_pos += Time.deltaTime / 0.1f;
 		walk_sfx_source.volume = Mathf.Lerp(walk_sfx_source.volume, walk_sfx_volume, walk_sfx_volume_pos);
 
@@ -623,6 +659,8 @@ public class Player2Controller : MonoBehaviour {
 				break;
 			}
 		}
+
+		hint.go.transform.position = mesh.position + Vector3.up * (mesh_radius + 0.6f);
 
 		float min_ground_distance = 0.01f;
 

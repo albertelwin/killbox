@@ -16,51 +16,32 @@ Shader "Custom/VideoFilterImageEffect" {
 		#pragma target 3.0
 		#include "UnityCG.cginc"
 
+		#define _SCALE 0.5
+
 		uniform sampler2D _MainTex;
 		uniform float4 _MainTex_TexelSize;
 
-		uniform float _Scale;
 		uniform float _HardScan;
 		uniform float _HardPix;
-		uniform float2 _WarpAmount;
 		uniform float2 _Mask;
-
-		// sRGB to Linear
-		// Assuing using sRGB typed textures this should not be needed
-		float to_linear1(float c) {
-			return (c <= 0.04045) ? c / 12.92 : pow((c + 0.055) / 1.055, 2.4);
-		}
-
-		float3 to_linear(float3 c) {
-			return float3(to_linear1(c.r), to_linear1(c.g), to_linear1(c.b));
-		}
-
-		// Linear to sRGB
-		// Assuing using sRGB typed textures this should not be needed
-		float to_srgb1(float c) {
-			return (c < 0.0031308 ? c * 12.92 : 1.055 * pow(c, 0.41666) - 0.055);
-		}
-
-		float3 to_srgb(float3 c) {
-			return float3(to_srgb1(c.r), to_srgb1(c.g), to_srgb1(c.b));
-		}
+		uniform float _Saturation;
 
 		// Nearest emulated sample given floating point position and texel offset
 		// Also zero's off screen
 		float3 fetch(float2 pos, float2 off) {
-			float2 res = _MainTex_TexelSize.zw * _Scale;
+			float2 res = _MainTex_TexelSize.zw * _SCALE;
 
 			pos = floor(pos * res + off) / res;
 			if(max(abs(pos.x - 0.5), abs(pos.y - 0.5)) > 0.5) {
 				return float3(0.0, 0.0, 0.0);
 			}
 
-			return to_linear(tex2Dbias(_MainTex, float4(pos.xy, 0.0, -16.0)).rgb);
+			return tex2Dbias(_MainTex, float4(pos.xy, 0.0, -16.0)).rgb;
 		}
 
 		// Distance in emulated pixels to nearest texel
 		float2 dist(float2 pos) {
-			float2 res = _MainTex_TexelSize.zw * _Scale;
+			float2 res = _MainTex_TexelSize.zw * _SCALE;
 
 			pos = pos * res;
 			return -((pos - floor(pos)) - float2(0.5, 0.05));
@@ -128,13 +109,6 @@ Shader "Custom/VideoFilterImageEffect" {
 			return a * wa + b * wb + c * wc;
 		}
 
-		// Distortion of scanlines, and end of screen alpha
-		float2 warp(float2 pos) {
-			pos = pos * 2.0 - 1.0;
-			pos *= float2(1.0 + (pos.y * pos.y) * _WarpAmount.x, 1.0 + (pos.x * pos.x) * _WarpAmount.y);
-			return pos * 0.5 + 0.5;
-		}
-
 		// Shadow mask
 		float3 mask(float2 pos) {
 			float3 mask = _Mask.xxx;
@@ -156,9 +130,12 @@ Shader "Custom/VideoFilterImageEffect" {
 		}
 
 		fixed4 frag(v2f_img i) : SV_Target {
-			float2 pos = warp(i.uv);
-			float3 rgb = tri(pos) * mask(i.uv * _MainTex_TexelSize.zw);
-			return float4(to_srgb(rgb), 1.0);
+			float3 rgb = tri(i.uv) * mask(i.uv * _MainTex_TexelSize.zw);
+
+			float lum = ((rgb.r * 0.2126) + rgb.g * 0.7152) + rgb.b * 0.0722;
+			rgb = (rgb * _Saturation) + lum * (1.0 - _Saturation);
+
+			return float4(rgb, 1.0);
 		}
 		ENDCG
 		}

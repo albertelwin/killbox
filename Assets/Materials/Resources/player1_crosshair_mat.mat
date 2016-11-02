@@ -6,11 +6,11 @@ Material:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: floor_green
-  m_Shader: {fileID: 4800000, guid: 0881e35595b7b484ab80afb8366412d6, type: 3}
+  m_Name: player1_crosshair_mat
+  m_Shader: {fileID: 4800000, guid: 99fbe5edf15ebcc4f9e095a3abba6f8f, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 5
-  m_CustomRenderQueue: 2000
+  m_CustomRenderQueue: 3000
   stringTagMap: {}
   m_SavedProperties:
     serializedVersion: 2
@@ -19,7 +19,7 @@ Material:
         first:
           name: _MainTex
         second:
-          m_Texture: {fileID: 0}
+          m_Texture: {fileID: 2800000, guid: afdc01590ec108749ab2bb97830a5042, type: 3}
           m_Scale: {x: 1, y: 1}
           m_Offset: {x: 0, y: 0}
       data:
@@ -127,10 +127,6 @@ Material:
         first:
           name: _Metallic
         second: 0
-      data:
-        first:
-          name: _Emission
-        second: 0
     m_Colors:
       data:
         first:
@@ -139,16 +135,8 @@ Material:
       data:
         first:
           name: _Color
-        second: {r: .225183815, g: .360294104, b: .251665443, a: 1}
+        second: {r: 1, g: 1, b: 1, a: 1}
       data:
         first:
           name: _Temperature
-        second: {r: .0470588244, g: .0470588244, b: .0470588244, a: 1}
-      data:
-        first:
-          name: _Wave
-        second: {r: -.0599999987, g: .0799999982, b: .829999983, a: 0}
-      data:
-        first:
-          name: _Spec
-        second: {r: 0, g: 12.0900002, b: 0, a: 0}
+        second: {r: 0, g: 1, b: 0, a: 1}

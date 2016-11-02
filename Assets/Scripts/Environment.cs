@@ -214,6 +214,26 @@ public class Environment {
 			env.crater.after.gameObject.SetActive(false);
 		}
 
+		//TODO: Temp!!
+		// GameObject.Find("Sun").GetComponent<Light>().shadows = LightShadows.None;
+		// env.transform.Find("FarmBuildings").gameObject.SetActive(false);
+		// env.transform.Find("Terrain").gameObject.SetActive(false);
+		// env.transform.Find("Trees").gameObject.SetActive(false);
+		// env.transform.Find("Animals").gameObject.SetActive(false);
+		// env.transform.Find("Buildings").gameObject.SetActive(false);
+		// env.transform.Find("Props").gameObject.SetActive(false);
+		// env.transform.Find("Foliage").gameObject.SetActive(false);
+		// env.transform.Find("Collectables").gameObject.SetActive(false);
+		// Component[] ground_renderers = env.transform.Find("Ground").GetComponentsInChildren(typeof(MeshRenderer), true);
+		// for(int i = 0; i < ground_renderers.Length; i++) {
+		// 	((MeshRenderer)ground_renderers[i]).enabled = false;
+		// }
+		// for(int i = 0; i < env.npcs.Length; i++) {
+		// 	Transform anim = env.npcs[i].transform.Find("Animation");
+		// 	SkinnedMeshRenderer renderer = anim.GetComponentInChildren<SkinnedMeshRenderer>();
+		// 	renderer.enabled = false;
+		// }
+
 		return env;
 	}
 

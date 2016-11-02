@@ -4,6 +4,8 @@
 DOING:
 
 TODO:
+	Clear to solid color
+	Missile camera contrast
 	Shuffle npc colors
 	Optimise pilot view (clear -> render camera feeds -> render ui)
 	Camera clipping
@@ -434,7 +436,7 @@ public class GameManager : MonoBehaviour {
 
 				//TODO: Pick this randomly from pool of points!!
 				// Transform spawn_point = env.target_point.spawn_point;
-				Transform spawn_point = env.target_point.spawn_points.GetChild(env.target_point.spawn_points.childCount - 1);
+				Transform spawn_point = env.target_point.spawn_points.GetChild(0);
 
 				if(connection_type != ConnectionType.OFFLINE) {
 					Network.Instantiate(player2_prefab, spawn_point.position, spawn_point.rotation, 0);
@@ -443,8 +445,10 @@ public class GameManager : MonoBehaviour {
 					Instantiate(player2_prefab, spawn_point.position, spawn_point.rotation);
 				}
 
-				QualitySettings.shadowCascades = 4;
-				QualitySettings.shadowDistance = 140.0f;
+				// QualitySettings.shadowCascades = 4;
+				// QualitySettings.shadowDistance = 140.0f;
+				QualitySettings.shadowCascades = 0;
+				QualitySettings.shadowDistance = 100.0f;
 			}
 
 			Environment.apply_pov(this, env, player_type);
@@ -906,34 +910,33 @@ public class GameManager : MonoBehaviour {
 	void Awake() {
 #if !UNITY_EDITOR
 		//TODO: Make sure these are always in sync!!
-		if(Settings.QUALITY_LEVEL_SETTINGS) {
-			int quality_level = QualitySettings.GetQualityLevel();
-			switch(quality_level) {
-				case 0: {
-					Settings.LAN_MODE = false;
+		int quality_level = QualitySettings.GetQualityLevel();
+		switch(quality_level) {
+			case 0: {
+				Settings.LAN_MODE = false;
 
-					break;
-				}
-
-				case 1: {
-					Settings.LAN_MODE = true;
-					Settings.LAN_SERVER_MACHINE = true;
-
-					break;
-				}
-
-				case 2: {
-					Settings.LAN_MODE = true;
-					Settings.LAN_SERVER_MACHINE = false;
-
-					break;
-				}
+				break;
 			}
 
-			QualitySettings.vSyncCount = 1;
-			// QualitySettings.vSyncCount = 0;
-			QualitySettings.antiAliasing = 4;
+			case 1: {
+				Settings.LAN_MODE = true;
+				Settings.LAN_SERVER_MACHINE = true;
+
+				break;
+			}
+
+			case 2: {
+				Settings.LAN_MODE = true;
+				Settings.LAN_SERVER_MACHINE = false;
+
+				break;
+			}
 		}
+
+		// Settings.USE_TRANSITIONS = true;
+
+		QualitySettings.vSyncCount = 1;
+		QualitySettings.antiAliasing = 4;
 #endif
 
 		network_view = GetComponent<NetworkView>();

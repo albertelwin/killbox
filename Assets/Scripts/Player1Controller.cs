@@ -322,15 +322,23 @@ public static class Player1Util {
 							break;
 						}
 
-						case "acquire": {
-							parser_assert(passage_parser, cmd_start, passage_name, cmd.input_count == 1);
-							Player1Console.push_cmd(cmd_buf, Player1Console.CmdType.ACQUIRE_TARGET);
+						case "crosshair_style": {
+							parser_assert(passage_parser, cmd_start, passage_name, cmd.input_count == 2);
+							parser_assert(passage_parser, cmd_start, passage_name, cmd.inputs[1].type == ParsedCmdInputType.NUM);
+
+							Player1Console.Cmd pushed_cmd = Player1Console.push_cmd(cmd_buf, Player1Console.CmdType.CROSSHAIR_STYLE);
+							pushed_cmd.num = (int)cmd.inputs[1].num;
+
 							break;
 						}
 
-						case "lock": {
-							parser_assert(passage_parser, cmd_start, passage_name, cmd.input_count == 1);
-							Player1Console.push_cmd(cmd_buf, Player1Console.CmdType.LOCK_TARGET);
+						case "target_style": {
+							parser_assert(passage_parser, cmd_start, passage_name, cmd.input_count == 2);
+							parser_assert(passage_parser, cmd_start, passage_name, cmd.inputs[1].type == ParsedCmdInputType.NUM);
+
+							Player1Console.Cmd pushed_cmd = Player1Console.push_cmd(cmd_buf, Player1Console.CmdType.TARGET_STYLE);
+							pushed_cmd.num = (int)cmd.inputs[1].num;
+
 							break;
 						}
 
@@ -486,8 +494,8 @@ public class Player1Console {
 
 		ENABLE_CONTROLS,
 
-		ACQUIRE_TARGET,
-		LOCK_TARGET,
+		CROSSHAIR_STYLE,
+		TARGET_STYLE,
 
 		FIRE_MISSILE,
 	}
@@ -532,6 +540,7 @@ public class Player1Console {
 	}
 
 	public static string CURSOR_SYM = "\u2588";
+	public static string PROMPT_SYM = "_";
 
 	public static float CHARS_PER_SEC = 50.0f;
 	// public static float SECS_PER_CHAR = 0.03f;
@@ -578,7 +587,7 @@ public class Player1Console {
 	public string[] user_str_table;
 	public bool logged_user_details;
 
-	public static int MAX_CMD_COUNT = 512;
+	public static int MAX_CMD_COUNT = 1024;
 
 	public static CmdBuf new_cmd_buf(int capacity) {
 		CmdBuf buf = new CmdBuf();
@@ -930,7 +939,7 @@ public class Player1Console {
 						inst.str_builder.Append(cmd.str);
 
 						if(cmd.play_audio) {
-							Audio.play(game_manager.audio, Audio.Clip.CONSOLE_TYPING);
+							Audio.play(game_manager.audio, Audio.Clip.CONSOLE_PRINT);
 						}
 
 						done = true;
@@ -950,7 +959,7 @@ public class Player1Console {
 						}
 
 						if(chars_to_print > 0) {
-							Audio.play(game_manager.audio, Audio.Clip.CONSOLE_TYPING);
+							Audio.play(game_manager.audio, Audio.Clip.CONSOLE_PRINT);
 						}
 
 						if(inst.current_cmd_str_it >= str.Length) {
@@ -996,7 +1005,7 @@ public class Player1Console {
 											str = str.Substring(0, str.Length - 1);
 											inst.str_builder.Remove(inst.str_builder.Length - 1, 1);
 
-											Audio.play(game_manager.audio, Audio.Clip.CONSOLE_TYPING);
+											Audio.play(game_manager.audio, Audio.Clip.CONSOLE_USER_TYPING);
 										}
 									}
 									else {
@@ -1012,7 +1021,7 @@ public class Player1Console {
 													str += input_char;
 													inst.str_builder.Append(cmd.hide_str ? '*' : input_char);
 
-													Audio.play(game_manager.audio, Audio.Clip.CONSOLE_TYPING);
+													Audio.play(game_manager.audio, Audio.Clip.CONSOLE_USER_TYPING);
 												}
 											}
 										}
@@ -1069,6 +1078,8 @@ public class Player1Console {
 								if(cmd.next_index > -1) {
 									inst.next_cmd_index = cmd.next_index;
 								}
+
+								Audio.play(game_manager.audio, Audio.Clip.CONSOLE_USER_KEY);
 
 								done = true;
 							}
@@ -1205,17 +1216,27 @@ public class Player1Console {
 						break;
 					}
 
-					case CmdType.ACQUIRE_TARGET: {
-						Player1Controller.set_marker_color(player1.marker, Util.white, Util.green);
-						player1.target = game_manager.env.target_point.high_value_target;
+					case CmdType.CROSSHAIR_STYLE: {
+						if(cmd.num < player1.crosshair.materials.Length) {
+							player1.crosshair.style_id = cmd.num;
+							Audio.play(game_manager.audio, Audio.Clip.CONSOLE_UI_CHANGE);
+						}
+						else {
+							Assert.invalid_path();
+						}
 
 						done = true;
 						break;
 					}
 
-					case CmdType.LOCK_TARGET: {
-						Player1Controller.set_marker_color(player1.marker, Util.red, Util.green);
-						player1.target_locked = true;
+					case CmdType.TARGET_STYLE: {
+						if(cmd.num < player1.marker.materials.Length) {
+							player1.marker.style_id = cmd.num;
+							Audio.play(game_manager.audio, Audio.Clip.CONSOLE_UI_CHANGE);
+						}
+						else {
+							Assert.invalid_path();
+						}
 
 						done = true;
 						break;
@@ -1295,7 +1316,8 @@ public class Player1Console {
 				bool stop_prompt = true;
 
 				if(inst.prompt) {
-					float rate = 24.0f;
+					// float rate = 24.0f;
+					float rate = 48.0f;
 					float delay = 0.5f;
 
 					if(inst.cursor_time > delay) {
@@ -1405,7 +1427,6 @@ public class Player1Controller : MonoBehaviour {
 			float small_x = -(LINE_THICKNESS * 0.5f + small_length * 0.5f);
 			Vector3 small_scale = new Vector3(small_length, LINE_THICKNESS, 1.0f);
 
-
 			meter.transform = Util.new_transform(parent, "Meter", pos, Vector3.one, rotation);
 
 			meter.line = Player1Util.new_quad(meter.transform, "HUD", Vector3.zero, new Vector3(LINE_THICKNESS, 0.5f + LINE_THICKNESS, 1.0f), hud_material);
@@ -1452,7 +1473,17 @@ public class Player1Controller : MonoBehaviour {
 	public class Marker {
 		public Renderer renderer;
 		public Color color;
-		public float flash_time;
+		public Material[] materials;
+		public Material off_screen_material;
+
+		public int style_id;
+	}
+
+	public class Crosshair {
+		public Renderer renderer;
+		public Material[] materials;
+
+		public int style_id;
 	}
 
 	[System.NonSerialized] public GameManager game_manager = null;
@@ -1460,8 +1491,6 @@ public class Player1Controller : MonoBehaviour {
 	[System.NonSerialized] public NetworkView network_view;
 	[System.NonSerialized] public float join_time_stamp;
 
-	[System.NonSerialized] public Transform target = null;
-	[System.NonSerialized] public bool target_locked = false;
 	[System.NonSerialized] public bool firing_missile = false;
 
 	[System.NonSerialized] public Control[] controls;
@@ -1491,6 +1520,7 @@ public class Player1Controller : MonoBehaviour {
 	TextMesh hud_acft_text = null;
 
 	[System.NonSerialized] public Marker marker;
+	[System.NonSerialized] public Crosshair crosshair;
 	UiIndicator[] ui_indicators;
 	float ui_indicator_alpha;
 
@@ -1508,12 +1538,6 @@ public class Player1Controller : MonoBehaviour {
 	[System.NonSerialized] public Player1Console console_;
 
 	[System.NonSerialized] public AudioSource[] audio_sources;
-
-	public static void set_marker_color(Marker marker, Color color, Color ir_color) {
-		marker.color = color;
-		marker.renderer.material.color = marker.color;
-		marker.renderer.material.SetColor("_Temperature", ir_color);
-	}
 
 	void Awake() {
 		game_manager = GameObject.Find("GameManager").GetComponent<GameManager>();
@@ -1577,7 +1601,7 @@ public class Player1Controller : MonoBehaviour {
 
 	void Start() {
 		camera_aa = main_camera.GetComponent<UnityStandardAssets.ImageEffects.Antialiasing>();
-		camera_aa.enabled = true;
+		// camera_aa.enabled = true;
 
 		hud_camera = main_camera.transform.Find("HudCamera").GetComponent<Camera>();
 		hud_acft_text = hud_camera.transform.Find("Hud/ACFT").GetComponent<TextMesh>();
@@ -1586,7 +1610,20 @@ public class Player1Controller : MonoBehaviour {
 		marker = new Marker();
 		marker.renderer = hud_camera.transform.Find("Hud/Marker").GetComponent<Renderer>();
 		marker.color = Util.white;
-		marker.flash_time = 0.0f;
+		marker.materials = new Material[3];
+		marker.materials[0] = (Material)Resources.Load("player1_target_mat");
+		marker.materials[1] = (Material)Resources.Load("player1_target_mat");
+		marker.materials[2] = (Material)Resources.Load("player1_target_id_mat");
+		marker.off_screen_material = (Material)Resources.Load("player1_target_off_screen_mat");
+		marker.style_id = 0;
+
+		crosshair = new Crosshair();
+		crosshair.renderer = hud_camera.transform.Find("Hud/Crosshair").GetComponent<Renderer>();
+		crosshair.materials = new Material[3];
+		crosshair.materials[0] = (Material)Resources.Load("player1_crosshair_mat");
+		crosshair.materials[1] = (Material)Resources.Load("player1_crosshair_mat");
+		crosshair.materials[2] = (Material)Resources.Load("player1_crosshair_locked_mat");
+		crosshair.style_id = 1;
 
 		infrared_mode = false;
 		ui_text_meshes = hud_camera.GetComponentsInChildren<TextMesh>();
@@ -1611,7 +1648,8 @@ public class Player1Controller : MonoBehaviour {
 
 		Transform hud_transform = hud_camera.transform.Find("Hud");
 		meter_x = Meter.new_inst(hud_transform, new Vector3(0.0f, 0.425f, 0.0f), Quaternion.Euler(0.0f, 0.0f, -90.0f), 0.04f, 0.02f, 3);
-		meter_y = Meter.new_inst(hud_transform, new Vector3(-0.525f, 0.0f, 0.0f), Quaternion.identity, 0.025f, 0.015f, 2);
+		// meter_y = Meter.new_inst(hud_transform, new Vector3(-0.525f, 0.0f, 0.0f), Quaternion.identity, 0.025f, 0.015f, 2);
+		meter_y = Meter.new_inst(hud_transform, new Vector3(-0.435f, 0.0f, 0.0f), Quaternion.identity, 0.025f, 0.015f, 2);
 
 		missile_controller = main_camera.transform.Find("Missile").GetComponent<MissileController>();
 		missile_controller.player1 = this;
@@ -1621,6 +1659,8 @@ public class Player1Controller : MonoBehaviour {
 		ui_camera.transform.parent = null;
 		ui_camera.transform.position = Vector3.zero;
 		ui_camera.transform.rotation = Quaternion.identity;
+		FadeImageEffect ui_camera_fade = ui_camera.GetComponent<FadeImageEffect>();
+		FadeImageEffect.set_alpha(ui_camera_fade, 0.0f);
 		console_transform = ui_camera.transform.Find("Console");
 		console_local_position = console_transform.localPosition;
 		console_local_scale = console_transform.localScale;
@@ -1690,7 +1730,6 @@ public class Player1Controller : MonoBehaviour {
 		UiIndicator indicator = ui_indicators[index];
 		for(int i = 0; i < indicator.lines.Length; i++) {
 			indicator.lines[i].material.color = Color.red;
-			// indicator.lines[i].material.SetColor("_Temperature", Color.red);
 		}
 
 		float flash_duration = 0.25f;
@@ -1701,9 +1740,8 @@ public class Player1Controller : MonoBehaviour {
 		float t = 0.0f;
 		while(t < total_time) {
 			bool flash_off = ((int)(t * inv_flash_duration)) % 2 == 0;
-			marker.renderer.material.color = flash_off ? Util.white_no_alpha : marker.color;
+			marker.renderer.material.color = flash_off ? Util.white_no_alpha : Util.red;
 			indicator.fill.material.color = flash_off ? Util.white_no_alpha : Util.new_color(Color.red, ui_indicator_alpha);
-			// indicator.fill.material.SetColor("_Temperature", indicator.fill.material.color);
 			indicator.fill.material.SetColor("_Temperature", flash_off ? Util.white_no_alpha : Util.new_color(Color.green, ui_indicator_alpha));
 
 			t += Time.deltaTime;
@@ -1722,11 +1760,13 @@ public class Player1Controller : MonoBehaviour {
 			indicator.lines[i].material.SetColor("_Temperature", Util.new_color(Util.green, alpha));
 		}
 
+		marker.renderer.material.color = Util.white;
+
 		yield return null;
 	}
 
 	IEnumerator start_console() {
-		camera_fade.alpha = 1.0f;
+		FadeImageEffect.set_alpha(camera_fade, 1.0f);
 
 		audio_sources[0].volume = 0.0f;
 		audio_sources[0].Play();
@@ -1744,7 +1784,7 @@ public class Player1Controller : MonoBehaviour {
 
 	public IEnumerator log_off() {
 		FadeImageEffect ui_camera_fade = ui_camera.GetComponent<FadeImageEffect>();
-		ui_camera_fade.alpha = 0.0f;
+		// FadeImageEffect.set_alpha(ui_camera_fade, 0.0f);
 		yield return StartCoroutine(FadeImageEffect.lerp_alpha(ui_camera_fade, 1.0f));
 
 		//TODO: Tidy up how we shutdown player1!!
@@ -1866,72 +1906,76 @@ public class Player1Controller : MonoBehaviour {
 
 			string h_x = z_x.ToString("0,000");
 
-			hud_acft_text.text = "    ACFT\nN " + n_x + "°39'" + n_z + "\"\nE " + e_x + "°" + e_y + "'" + e_z+ "\"\n   " + h_x + " HAT";
+			// hud_acft_text.text = "    ACFT\nN " + n_x + "°39'" + n_z + "\"\nE " + e_x + "°" + e_y + "'" + e_z+ "\"\n   " + h_x + " HAT";
+			hud_acft_text.text = "ACFT\nN:    " + n_x + "°39'" + n_z + "\"\nE:    " + e_x + "°" + e_y + "'" + e_z+ "\"\n\nALT:    24,886\nSPD:  192.057";
 		}
 	}
 
 	void LateUpdate() {
-		bool marker_active = false;
+		//TODO: Only change the material when we need to!!
+		crosshair.renderer.enabled = crosshair.style_id != 0;
+		crosshair.renderer.material = crosshair.materials[crosshair.style_id];
+
+		Transform target = game_manager.env.target_point.high_value_target;
+		Assert.is_true(target != null);
+		Vector3 target_screen_pos = main_camera.WorldToScreenPoint(target.position);
+
 		bool marker_off_screen = false;
+		{
+			// float marker_size = 0.0275f * Screen.width;
+			float marker_size = 0.005f * Screen.width;
 
-		if(target != null) {
-			Vector3 target_screen_pos = main_camera.WorldToScreenPoint(target.position);
+			float viewport_min_x = main_camera.rect.min.x * Screen.width + marker_size;
+			float viewport_max_x = main_camera.rect.max.x * Screen.width - marker_size;
 
-			if(!target_locked) {
-				float marker_size = 0.018f * Screen.width;
+			float viewport_min_y = main_camera.rect.min.y * Screen.height + marker_size;
+			float viewport_max_y = main_camera.rect.max.y * Screen.height - marker_size;
 
-				float viewport_min_x = main_camera.rect.min.x * Screen.width + marker_size;
-				float viewport_max_x = main_camera.rect.max.x * Screen.width - marker_size;
-
-				float viewport_min_y = main_camera.rect.min.y * Screen.height + marker_size;
-				float viewport_max_y = main_camera.rect.max.y * Screen.height - marker_size;
-
-				if(target_screen_pos.x < viewport_min_x) {
-					target_screen_pos.x = viewport_min_x;
-					marker_off_screen = true;
-				}
-				else if(target_screen_pos.x > viewport_max_x) {
-					target_screen_pos.x = viewport_max_x;
-					marker_off_screen = true;
-				}
-
-				if(target_screen_pos.y < viewport_min_y) {
-					target_screen_pos.y = viewport_min_y;
-					marker_off_screen = true;
-				}
-				else if(target_screen_pos.y > viewport_max_y) {
-					target_screen_pos.y = viewport_max_y;
-					marker_off_screen = true;
-				}
-
-				// target_screen_pos.x = Mathf.Clamp(target_screen_pos.x, viewport_min_x + marker_size, viewport_max_x - marker_size);
-				// target_screen_pos.y = Mathf.Clamp(target_screen_pos.y, viewport_min_y + marker_size, viewport_max_y - marker_size);
+			if(target_screen_pos.x < viewport_min_x) {
+				target_screen_pos.x = viewport_min_x;
+				marker_off_screen = true;
+			}
+			else if(target_screen_pos.x > viewport_max_x) {
+				target_screen_pos.x = viewport_max_x;
+				marker_off_screen = true;
 			}
 
-			Ray ray_to_target = hud_camera.ScreenPointToRay(target_screen_pos);
-
-			Plane hud_plane = new Plane(-main_camera.transform.forward, main_camera.transform.position + main_camera.transform.forward);
-
-			float hit_dist = Mathf.Infinity;
-			if(hud_plane.Raycast(ray_to_target, out hit_dist)) {
-				marker.renderer.transform.position = ray_to_target.GetPoint(hit_dist);
-				marker_active = true;
+			if(target_screen_pos.y < viewport_min_y) {
+				target_screen_pos.y = viewport_min_y;
+				marker_off_screen = true;
 			}
+			else if(target_screen_pos.y > viewport_max_y) {
+				target_screen_pos.y = viewport_max_y;
+				marker_off_screen = true;
+			}
+
+			// target_screen_pos.x = Mathf.Clamp(target_screen_pos.x, viewport_min_x + marker_size, viewport_max_x - marker_size);
+			// target_screen_pos.y = Mathf.Clamp(target_screen_pos.y, viewport_min_y + marker_size, viewport_max_y - marker_size);
 		}
 
+		Ray ray_to_target = hud_camera.ScreenPointToRay(target_screen_pos);
+
+		Plane hud_plane = new Plane(-main_camera.transform.forward, main_camera.transform.position + main_camera.transform.forward);
+
+		bool marker_active = false;
+
+		float hit_dist = Mathf.Infinity;
+		if(hud_plane.Raycast(ray_to_target, out hit_dist)) {
+			marker.renderer.transform.position = ray_to_target.GetPoint(hit_dist);
+			marker_active = true;
+		}
+
+		Color marker_color = marker.renderer.material.color;
+		marker.renderer.enabled = marker.style_id != 0;
 		if(marker_off_screen) {
-			float flash_duration = 0.25f;
-			float inv_flash_duration = 1.0f / flash_duration;
-
-			bool flash_off = ((int)(marker.flash_time * inv_flash_duration)) % 2 == 0;
-			marker.renderer.material.color = flash_off ? marker.color : Util.white_no_alpha;
-
-			marker.flash_time += Time.deltaTime;
+			marker.renderer.material = marker.off_screen_material;
+			marker.renderer.transform.localScale = new Vector3(1.547f * 2.0f, 1.16025f * 2.0f, 1.0f);
 		}
-		else if(marker.flash_time != 0.0f) {
-			marker.renderer.material.color = marker.color;
-			marker.flash_time = 0.0f;
+		else {
+			marker.renderer.material = marker.materials[marker.style_id];
+			marker.renderer.transform.localScale = new Vector3(1.547f, 1.16025f, 1.0f);
 		}
+		marker.renderer.material.color = marker_color;
 
 		if(marker.renderer.gameObject.activeSelf != marker_active) {
 			marker.renderer.gameObject.SetActive(marker_active);

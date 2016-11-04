@@ -123,22 +123,49 @@ public class Player2Controller : MonoBehaviour {
 
 		control_flags &= ~CAN_JUMP;
 
-		if(!in_blast_radius && Settings.USE_DEATH_VIEW) {
-			Environment.play_explosion(game_manager, this, game_manager.env, hit_pos);
-			audio_sources[0].volume = 0.0f;
+		Environment.play_explosion(game_manager, this, game_manager.env, hit_pos);
+		audio_sources[0].volume = 0.0f;
 
-			for(int i = 0; i < game_manager.env.collectables.Length; i++) {
-				Collectable.mark_as_used(game_manager.env.collectables[i], true);
-			}
-
-			Environment.play_screams(game_manager.env);
-
-			dust_particles.Stop();
-			dust_particles.Clear();
-			ash_particles.Play();
+		for(int i = 0; i < game_manager.env.collectables.Length; i++) {
+			Collectable.mark_as_used(game_manager.env.collectables[i], true);
 		}
 
-		if(!in_blast_radius) {
+		Environment.play_screams(game_manager.env, game_manager.audio);
+
+		dust_particles.Stop();
+		dust_particles.Clear();
+		ash_particles.Play();
+
+		if(in_blast_radius) {
+			camera_type = CameraType.DEATH;
+
+			hint.go.SetActive(false);
+
+			camera_blur_effect.enabled = true;
+			camera_blur_effect.blurAmount = 3.2f;
+			camera_grading_effect.enabled = true;
+
+			transform_ref_.forward = Vector3.up;
+
+			camera_theta = 60.0f;
+			camera_ref.position = mesh.position;
+			camera_ref.rotation = transform_ref_.rotation;
+			camera_.transform.localPosition = Vector3.zero;
+			camera_.transform.localRotation = Quaternion.Euler(0.0f, camera_theta, 0.0f);
+
+			rigidbody_.isKinematic = true;
+
+			FadeImageEffect.set_alpha(camera_fade, 1.0f);
+			yield return new WaitForSeconds(3.0f);
+			yield return StartCoroutine(FadeImageEffect.lerp_alpha(camera_fade, 0.0f, 5.0f));
+
+			while(!second_missile_fired) {
+				yield return Util.wait_for_frame;
+			}
+
+			yield return StartCoroutine(wait_for_hit(hit_time));
+		}
+		else {
 			AudioSource exp_source = game_manager.env.explosion.audio_source;
 			exp_source.clip = Audio.get_random_clip(game_manager.audio, Audio.Clip.EXPLOSION_BIRDS);
 			exp_source.Play();
@@ -175,37 +202,6 @@ public class Player2Controller : MonoBehaviour {
 
 			yield return StartCoroutine(wait_for_hit(hit_time));
 		}
-		else {
-			if(Settings.USE_DEATH_VIEW) {
-				camera_type = CameraType.DEATH;
-
-				camera_blur_effect.enabled = true;
-				camera_blur_effect.blurAmount = 3.2f;
-				camera_grading_effect.enabled = true;
-
-				transform_ref_.forward = Vector3.up;
-
-				camera_theta = 60.0f;
-				camera_ref.position = mesh.position;
-				camera_ref.rotation = transform_ref_.rotation;
-				camera_.transform.localPosition = Vector3.zero;
-				camera_.transform.localRotation = Quaternion.Euler(0.0f, camera_theta, 0.0f);
-
-				rigidbody_.isKinematic = true;
-
-				FadeImageEffect.set_alpha(camera_fade, 1.0f);
-				yield return new WaitForSeconds(3.0f);
-				yield return StartCoroutine(FadeImageEffect.lerp_alpha(camera_fade, 0.0f, 5.0f));
-
-				//TODO: SOUND!!
-
-				while(!second_missile_fired) {
-					yield return Util.wait_for_frame;
-				}
-
-				yield return StartCoroutine(wait_for_hit(hit_time));
-			}
-		}
 
 		Environment env = game_manager.env;
 		Environment.stop_screams(env);
@@ -217,6 +213,7 @@ public class Player2Controller : MonoBehaviour {
 		FadeImageEffect.set_alpha(camera_fade, 1.0f);
 
 		renderer_.enabled = false;
+		hint.go.SetActive(false);
 		ash_particles.Stop();
 		ash_particles.Clear();
 
@@ -335,9 +332,10 @@ public class Player2Controller : MonoBehaviour {
 			}
 			dust_particles.Play();
 
-			yield return StartCoroutine(fade_in_hint(hint, "WAZIRISTAN, PAKISTAN", false));
+			//TODO: Still show this??
+			// yield return StartCoroutine(fade_in_hint(hint, "WAZIRISTAN, PAKISTAN", false));
 
-			yield return StartCoroutine(fade_in_hint(hint, "LOOK: MOUSE"));
+			yield return StartCoroutine(fade_in_hint(hint, "LOOK: MOUSE", false));
 			while((control_flags & HAS_LOOKED) == 0) {
 				yield return Util.wait_for_frame;
 			}
@@ -460,6 +458,7 @@ public class Player2Controller : MonoBehaviour {
 			hint = new ControlsHint();
 			hint.transform = camera_.transform.Find("Hint");
 			hint.go = hint.transform.gameObject;
+			hint.go.SetActive(true);
 			hint.renderer = hint.go.GetComponent<Renderer>();
 			hint.text_mesh = hint.go.GetComponent<TextMesh>();
 			hint.text_mesh.text = "";
@@ -497,8 +496,12 @@ public class Player2Controller : MonoBehaviour {
 	}
 
 	void Update() {
-		// TODO: Temp!!
-		// control_flags = 0;
+#if UNITY_EDITOR
+		if(Input.GetKeyDown(KeyCode.Alpha2)) {
+			GameManager.persistent_player_type = PlayerType.PLAYER2;
+			game_manager.show_stats(camera_);
+		}
+#endif
 
 		walk_sfx_volume_pos += Time.deltaTime / 0.1f;
 		walk_sfx_source.volume = Mathf.Lerp(walk_sfx_source.volume, walk_sfx_volume, walk_sfx_volume_pos);

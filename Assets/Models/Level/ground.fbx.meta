@@ -26,6 +26,7 @@ ModelImporter:
     100036: rock7
     100038: rock8
     100040: rock9
+    100042: river1
     400000: bridge
     400002: //RootNode
     400004: ground6
@@ -47,6 +48,7 @@ ModelImporter:
     400036: rock7
     400038: rock8
     400040: rock9
+    400042: river1
     2300000: bridge
     2300002: ground6
     2300004: river
@@ -66,6 +68,7 @@ ModelImporter:
     2300032: rock7
     2300034: rock8
     2300036: rock9
+    2300038: river1
     3300000: bridge
     3300002: ground6
     3300004: river
@@ -85,6 +88,7 @@ ModelImporter:
     3300032: rock7
     3300034: rock8
     3300036: rock9
+    3300038: river1
     4300000: bridge
     4300002: rock
     4300004: rock1
@@ -104,6 +108,7 @@ ModelImporter:
     4300032: rock14
     4300034: rock16
     4300036: rock18
+    4300038: river1
   materials:
     importMaterials: 1
     materialName: 0
@@ -146,7 +151,7 @@ ModelImporter:
     normalSmoothAngle: 60
     splitTangentsAcrossUV: 1
     normalImportMode: 0
-    tangentImportMode: 1
+    tangentImportMode: 2
   importAnimation: 1
   copyAvatar: 0
   humanDescription:

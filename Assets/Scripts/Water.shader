@@ -33,7 +33,7 @@ Shader "Custom/Water" {
                 uniform float _Brightness;
                 uniform float _InfraredAmount;
 
-                uniform float4 _LightColor0;
+                // uniform float4 _LightColor0;
 
                 struct appdata {
                     float4 vertex : POSITION;
@@ -73,7 +73,7 @@ Shader "Custom/Water" {
 
                     float4 vertex = mul(_World2Object, float4(v0.x, v0.y, v0.z, 1.0));
 
-                    float3 normal = cross(v2 - v0, v1 - v0);
+                    float3 normal = normalize(cross(v2 - v0, v1 - v0));
                     normal = mul(_World2Object, normal);
 
                     o.pos = mul(UNITY_MATRIX_MVP, vertex);
@@ -98,7 +98,7 @@ Shader "Custom/Water" {
                     float spec = saturate(pow(dot_nh, _Spec.y)) * _Spec.x;
 
                     fixed4 color = fixed4(0.0, 0.0, 0.0, 0.0);
-                    color += _Color * _LightColor0 * light;
+                    color += _Color * light;
                     color += UNITY_LIGHTMODEL_AMBIENT;
                     color.a = _Color.a;
 

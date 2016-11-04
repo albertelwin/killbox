@@ -139,8 +139,16 @@ Material:
       data:
         first:
           name: _Color
-        second: {r: .135110289, g: .360294104, b: .347047985, a: 1}
+        second: {r: .0989919752, g: .368000001, b: .357652158, a: .791000009}
       data:
         first:
           name: _Temperature
         second: {r: 0, g: 0, b: 0, a: 1}
+      data:
+        first:
+          name: _Wave
+        second: {r: .200000003, g: .100000001, b: 1, a: .5}
+      data:
+        first:
+          name: _Spec
+        second: {r: .100000001, g: 32, b: 0, a: 0}

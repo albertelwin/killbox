@@ -1,22 +1,29 @@
 
 using UnityEngine;
 
-public struct Foliage {
+public class Foliage {
 	public Transform transform;
 
-	//TODO: Bucket these further if necessary!!
+	public GameObject destroyed_mesh;
+
 	public FoliageController[] entries;
 
 	public static float CULL_DIST = 80.0f;
 	public static float CULL_DIST_SQ = CULL_DIST * CULL_DIST;
 
+	public float delay_time;
+
 	public static Foliage new_inst(GameManager game_manager, Transform transform) {
 		Foliage foliage = new Foliage();
 		foliage.transform = transform;
 
-		foliage.entries = new FoliageController[transform.childCount];
+		foliage.destroyed_mesh = transform.GetChild(0).gameObject;
+
+		foliage.delay_time = 0.0f;
+
+		foliage.entries = new FoliageController[transform.childCount - 1];
 		for(int i = 0; i < foliage.entries.Length; i++) {
-			FoliageController entry = transform.GetChild(i).GetComponent<FoliageController>();
+			FoliageController entry = transform.GetChild(i + 1).GetComponent<FoliageController>();
 			entry.game_manager = game_manager;
 
 			entry.anim = entry.GetComponentInChildren<Animation>();
@@ -45,6 +52,10 @@ public struct Foliage {
 	}
 
 	public static void on_explosion(Foliage foliage, Vector3 hit_pos) {
+		// foliage.delay_time = 0.9f;
+
+		// foliage.destroyed_mesh.SetActive(true);
+
 		for(int i = 0; i < foliage.entries.Length; i++) {
 			FoliageController entry = foliage.entries[i];
 
@@ -56,6 +67,8 @@ public struct Foliage {
 	}
 
 	public static void on_reset(Foliage foliage) {
+		foliage.destroyed_mesh.SetActive(false);
+
 		for(int i = 0; i < foliage.entries.Length; i++) {
 			FoliageController entry = foliage.entries[i];
 			entry.gameObject.SetActive(true);
@@ -65,7 +78,6 @@ public struct Foliage {
 
 	public static void update(GameManager game_manager, Foliage foliage) {
 		Camera camera_ = game_manager.player2_inst != null ? game_manager.player2_inst.camera_ : null;
-		// camera_ = null;
 		if(camera_ != null) {
 			Vector3 camera_pos = camera_.transform.position;
 			Plane[] frustum_planes = GeometryUtility.CalculateFrustumPlanes(camera_);
@@ -92,5 +104,16 @@ public struct Foliage {
 				set_animated_mesh_state(entry, false);
 			}
 		}
+
+		// float new_time = foliage.delay_time - Time.deltaTime;
+		// if(new_time <= 0.0f && foliage.delay_time > 0.0f) {
+		// 	foliage.destroyed_mesh.SetActive(true);
+		// 	for(int i = 0; i < foliage.entries.Length; i++) {
+		// 		foliage.entries[i].gameObject.SetActive(false);
+		// 	}
+
+		// 	// Debug.Log(new_time);
+		// }
+		// foliage.delay_time = new_time;
 	}
 }

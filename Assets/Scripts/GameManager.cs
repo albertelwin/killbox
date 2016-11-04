@@ -4,15 +4,13 @@
 DOING:
 
 TODO:
-	Clear to solid color
-	Missile camera contrast
-	Shuffle npc colors
 	Optimise pilot view (clear -> render camera feeds -> render ui)
 	Camera clipping
 	Dump password/kills/etc. to Google Drive
 	Load scene async
 
 DONE:
+	Shuffle npc colors
 	1 deaths confirmed
 	Log death count and session time
 	Bucket physics
@@ -130,6 +128,8 @@ public class GameManager : MonoBehaviour {
 	public static float AUTO_PAUSE_TIME = 120.0f;
 	public static float AUTO_RESTART_FROM_PAUSED_TIME = 30.0f;
 
+	public static int VSYNC_COUNT = 1;
+
 	[System.NonSerialized] public NetworkView network_view;
 
 	public SplashScreen splash_screen;
@@ -140,6 +140,7 @@ public class GameManager : MonoBehaviour {
 
 	[System.NonSerialized] public TextMesh game_log;
 	[System.NonSerialized] public TextMesh network_log;
+	[System.NonSerialized] public TextMesh loading_log;
 
 	public Color player1_text_color = Color.green;
 	public Color player2_text_color = Color.red;
@@ -193,7 +194,6 @@ public class GameManager : MonoBehaviour {
 
 	[System.NonSerialized] public Transform player1_prefab = null;
 	[System.NonSerialized] public Transform player2_prefab = null;
-	[System.NonSerialized] public Transform missile_prefab = null;
 	//TODO: Remove this!!
 	[System.NonSerialized] public Transform explosion_prefab = null;
 
@@ -214,7 +214,9 @@ public class GameManager : MonoBehaviour {
 
 	static public void set_world_brightness_(GameManager game_manager, float brightness) {
 		Shader.SetGlobalFloat("_Brightness", brightness);
-		RenderSettings.skybox.color = Util.sky * brightness;
+		if(RenderSettings.skybox != null) {
+			RenderSettings.skybox.color = Util.sky * brightness;
+		}
 
 		//TODO: Tidy this up somehow??
 		if(game_manager != null) {
@@ -359,6 +361,8 @@ public class GameManager : MonoBehaviour {
 			showing_stats = true;
 			set_pause(this, false);
 
+			QualitySettings.vSyncCount = 0;
+
 			end_screen.outro_renderer.enabled = true;
 			end_screen.outro_movie.Stop();
 			end_screen.outro_movie.Play();
@@ -368,6 +372,10 @@ public class GameManager : MonoBehaviour {
 			}
 
 			end_screen.outro_renderer.enabled = false;
+
+#if !UNITY_EDITOR
+			QualitySettings.vSyncCount = VSYNC_COUNT;
+#endif
 		}
 		else {
 			persistent_player_type = player_type == PlayerType.PLAYER1 ? PlayerType.PLAYER2 : PlayerType.PLAYER1;
@@ -427,8 +435,7 @@ public class GameManager : MonoBehaviour {
 					Collectable.mark_as_used(env.collectables[i]);
 				}
 
-				QualitySettings.shadowCascades = 0;
-				QualitySettings.shadowDistance = 400.0f;
+				QualitySettings.shadowDistance = 450.0f;
 			}
 			else {
 				Cursor.lockState = CursorLockMode.Locked;
@@ -445,9 +452,6 @@ public class GameManager : MonoBehaviour {
 					Instantiate(player2_prefab, spawn_point.position, spawn_point.rotation);
 				}
 
-				// QualitySettings.shadowCascades = 4;
-				// QualitySettings.shadowDistance = 140.0f;
-				QualitySettings.shadowCascades = 0;
 				QualitySettings.shadowDistance = 100.0f;
 			}
 
@@ -685,7 +689,7 @@ public class GameManager : MonoBehaviour {
 
 					wait_index++;
 #endif
-					yield return Util.wait_for_500ms;
+					yield return Util.wait_for_250ms;
 				}
 
 				network_log.gameObject.SetActive(false);
@@ -719,6 +723,33 @@ public class GameManager : MonoBehaviour {
 				StartCoroutine(Util.lerp_audio_volume(menu_audio_source, menu_audio_source.volume, 1.0f));
 			}
 
+			{
+				loading_log.gameObject.SetActive(true);
+
+				string wait_str = "LOADING";
+				int max_len = wait_str.Length + 3;
+
+				loading_log.text = wait_str;
+
+				while(true) {
+					if(audio.load_state == Audio.LoadState.LOADED) {
+						break;
+					}
+					else {
+						if(loading_log.text.Length >= max_len) {
+							loading_log.text = wait_str;
+						}
+						else {
+							loading_log.text += ".";
+						}
+
+						yield return Util.wait_for_250ms;
+					}
+				}
+
+				loading_log.gameObject.SetActive(false);
+			}
+
 			if(Settings.LAN_MODE) {
 				lan_screen.transform.gameObject.SetActive(true);
 
@@ -727,20 +758,22 @@ public class GameManager : MonoBehaviour {
 				lan_screen.player_movies[0].gameObject.SetActive(false);
 				lan_screen.player_movies[1].gameObject.SetActive(false);
 
+				QualitySettings.vSyncCount = 0;
+
 				Renderer killbox_movie = lan_screen.killbox_movie;
 				killbox_movie.gameObject.SetActive(true);
 				killbox_movie.material.color = Util.white_no_alpha;
-
-#if !UNITY_EDITOR
-				yield return Util.wait_for_3s;
-#endif
 
 				MovieTexture killbox_texture = (MovieTexture)killbox_movie.material.mainTexture;
 				killbox_texture.loop = true;
 				killbox_texture.Stop();
 				killbox_texture.Play();
+				killbox_movie.material.color = Util.white;
 
-				StartCoroutine(Util.lerp_material_alpha(killbox_movie, 1.0f));
+#if !UNITY_EDITOR
+				yield return Util.wait_for_3s;
+#endif
+				// StartCoroutine(Util.lerp_material_alpha(killbox_movie, 1.0f));
 
 				while(Input.anyKey) {
 					yield return Util.wait_for_frame;
@@ -811,6 +844,10 @@ public class GameManager : MonoBehaviour {
 
 					StartCoroutine(start_game(start_player));
 				}
+
+#if !UNITY_EDITOR
+				QualitySettings.vSyncCount = VSYNC_COUNT;
+#endif
 			}
 			else {
 				main_screen.transform.gameObject.SetActive(true);
@@ -908,6 +945,8 @@ public class GameManager : MonoBehaviour {
 	}
 
 	void Awake() {
+		Debug.Log("Awake(), " + Time.realtimeSinceStartup);
+
 #if !UNITY_EDITOR
 		//TODO: Make sure these are always in sync!!
 		int quality_level = QualitySettings.GetQualityLevel();
@@ -935,7 +974,7 @@ public class GameManager : MonoBehaviour {
 
 		// Settings.USE_TRANSITIONS = true;
 
-		QualitySettings.vSyncCount = 1;
+		QualitySettings.vSyncCount = VSYNC_COUNT;
 		QualitySettings.antiAliasing = 4;
 #endif
 
@@ -993,10 +1032,10 @@ public class GameManager : MonoBehaviour {
 		game_log.gameObject.SetActive(false);
 
 		network_log = transform.Find("Camera/NetworkLog").GetComponent<TextMesh>();
+		loading_log = transform.Find("Camera/LoadingLog").GetComponent<TextMesh>();
 
 		player1_prefab = Util.load_prefab("Player1Prefab");
 		player2_prefab = Util.load_prefab("Player2Prefab");
-		missile_prefab = Util.load_prefab("MissilePrefab");
 		explosion_prefab = Util.load_prefab("ExplosionPrefab");
 
 		player_type = PlayerType.NONE;
@@ -1005,6 +1044,8 @@ public class GameManager : MonoBehaviour {
 		time_of_day = 0.0f;
 
 		audio = Audio.new_inst();
+		Audio.load(audio, this, true);
+
 		env = Environment.new_inst(this, GameObject.Find("Environment").transform);
 
 		menu_sfx_source = Util.new_audio_source(transform, "MenuSfxSource");
@@ -1018,6 +1059,8 @@ public class GameManager : MonoBehaviour {
 	}
 
 	void Start() {
+		Debug.Log("Start(), " + Time.realtimeSinceStartup);
+
 		set_world_brightness_(this, 1.0f);
 		set_infrared_mode(false);
 

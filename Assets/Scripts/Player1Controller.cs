@@ -667,7 +667,7 @@ public class Player1Console {
 	}
 
 	public static Cmd push_cls_cmd(CmdBuf cmd_buf) {
-		return Player1Console.push_print_str_cmd(cmd_buf, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+		return Player1Console.push_print_str_cmd(cmd_buf, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
 	}
 
 	public static Cmd push_user_str_cmd(CmdBuf cmd_buf, UserStrId str_id, int max_str_len, bool numeric_only = false, bool hide_str = false, float timeout = Mathf.Infinity) {
@@ -719,17 +719,15 @@ public class Player1Console {
 			Cmd cmd = Player1Console.push_cmd(cmd_buf, Player1Console.CmdType.ENABLE_CONTROLS);
 			cmd.control_type = Player1Controller.ControlType.TOGGLE_INFRARED;
 			cmd.num = enabled ? 1 : 0;
-
-			push_delay_cmd(cmd_buf);
-			push_print_str_cmd(cmd_buf, "\n");
 		}
 		else {
 			Cmd cmd = push_cmd(cmd_buf, CmdType.TUTORIAL_KEY);
 			cmd.control_type = control_type;
 			cmd.duration = duration;
-
-			push_delay_cmd(cmd_buf, "\n");
 		}
+
+		push_wait_cmd(cmd_buf, 1.0f);
+		push_cls_cmd(cmd_buf);
 	}
 
 	public static void push_fire_missile_cmd(CmdBuf cmd_buf) {

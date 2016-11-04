@@ -14,11 +14,11 @@ public class NpcController : MonoBehaviour {
 	[System.NonSerialized] public Collider collider_;
 	[System.NonSerialized] public Animation anim;
 	[System.NonSerialized] public Renderer renderer_;
-	[System.NonSerialized] public AudioSource audio_source;
 	[System.NonSerialized] public ParticleSystem particle_system;
 
 	public NpcType type = NpcType.ADULT;
 	[System.NonSerialized] public bool is_human;
+	[System.NonSerialized] public Audio.Clip clip_pool;
 
 	[System.NonSerialized] public NavMeshAgent nav_agent;
 	[System.NonSerialized] public MotionPathAgent path_agent;
@@ -35,6 +35,7 @@ public class NpcController : MonoBehaviour {
 
 	bool activated;
 	float emission;
+	[System.NonSerialized] public float delay_time;
 
 	[System.NonSerialized] public Transform blood;
 
@@ -46,7 +47,6 @@ public class NpcController : MonoBehaviour {
 
 	void Awake() {
 		nav_agent = GetComponent<NavMeshAgent>();
-		audio_source = GetComponent<AudioSource>();
 		particle_system = GetComponent<ParticleSystem>();
 
 		Transform anim_transform = transform.Find("Animation");
@@ -78,6 +78,17 @@ public class NpcController : MonoBehaviour {
 		initial_pos = transform.position;
 
 		is_human = type == NpcType.ADULT || type == NpcType.CHILD;
+		clip_pool = Audio.Clip.COUNT;
+		//TODO: If we don't need the sfx in remove some of these!!
+		if(type == NpcType.ADULT) {
+			clip_pool = Audio.Clip.NPC_ADULT;
+		}
+		else if(type == NpcType.CHILD) {
+			clip_pool = Audio.Clip.NPC_CHILD;
+		}
+		else if(type == NpcType.CHICKEN) {
+			clip_pool = Audio.Clip.NPC_CHICKEN;
+		}
 	}
 
 	public void Start() {
@@ -93,6 +104,12 @@ public class NpcController : MonoBehaviour {
 			if(path_agent == null) {
 				nav_agent.enabled = false;
 			}
+			else {
+				if(type == NpcType.CHILD) {
+					path_agent.walk_speed = 2.0f + Random.value * 2.0f;
+					path_agent.run_speed = 10.0f + Random.value * 4.0f;
+				}
+			}
 		}
 
 		anim.gameObject.SetActive(true);
@@ -101,6 +118,7 @@ public class NpcController : MonoBehaviour {
 
 		activated = false;
 		emission = 0.0f;
+		delay_time = 0.0f;
 
 		if(blood) {
 			blood.gameObject.SetActive(false);
@@ -118,21 +136,9 @@ public class NpcController : MonoBehaviour {
 				float distance_to_player = Vector3.Distance(closest_point, player2_transform.position);
 
 				if(!npc.activated && distance_to_player < ACTIVAITON_DIST) {
-					//TODO: Cache this!!
-					Audio.Clip clip_pool = Audio.Clip.COUNT;
-					if(npc.type == NpcType.ADULT) {
-						clip_pool = Audio.Clip.NPC_ADULT;
-					}
-					else if(npc.type == NpcType.CHILD) {
-						clip_pool = Audio.Clip.NPC_CHILD;
-					}
-					else if(npc.type == NpcType.CHICKEN) {
-						clip_pool = Audio.Clip.NPC_CHICKEN;
-					}
-
-					if(clip_pool != Audio.Clip.COUNT) {
-						npc.audio_source.clip = Audio.get_random_clip(game_manager.audio, clip_pool);
-						npc.audio_source.Play();
+					if(npc.clip_pool != Audio.Clip.COUNT) {
+						AudioClip clip = Audio.get_random_clip(game_manager.audio, npc.clip_pool);
+						Audio.play(game_manager.audio, clip);
 					}
 
 					if(npc.is_human) {
@@ -140,11 +146,25 @@ public class NpcController : MonoBehaviour {
 							npc.particle_system.Emit(npc.particle_system.maxParticles);
 						}
 
-						npc.color_index++;
-						if(npc.color_index >= COLOR_POOL.Length) {
-							npc.color_index = 0;
+						if(COLOR_POOL.Length > 1) {
+							int next_index = npc.color_index;
+							while(next_index == npc.color_index) {
+								next_index = (int)(Random.value * COLOR_POOL.Length);
+								if(next_index >= COLOR_POOL.Length) {
+									next_index = COLOR_POOL.Length - 1;
+								}
+							}
+							npc.color_index = next_index;
+							set_color(npc, COLOR_POOL[npc.color_index]);
 						}
-						set_color(npc, COLOR_POOL[npc.color_index]);
+						else {
+							Assert.invalid_path();
+						}
+
+						// npc.color_index++;
+						// if(npc.color_index >= COLOR_POOL.Length) {
+						// 	npc.color_index = 0;
+						// }
 					}
 
 					entered_player_radius = true;
@@ -182,6 +202,20 @@ public class NpcController : MonoBehaviour {
 			}
 		}
 		else {
+			if(npc.nav_agent) {
+				float new_time = npc.delay_time - Time.deltaTime;
+				if(new_time <= 0.0f && npc.delay_time > 0.0f) {
+					Util.cross_fade_anim(npc.anim, "moving");
+
+					npc.nav_agent.enabled = true;
+					//TODO: Tweak this!!
+					npc.nav_agent.speed = 6.0f + Random.value * 4.0f;
+					npc.nav_agent.SetDestination(npc.safe_point.position);
+				}
+
+				npc.delay_time = new_time;
+			}
+
 			npc.activated = false;
 		}
 
@@ -213,16 +247,21 @@ public class NpcController : MonoBehaviour {
 					npc.blood.gameObject.SetActive(true);
 					npc.blood.rotation = Quaternion.Euler(0.0f, 360.0f * Random.value, 0.0f);
 				}
+
 			}
 			else {
-				Util.cross_fade_anim(npc.anim, "moving");
+				Util.cross_fade_anim(npc.anim, "idle");
 
-				if(npc.nav_agent) {
-					npc.nav_agent.enabled = true;
-					//TODO: Tweak this!!
-					npc.nav_agent.speed = 5.0f + Random.value * 5.0f;
-					npc.nav_agent.SetDestination(npc.safe_point.position);
-				}
+				npc.delay_time = 7.5f;
+
+				// if(npc.nav_agent) {
+				// 	Util.cross_fade_anim(npc.anim, "moving");
+
+				// 	npc.nav_agent.enabled = true;
+				// 	//TODO: Tweak this!!
+				// 	npc.nav_agent.speed = 5.0f + Random.value * 5.0f;
+				// 	npc.nav_agent.SetDestination(npc.safe_point.position);
+				// }
 			}
 		}
 		else if(npc.type == NpcType.BIRD) {

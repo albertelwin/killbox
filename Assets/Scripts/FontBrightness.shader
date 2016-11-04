@@ -5,8 +5,8 @@ Shader "Custom/FontBrightness" {
 	}
 
 	SubShader {
-		Tags { "Queue"="Transparent+1" "IgnoreProjector"="True" "RenderType"="Transparent" }
-		Lighting Off ZTest LEqual ZWrite Off Fog { Mode Off }
+		Tags { "Queue"="Overlay" "IgnoreProjector"="True" "RenderType"="Transparent" }
+		Lighting Off ZTest Always ZWrite Off Fog { Mode Off }
 		Blend One OneMinusSrcAlpha
 		Offset -1, -1
 

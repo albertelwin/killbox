@@ -33,9 +33,12 @@ public static class Util {
 	public static Color night = new_color(0, 28, 75);
 
 	public static YieldInstruction wait_for_frame = new WaitForEndOfFrame();
+	public static YieldInstruction wait_for_10ms = new WaitForSeconds(0.01f);
 	public static YieldInstruction wait_for_30ms = new WaitForSeconds(0.03f);
 	public static YieldInstruction wait_for_40ms = new WaitForSeconds(0.04f);
+	public static YieldInstruction wait_for_50ms = new WaitForSeconds(0.05f);
 	public static YieldInstruction wait_for_60ms = new WaitForSeconds(0.06f);
+	public static YieldInstruction wait_for_250ms = new WaitForSeconds(0.25f);
 	public static YieldInstruction wait_for_500ms = new WaitForSeconds(0.5f);
 	public static YieldInstruction wait_for_1s = new WaitForSeconds(1.0f);
 	public static YieldInstruction wait_for_2s = new WaitForSeconds(2.0f);
@@ -314,21 +317,28 @@ public static class Util {
 	}
 
 	public static int random_index(int array_length) {
-	return (int)(Random.value * array_length);
+		return (int)(Random.value * array_length);
 	}
 
 	public static T random_elem<T>(T[] array) {
 		int index = (int)(Random.value * array.Length);
+		if(index >= array.Length) {
+			index = array.Length - 1;
+		}
 		return array[index];
 	}
 
 	public static void shuffle_array<T>(T[] array) {
-		int r = array.Length;
-		while(r > 0) {
-			int i = (int)(Random.value * r--);
+		int len = array.Length;
+		while(len > 0) {
+			int i = (int)(Random.value * len);
+			if(i >= len) {
+				i = len - 1;
+			}
+			len--;
 
-			T tmp = array[r];
-			array[r] = array[i];
+			T tmp = array[len];
+			array[len] = array[i];
 			array[i] = tmp;
 		}
 	}

@@ -56,8 +56,7 @@ public class Environment {
 	public class Explosion {
 		public Transform transform;
 		public AudioSource audio_source;
-		public Renderer smoke;
-		public Renderer shock_wave;
+		public Renderer sphere;
 	}
 
 	public class Crater {
@@ -181,7 +180,6 @@ public class Environment {
 				audio_source.spatialBlend = 1.0f;
 				audio_source.maxDistance = 150.0f;
 				audio_source.dopplerLevel = 0.0f;
-				audio_source.clip = Audio.get_clip(game_manager.audio, Audio.Clip.SCREAM, npc_scream_index);
 				env.npc_scream_sources[npc_scream_index] = audio_source;
 				npc_scream_index++;
 			}
@@ -193,14 +191,10 @@ public class Environment {
 		env.explosion = new Explosion();
 		env.explosion.transform = Util.new_transform(transform, "Explosion");
 		env.explosion.audio_source = env.explosion.transform.gameObject.AddComponent<AudioSource>();
-		env.explosion.smoke = ((Transform)Object.Instantiate(game_manager.explosion_prefab, Vector3.zero, Quaternion.identity)).GetComponent<Renderer>();
-		env.explosion.smoke.enabled = false;
-		env.explosion.smoke.transform.parent = env.explosion.transform;
-		env.explosion.smoke.name = "Smoke";
-		env.explosion.shock_wave = ((Transform)Object.Instantiate(game_manager.explosion_prefab, Vector3.zero, Quaternion.identity)).GetComponent<Renderer>();
-		env.explosion.shock_wave.enabled = false;
-		env.explosion.shock_wave.transform.parent = env.explosion.transform;
-		env.explosion.shock_wave.name = "ShockWave";
+		env.explosion.sphere = ((Transform)Object.Instantiate(game_manager.explosion_prefab, Vector3.zero, Quaternion.identity)).GetComponent<Renderer>();
+		env.explosion.sphere.enabled = false;
+		env.explosion.sphere.transform.parent = env.explosion.transform;
+		env.explosion.sphere.name = "Sphere";
 
 		env.explosion_prefab = Util.load_prefab("ExplosionPrefab_");
 		env.smoke_prefab = Util.load_prefab("SmokePrefab");
@@ -290,10 +284,8 @@ public class Environment {
 
 		Foliage.on_reset(env.foliage);
 
-		env.explosion.smoke.enabled = false;
-		env.explosion.smoke.material.color = Util.black;
-		env.explosion.shock_wave.enabled = false;
-		env.explosion.shock_wave.material.color = Util.black;
+		env.explosion.sphere.enabled = false;
+		env.explosion.sphere.material.color = Util.black;
 
 		if(env.explosion_) {
 			Object.Destroy(env.explosion_.gameObject);
@@ -385,7 +377,7 @@ public class Environment {
 		}
 	}
 
-	public static IEnumerator play_explosion_smoke(MonoBehaviour player, Renderer sphere) {
+	public static IEnumerator play_explosion_sphere(MonoBehaviour player, Renderer sphere) {
 		sphere.enabled = true;
 
 		yield return player.StartCoroutine(Util.lerp_local_scale(sphere.transform, Vector3.zero, Vector3.one * EXPLOSION_RADIUS * 2.0f, 0.2f));
@@ -394,38 +386,14 @@ public class Environment {
 		sphere.enabled = false;
 	}
 
-	public static IEnumerator play_explosion_shock_wave(Renderer sphere) {
-		sphere.enabled = true;
-
-		float scale = EXPLOSION_RADIUS * 2.0f;
-		float max_scale = 120.0f;
-
-		float t = 0.0f;
-		while(t < 1.0f) {
-			sphere.transform.localScale = Vector3.one * Mathf.Lerp(scale, max_scale, t);
-			sphere.material.color = Util.new_color(Util.black, Mathf.Lerp(0.5f, 0.0f, t));
-
-			t += Time.deltaTime;
-			yield return Util.wait_for_frame;
-		}
-
-		sphere.material.color = Util.black_no_alpha;
-		sphere.enabled = false;
-	}
-
 	public static void play_explosion_(MonoBehaviour player, Environment env, Vector3 hit_pos) {
 		env.explosion.transform.position = hit_pos;
 
-		// if(env.explosion_ != null) {
-			env.explosion_ = (Transform)Object.Instantiate(env.explosion_prefab, hit_pos, Quaternion.identity);
-			if(env.smoke_prefab && env.smoke_ == null) {
-				env.smoke_ = (Transform)Object.Instantiate(env.smoke_prefab, hit_pos, Quaternion.identity);
-			}
-		// }
-		// else {
-			player.StartCoroutine(play_explosion_smoke(player, env.explosion.smoke));
-			// player.StartCoroutine(play_explosion_shock_wave(env.explosion.shock_wave));
-		// }
+		env.explosion_ = (Transform)Object.Instantiate(env.explosion_prefab, hit_pos, Quaternion.identity);
+		if(env.smoke_prefab && env.smoke_ == null) {
+			env.smoke_ = (Transform)Object.Instantiate(env.smoke_prefab, hit_pos, Quaternion.identity);
+		}
+		player.StartCoroutine(play_explosion_sphere(player, env.explosion.sphere));
 	}
 
 	public static void play_explosion(GameManager game_manager, MonoBehaviour player, Environment env, Vector3 hit_pos) {
@@ -474,9 +442,11 @@ public class Environment {
 		game_manager.first_missile_hit = true;
 	}
 
-	public static void play_screams(Environment env) {
+	public static void play_screams(Environment env, Audio audio) {
 		for(int i = 0; i < env.npc_scream_sources.Length; i++) {
-			env.npc_scream_sources[i].Play();
+			AudioSource source = env.npc_scream_sources[i];
+			source.clip = Audio.get_clip(audio, Audio.Clip.SCREAM, i);
+			source.Play();
 		}
 	}
 

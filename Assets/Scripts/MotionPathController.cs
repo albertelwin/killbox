@@ -26,6 +26,9 @@ public class MotionPathAgent {
 	public float stop_time;
 	public float run_time;
 
+	public float walk_speed;
+	public float run_speed;
+
 	public bool stopped;
 	public bool started;
 }
@@ -165,6 +168,9 @@ public class MotionPath {
 		agent.nav.Warp(start_node.transform.position);
 		agent.nav.SetDestination(start_node.transform.position);
 
+		agent.walk_speed = 2.0f;
+		agent.run_speed = 12.0f;
+
 		return agent;
 	}
 
@@ -257,18 +263,13 @@ public class MotionPath {
 			agent.nav.SetDestination(agent.target_pos);
 		}
 
-		float walk_speed = 2.0f;
-		float walk_accel = 8.0f;
-		float run_speed = 12.0f;
-		float run_accel = 48.0f;
-
 		if(agent.run_time > 0.0f) {
-			agent.nav.speed = run_speed * speed_modifier;
-			agent.nav.acceleration = run_accel;
+			agent.nav.speed = agent.run_speed * speed_modifier;
+			agent.nav.acceleration = 48.0f;
 		}
 		else {
-			agent.nav.speed = walk_speed * speed_modifier;
-			agent.nav.acceleration = walk_accel;
+			agent.nav.speed = agent.walk_speed * speed_modifier;
+			agent.nav.acceleration = 8.0f;
 		}
 	}
 }

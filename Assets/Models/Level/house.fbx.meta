@@ -147,6 +147,12 @@ ModelImporter:
     100278: polySurface930
     100280: polySurface934
     100282: destroy_static
+    100284: building_poles
+    100286: house1
+    100288: vase1
+    100290: vase2
+    100292: vase3
+    100294: vases
     400000: destroy
     400002: door
     400004: //RootNode
@@ -289,6 +295,12 @@ ModelImporter:
     400278: polySurface930
     400280: polySurface934
     400282: destroy_static
+    400284: building_poles
+    400286: house1
+    400288: vase1
+    400290: vase2
+    400292: vase3
+    400294: vases
     2300000: door
     2300002: house 1
     2300004: house_biiits:house_front1:house_front house_front1:destroy house_front1:.000
@@ -423,6 +435,11 @@ ModelImporter:
     2300262: polySurface929
     2300264: polySurface930
     2300266: polySurface934
+    2300268: building_poles
+    2300270: house1
+    2300272: vase1
+    2300274: vase2
+    2300276: vase3
     3300000: door
     3300002: house 1
     3300004: house_biiits:house_front1:house_front house_front1:destroy house_front1:.000
@@ -557,6 +574,11 @@ ModelImporter:
     3300262: polySurface929
     3300264: polySurface930
     3300266: polySurface934
+    3300268: building_poles
+    3300270: house1
+    3300272: vase1
+    3300274: vase2
+    3300276: vase3
     4300000: house
     4300002: house_destory1
     4300004: window_1
@@ -691,6 +713,11 @@ ModelImporter:
     4300262: pCube103
     4300264: building_1_wall
     4300266: building_1_wall_destroy
+    4300268: building_poles
+    4300270: vase3
+    4300272: vase1
+    4300274: vase2
+    4300276: house1
   materials:
     importMaterials: 1
     materialName: 0
@@ -730,10 +757,10 @@ ModelImporter:
     secondaryUVPackMargin: 4
     useFileScale: 1
   tangentSpace:
-    normalSmoothAngle: 60
+    normalSmoothAngle: 180
     splitTangentsAcrossUV: 1
     normalImportMode: 0
-    tangentImportMode: 0
+    tangentImportMode: 2
   importAnimation: 1
   copyAvatar: 0
   humanDescription:

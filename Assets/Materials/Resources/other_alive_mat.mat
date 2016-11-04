@@ -129,11 +129,11 @@ Material:
         second: 0
       data:
         first:
-          name: _EmissionScaleUI
+          name: _Emission
         second: 0
       data:
         first:
-          name: _Emission
+          name: _EmissionScaleUI
         second: 0
     m_Colors:
       data:
@@ -146,9 +146,9 @@ Material:
         second: {r: 1, g: .200000003, b: .400000006, a: 1}
       data:
         first:
-          name: _EmissionColorUI
+          name: _Temperature
         second: {r: 1, g: 1, b: 1, a: 1}
       data:
         first:
-          name: _Temperature
+          name: _EmissionColorUI
         second: {r: 1, g: 1, b: 1, a: 1}

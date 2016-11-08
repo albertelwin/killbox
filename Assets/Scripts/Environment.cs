@@ -75,7 +75,7 @@ public class Environment {
 	public Collectable[] collectables;
 	public NpcController[] npcs;
 
-	public AudioSource[] npc_scream_sources;
+	public AudioSource[] scream_sources;
 
 	public Foliage foliage;
 
@@ -157,34 +157,33 @@ public class Environment {
 			env.collectables[i] = Collectable.new_inst(collectables_parent.GetChild(i));
 		}
 
+		env.scream_sources = new AudioSource[2];
+		env.scream_sources[0] = Util.new_audio_source(transform, "ScreamAudioSource");
+		env.scream_sources[0].loop = true;
+		env.scream_sources[0].spatialBlend = 0.0f;
+
 		Transform npcs_parent = transform.Find("Npcs");
 		env.npcs = new NpcController[npcs_parent.childCount];
-		int npc_scream_count = 0;
 		for(int i = 0; i < npcs_parent.childCount; i++) {
-			env.npcs[i] = npcs_parent.GetChild(i).GetComponent<NpcController>();
-			if(env.npcs[i].screams) {
-				npc_scream_count++;
-			}
-		}
-
-		int npc_scream_index = 0;
-		env.npc_scream_sources = new AudioSource[npc_scream_count];
-		for(int npc_index = 0; npc_index < env.npcs.Length; npc_index++) {
-			NpcController npc = env.npcs[npc_index];
+			NpcController npc = npcs_parent.GetChild(i).GetComponent<NpcController>();
 			if(npc.screams) {
-				Assert.is_true(npc_scream_index < npc_scream_count);
+				if(env.scream_sources[1] == null) {
+					AudioSource audio_source = Util.new_audio_source(npc.transform, "ScreamAudioSource");
+					audio_source.transform.localPosition = Vector3.zero;
+					audio_source.loop = true;
+					audio_source.spatialBlend = 1.0f;
+					audio_source.maxDistance = 200.0f;
+					audio_source.dopplerLevel = 0.0f;
 
-				AudioSource audio_source = Util.new_audio_source(npc.transform, "ScreamAudioSource");
-				audio_source.transform.localPosition = Vector3.zero;
-				audio_source.loop = true;
-				audio_source.spatialBlend = 1.0f;
-				audio_source.maxDistance = 150.0f;
-				audio_source.dopplerLevel = 0.0f;
-				env.npc_scream_sources[npc_scream_index] = audio_source;
-				npc_scream_index++;
+					env.scream_sources[1] = audio_source;
+				}
+				else {
+					Assert.invalid_path();
+				}
 			}
+
+			env.npcs[i] = npc;
 		}
-		Assert.is_true(npc_scream_index == npc_scream_count);
 
 		env.foliage = Foliage.new_inst(game_manager, transform.Find("Foliage"));
 
@@ -443,8 +442,8 @@ public class Environment {
 	}
 
 	public static void play_screams(Environment env, Audio audio) {
-		for(int i = 0; i < env.npc_scream_sources.Length; i++) {
-			AudioSource source = env.npc_scream_sources[i];
+		for(int i = 0; i < env.scream_sources.Length; i++) {
+			AudioSource source = env.scream_sources[i];
 			source.clip = Audio.get_clip(audio, Audio.Clip.SCREAM, i);
 			source.Play();
 		}
@@ -452,8 +451,8 @@ public class Environment {
 
 	public static void stop_screams(Environment env, bool now = false) {
 		//TODO: How should these fade??
-		for(int i = 0; i < env.npc_scream_sources.Length; i++) {
-			env.npc_scream_sources[i].Stop();
+		for(int i = 0; i < env.scream_sources.Length; i++) {
+			env.scream_sources[i].Stop();
 		}
 	}
 }

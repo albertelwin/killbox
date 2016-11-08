@@ -816,28 +816,28 @@ public class GameManager : MonoBehaviour {
 					killbox_texture.Stop();
 					killbox_movie.gameObject.SetActive(false);
 
-					Renderer player_movie = null;
-					if(start_player == PlayerType.PLAYER1) {
-						player_movie = lan_screen.player_movies[0];
-						lan_screen.player_movies[1].gameObject.SetActive(false);
-					}
-					else {
-						player_movie = lan_screen.player_movies[1];
-						lan_screen.player_movies[0].gameObject.SetActive(false);
-					}
-					player_movie.gameObject.SetActive(true);
-					player_movie.material.color = Util.white;
+					// Renderer player_movie = null;
+					// if(start_player == PlayerType.PLAYER1) {
+					// 	player_movie = lan_screen.player_movies[0];
+					// 	lan_screen.player_movies[1].gameObject.SetActive(false);
+					// }
+					// else {
+					// 	player_movie = lan_screen.player_movies[1];
+					// 	lan_screen.player_movies[0].gameObject.SetActive(false);
+					// }
+					// player_movie.gameObject.SetActive(true);
+					// player_movie.material.color = Util.white;
 
-					MovieTexture player_texture = (MovieTexture)player_movie.material.mainTexture;
-					player_texture.loop = false;
-					player_texture.Stop();
-					player_texture.Play();
+					// MovieTexture player_texture = (MovieTexture)player_movie.material.mainTexture;
+					// player_texture.loop = false;
+					// player_texture.Stop();
+					// player_texture.Play();
 
-					menu_sfx_source.volume = 1.0f;
+					// menu_sfx_source.volume = 1.0f;
 
-					while(player_texture.isPlaying) {
-						yield return Util.wait_for_frame;
-					}
+					// while(player_texture.isPlaying) {
+					// 	yield return Util.wait_for_frame;
+					// }
 
 					menu_sfx_source.volume = 0.0f;
 					menu_audio_source.volume = 0.0f;

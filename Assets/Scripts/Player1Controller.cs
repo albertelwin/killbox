@@ -359,7 +359,7 @@ public static class Player1Util {
 						case "death_count": {
 							parser_assert(passage_parser, cmd_start, passage_name, cmd.input_count == 1);
 
-							Player1Console.push_print_str_cmd(cmd_buf, "\nENTER NUMBER OF TARGETS NEUTRALISED: ");
+							Player1Console.push_print_str_cmd(cmd_buf, "\nCONFIRM NUMBER OF KILLS: ");
 							Player1Console.push_confirm_deaths_cmd(cmd_buf);
 
 							break;
@@ -739,7 +739,7 @@ public class Player1Console {
 	}
 
 	public static void push_confirm_deaths_cmd(CmdBuf cmd_buf) {
-		Cmd cmd = push_user_str_cmd(cmd_buf, UserStrId.DEATH_COUNT, 2, true, false, 10.0f);
+		Cmd cmd = push_user_str_cmd(cmd_buf, UserStrId.DEATH_COUNT, 2, true, false, 15.0f);
 
 		push_delay_cmd(cmd_buf);
 		push_print_str_cmd(cmd_buf, "\n");

@@ -4,26 +4,24 @@ using UnityEngine;
 public class Foliage {
 	public Transform transform;
 
-	public GameObject destroyed_mesh;
-
 	public FoliageController[] entries;
 
 	public static float CULL_DIST = 80.0f;
 	public static float CULL_DIST_SQ = CULL_DIST * CULL_DIST;
 
-	public float delay_time;
+	public bool hit;
+	public float hit_time;
 
 	public static Foliage new_inst(GameManager game_manager, Transform transform) {
 		Foliage foliage = new Foliage();
 		foliage.transform = transform;
 
-		foliage.destroyed_mesh = transform.GetChild(0).gameObject;
+		foliage.hit = false;
+		foliage.hit_time = 0.0f;
 
-		foliage.delay_time = 0.0f;
-
-		foliage.entries = new FoliageController[transform.childCount - 1];
+		foliage.entries = new FoliageController[transform.childCount];
 		for(int i = 0; i < foliage.entries.Length; i++) {
-			FoliageController entry = transform.GetChild(i + 1).GetComponent<FoliageController>();
+			FoliageController entry = transform.GetChild(i).GetComponent<FoliageController>();
 			entry.game_manager = game_manager;
 
 			entry.anim = entry.GetComponentInChildren<Animation>();
@@ -36,6 +34,9 @@ public class Foliage {
 			entry.transform.localPosition += Vector3.up * Random.Range(-1.0f, 1.0f) * 0.2f;
 
 			entry.initial_pos = entry.transform.position;
+			entry.initial_rot = entry.transform.rotation;
+
+			entry.rnd = Random.value;
 
 			foliage.entries[i] = entry;
 		}
@@ -52,9 +53,10 @@ public class Foliage {
 	}
 
 	public static void on_explosion(Foliage foliage, Vector3 hit_pos) {
-		// foliage.delay_time = 0.9f;
-
-		// foliage.destroyed_mesh.SetActive(true);
+		if(!foliage.hit) {
+			foliage.hit = true;
+			foliage.hit_time = 0.0f;
+		}
 
 		for(int i = 0; i < foliage.entries.Length; i++) {
 			FoliageController entry = foliage.entries[i];
@@ -67,18 +69,20 @@ public class Foliage {
 	}
 
 	public static void on_reset(Foliage foliage) {
-		foliage.destroyed_mesh.SetActive(false);
+		foliage.hit = false;
+		foliage.hit_time = 0.0f;
 
 		for(int i = 0; i < foliage.entries.Length; i++) {
 			FoliageController entry = foliage.entries[i];
 			entry.gameObject.SetActive(true);
 			entry.transform.position = entry.initial_pos;
+			entry.transform.rotation = entry.initial_rot;
 		}
 	}
 
 	public static void update(GameManager game_manager, Foliage foliage) {
 		Camera camera_ = game_manager.player2_inst != null ? game_manager.player2_inst.camera_ : null;
-		if(camera_ != null) {
+		if(camera_ != null && !foliage.hit) {
 			Vector3 camera_pos = camera_.transform.position;
 			Plane[] frustum_planes = GeometryUtility.CalculateFrustumPlanes(camera_);
 
@@ -105,15 +109,29 @@ public class Foliage {
 			}
 		}
 
-		// float new_time = foliage.delay_time - Time.deltaTime;
-		// if(new_time <= 0.0f && foliage.delay_time > 0.0f) {
-		// 	foliage.destroyed_mesh.SetActive(true);
-		// 	for(int i = 0; i < foliage.entries.Length; i++) {
-		// 		foliage.entries[i].gameObject.SetActive(false);
-		// 	}
+		if(foliage.hit) {
+			foliage.hit_time += Time.deltaTime;
 
-		// 	// Debug.Log(new_time);
-		// }
-		// foliage.delay_time = new_time;
+			for(int i = 0; i < foliage.entries.Length; i++) {
+				FoliageController entry = foliage.entries[i];
+				Transform transform = entry.transform;
+
+				Vector3 p = transform.position;
+				p.y = 0.0f;
+				Vector3 q = new Vector3(414.04f, 0.0f, 146.27f);
+
+				Vector3 d = p - q;
+				float dist_sqr = d.x * d.x + d.y * d.y + d.z * d.z;
+				float dist = Mathf.Sqrt(dist_sqr);
+				d *= (1.0f / dist);
+
+				Vector3 axis = Vector3.Cross(Vector3.up, d).normalized;
+
+				float t = Mathf.Clamp01(foliage.hit_time * 8.5f - (Mathf.Max(0.0f, dist * 0.1f) + 1.7f));
+				float angle = (50.0f + entry.rnd * 10.0f) * Mathf.Min(1.0f, t * (650.0f / dist_sqr));
+
+				transform.rotation = Quaternion.AngleAxis(angle, axis) * entry.initial_rot;
+			}
+		}
 	}
 }

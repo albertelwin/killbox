@@ -745,7 +745,7 @@ public class Player1Console {
 		push_print_str_cmd(cmd_buf, "\n");
 		push_print_str_cmd(cmd_buf, UserStrId.DEATH_COUNT);
 		push_print_str_cmd(cmd_buf, " ");
-		Cmd deaths_cmd = push_print_str_cmd(cmd_buf, "DEATHS");
+		Cmd deaths_cmd = push_print_str_cmd(cmd_buf, "KILLS");
 		push_print_str_cmd(cmd_buf, " CONFIRMED\n\n");
 
 		cmd.num = deaths_cmd.index;
@@ -1056,7 +1056,7 @@ public class Player1Console {
 								Assert.is_true(cmd.str_id != UserStrId.NONE);
 								//TODO: This is a hack!!
 								if(cmd.str_id == UserStrId.DEATH_COUNT && str.Equals("1")) {
-									inst.cmd_buf.elems[cmd.num].str = "DEATH";
+									inst.cmd_buf.elems[cmd.num].str = "KILL";
 								}
 								inst.user_str_table[(int)cmd.str_id] = str;
 							}

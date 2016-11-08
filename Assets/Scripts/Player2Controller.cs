@@ -125,6 +125,7 @@ public class Player2Controller : MonoBehaviour {
 
 		Environment.play_explosion(game_manager, this, game_manager.env, hit_pos);
 		audio_sources[0].volume = 0.0f;
+		audio_sources[1].volume = 0.0f;
 
 		for(int i = 0; i < game_manager.env.collectables.Length; i++) {
 			Collectable.mark_as_used(game_manager.env.collectables[i], true);
@@ -226,8 +227,8 @@ public class Player2Controller : MonoBehaviour {
 
 		yield return new WaitForSeconds(10.0f);
 
-		StartCoroutine(FadeImageEffect.lerp_alpha(camera_fade, 1.0f, 5.0f));
-		yield return StartCoroutine(Util.lerp_audio_volume(audio_sources[1], 1.0f, 0.0f, 5.0f));
+		// StartCoroutine(Util.lerp_audio_volume(audio_sources[1], 1.0f, 0.0f, 5.0f));
+		yield return StartCoroutine(FadeImageEffect.lerp_alpha(camera_fade, 1.0f, 5.0f));
 		audio_sources[0].Stop();
 		audio_sources[1].Stop();
 
@@ -537,7 +538,8 @@ public class Player2Controller : MonoBehaviour {
 				}
 			}
 			else if(!second_missile_fired) {
-				if(game_manager.total_playing_time > (first_missile_fired_time + 30.0f)) {
+				float second_missile_delay = 45.0f;
+				if(game_manager.total_playing_time > (first_missile_fired_time + second_missile_delay)) {
 					missile_fired(Vector3.up * GameManager.drone_height + game_manager.env.target_point.pos, -Vector3.up, hit_time);
 				}
 			}

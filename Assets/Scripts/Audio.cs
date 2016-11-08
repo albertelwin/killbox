@@ -9,6 +9,10 @@ public class Audio {
 	}
 
 	public enum Clip {
+		//TODO: Add these!!
+		// PLAYER2_BIRDS,
+		// PLAYER2_DRONE,
+
 		PLAYER_WALK,
 		PLAYER_JUMP,
 		PLAYER_LAND,

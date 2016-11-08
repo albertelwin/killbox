@@ -18,7 +18,9 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">
+
 
 
 
@@ -47,7 +49,11 @@ D-LINK:          NULL
 KIL(wait, 1.8)
 KIL(cls)
 KIL(go_to, [[locate]])</tw-passagedata>
-<tw-passagedata pid="3" name="locate" tags="" position="421,1103">D-LINK AVAILABLE: PRESS [ L ] TO LINK
+<tw-passagedata pid="3" name="locate" tags="" position="421,1103">LINK AVAILABLE: PRESS [ L ] TO CONNECT
+KIL(wait_key, L, [[search]], 5.0)
+KIL(delay)
+
+PRESS [ L ] FOR LINK
 KIL(wait_key, L, [[search]])</tw-passagedata>
 <tw-passagedata pid="4" name="search" tags="" position="728,1376">SEARCHING...
 
@@ -101,9 +107,9 @@ DOF:            7616.8234M
 
 KIL(wait, 1.0)
 M1:              AGM-117 ARMED
-KIL(crosshair_style, 1)
-M2:              AGM-117 ARMED
 KIL(crosshair_style, 0)
+M2:              AGM-117 ARMED
+KIL(crosshair_style, 1)
 KIL(wait, 2.5)
 KIL(cls)
 KIL(wait, 1.5)
@@ -212,9 +218,9 @@ TRANSFERRING
 …………………………………
 …………………………………
 ……………………..
-(wait, 2.0)
+KIL(wait, 2.0)
 KIL(cls)
-(wait, 1.0)
+KIL(wait, 1.0)
 AUTOPILOT ENGAGED
 KIL(wait, 1.0)
 KIL(go_to, [[fire2]])

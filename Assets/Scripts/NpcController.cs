@@ -39,6 +39,8 @@ public class NpcController : MonoBehaviour {
 
 	[System.NonSerialized] public Transform blood;
 
+	[System.NonSerialized] public AudioSource scream_source;
+
 	[System.NonSerialized] public static Color[] COLOR_POOL = {
 		Util.new_color(47, 147, 246),
 		Util.new_color(51, 203, 152),
@@ -88,6 +90,16 @@ public class NpcController : MonoBehaviour {
 		}
 		else if(type == NpcType.CHICKEN) {
 			clip_pool = Audio.Clip.NPC_CHICKEN;
+		}
+
+		if(screams) {
+			scream_source = Util.new_audio_source(transform, "ScreamAudioSource");
+			scream_source.transform.localPosition = Vector3.zero;
+			scream_source.loop = true;
+			scream_source.spatialBlend = 1.0f;
+			scream_source.dopplerLevel = 0.0f;
+			scream_source.minDistance = 5.0f;
+			scream_source.maxDistance = 300.0f;
 		}
 	}
 
@@ -247,7 +259,6 @@ public class NpcController : MonoBehaviour {
 					npc.blood.gameObject.SetActive(true);
 					npc.blood.rotation = Quaternion.Euler(0.0f, 360.0f * Random.value, 0.0f);
 				}
-
 			}
 			else {
 				Util.cross_fade_anim(npc.anim, "idle");
@@ -266,6 +277,23 @@ public class NpcController : MonoBehaviour {
 		}
 		else if(npc.type == NpcType.BIRD) {
 			npc.anim.gameObject.SetActive(false);
+		}
+	}
+
+	public static void play_screams(Environment env, Audio audio) {
+		NpcController npc = env.npcs[env.npc_scream_index];
+		if(npc.scream_source != null) {
+			if(npc.scream_source.clip == null) {
+				npc.scream_source.clip = Audio.get_clip(audio, Audio.Clip.NPC_SCREAM);
+			}
+			npc.scream_source.Play();
+		}
+	}
+
+	public static void stop_screams(Environment env) {
+		NpcController npc = env.npcs[env.npc_scream_index];
+		if(npc.scream_source != null) {
+			npc.scream_source.Stop();
 		}
 	}
 

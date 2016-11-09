@@ -10,18 +10,6 @@ TODO:
 	Load scene async
 
 DONE:
-	Shuffle npc colors
-	1 deaths confirmed
-	Log death count and session time
-	Bucket physics
-	Capsule colliders for adult npcs
-	Npc blood
-	Interrupt stop event on player react with npc
-	Remove Mesh from NPC
-	Remove walk speed etc. from MotionPathAgent
-	Remove game dependencies from move_agent
-	Use StringBuilder in console
-	Remove birds
 
 */
 
@@ -91,8 +79,7 @@ public class GameManager : MonoBehaviour {
 	public class LanScreen {
 		public Transform transform;
 
-		public Renderer killbox_movie;
-		public Renderer[] player_movies;
+		public Renderer intro_renderer;
 	}
 
 	public class EndScreen {
@@ -158,16 +145,14 @@ public class GameManager : MonoBehaviour {
 	static string game_type_player1 = "killbox_player1_server";
 	static string game_type_player2 = "killbox_player2_server";
 	//TODO: Stable naming scheme!!
-	// static string game_name = "killbox_online_server";
 	static string game_name = "killbox_server_____";
 
 	Camera menu_camera = null;
-	AudioSource menu_audio_source = null;
+	AudioSource bees_source = null;
+	Coroutine bees_coroutine = null;
 
 	public static PlayerType persistent_player_type = PlayerType.NONE;
 
-	// public static float drone_height = 160.0f;
-	// public static float drone_radius = 60.0f;
 	public static float drone_height = 240.0f;
 	public static float drone_radius = 90.0f;
 
@@ -265,6 +250,7 @@ public class GameManager : MonoBehaviour {
 					input_str += key_val.val;
 				}
 			}
+
 
 			if(Input.GetKeyDown(KeyCode.Return)) {
 				input_str += '\n';
@@ -583,7 +569,9 @@ public class GameManager : MonoBehaviour {
 				yield return StartCoroutine(Util.lerp_material_alpha(main_screen.cursor.GetComponent<Renderer>(), 0.0f, fade_duration));
 				main_screen.cursor.gameObject.SetActive(false);
 
-				StartCoroutine(Util.lerp_audio_volume(menu_audio_source, 1.0f, 0.0f, 4.0f));
+				stop_bees_coroutine(this);
+				bees_coroutine = StartCoroutine(Util.lerp_audio_volume(bees_source, 1.0f, 0.0f, 4.0f));
+				bees_source.Play();
 
 				yield return new WaitForSeconds(0.5f);
 				StartCoroutine(Util.lerp_material_alpha(main_screen.player1.helmet, 0.0f));
@@ -599,7 +587,9 @@ public class GameManager : MonoBehaviour {
 				yield return StartCoroutine(Util.lerp_material_alpha(main_screen.cursor.GetComponent<Renderer>(), 0.0f, fade_duration));
 				main_screen.cursor.gameObject.SetActive(false);
 
-				StartCoroutine(Util.lerp_audio_volume(menu_audio_source, 1.0f, 0.0f, 4.0f));
+				stop_bees_coroutine(this);
+				bees_coroutine = StartCoroutine(Util.lerp_audio_volume(bees_source, 1.0f, 0.0f, 4.0f));
+				bees_source.Play();
 
 				yield return new WaitForSeconds(0.5f);
 				yield return StartCoroutine(Util.lerp_material_alpha(main_screen.player2.body, 0.0f));
@@ -608,7 +598,10 @@ public class GameManager : MonoBehaviour {
 			}
 		}
 		else {
-			menu_audio_source.volume = 0.0f;
+			stop_bees_coroutine(this);
+			bees_source.volume = 0.0f;
+			yield return Util.wait_for_frame;
+			bees_source.Stop();
 		}
 
 		StartCoroutine(start_game(player_type));
@@ -655,6 +648,13 @@ public class GameManager : MonoBehaviour {
 		}
 
 		yield return null;
+	}
+
+	public static void stop_bees_coroutine(GameManager game_manager) {
+		if(game_manager.bees_coroutine != null) {
+			game_manager.StopCoroutine(game_manager.bees_coroutine);
+			game_manager.bees_coroutine = null;
+		}
 	}
 
 	IEnumerator show_splash_screen() {
@@ -713,14 +713,20 @@ public class GameManager : MonoBehaviour {
 				StartCoroutine(Util.lerp_material_alpha(splash_screen.logo, 0.0f, 3.5f));
 				StartCoroutine(Util.lerp_text_alpha(splash_screen.name, 0.0f, 3.5f));
 
-				StartCoroutine(Util.lerp_audio_volume(menu_audio_source, 0.0f, 1.0f, 6.0f));
+				stop_bees_coroutine(this);
+				bees_coroutine = StartCoroutine(Util.lerp_audio_volume(bees_source, 0.0f, 1.0f, 6.0f));
+				bees_source.Play();
+
 				yield return new WaitForSeconds(5.0f);
 
 				splash_screen.transform.gameObject.SetActive(false);
 			}
 			else {
 				Assert.is_true(!splash_screen.transform.gameObject.activeSelf);
-				StartCoroutine(Util.lerp_audio_volume(menu_audio_source, menu_audio_source.volume, 1.0f));
+
+				stop_bees_coroutine(this);
+				bees_coroutine = StartCoroutine(Util.lerp_audio_volume(bees_source, 0.0f, 1.0f));
+				bees_source.Play();
 			}
 
 			{
@@ -755,25 +761,16 @@ public class GameManager : MonoBehaviour {
 
 				PlayerType start_player = Settings.LAN_SERVER_MACHINE ? PlayerType.PLAYER1 : PlayerType.PLAYER2;
 
-				lan_screen.player_movies[0].gameObject.SetActive(false);
-				lan_screen.player_movies[1].gameObject.SetActive(false);
-
 				QualitySettings.vSyncCount = 0;
 
-				Renderer killbox_movie = lan_screen.killbox_movie;
-				killbox_movie.gameObject.SetActive(true);
-				killbox_movie.material.color = Util.white_no_alpha;
+				Renderer intro_renderer = lan_screen.intro_renderer;
+				intro_renderer.gameObject.SetActive(true);
+				intro_renderer.material.color = Util.white;
 
-				MovieTexture killbox_texture = (MovieTexture)killbox_movie.material.mainTexture;
-				killbox_texture.loop = true;
-				killbox_texture.Stop();
-				killbox_texture.Play();
-				killbox_movie.material.color = Util.white;
-
-#if !UNITY_EDITOR
-				yield return Util.wait_for_3s;
-#endif
-				// StartCoroutine(Util.lerp_material_alpha(killbox_movie, 1.0f));
+				MovieTexture intro_movie = (MovieTexture)intro_renderer.material.mainTexture;
+				intro_movie.loop = true;
+				intro_movie.Stop();
+				intro_movie.Play();
 
 				while(Input.anyKey) {
 					yield return Util.wait_for_frame;
@@ -806,6 +803,11 @@ public class GameManager : MonoBehaviour {
 				}
 
 				if(reconnect) {
+					stop_bees_coroutine(this);
+					bees_source.volume = 0.0f;
+					yield return Util.wait_for_frame;
+					bees_source.Stop();
+
 					StartCoroutine(show_splash_screen());
 				}
 				else {
@@ -813,37 +815,17 @@ public class GameManager : MonoBehaviour {
 					PlayerPrefs.Save();
 					game_log.gameObject.SetActive(false);
 
-					killbox_texture.Stop();
-					killbox_movie.gameObject.SetActive(false);
+					stop_bees_coroutine(this);
+					bees_coroutine = StartCoroutine(Util.lerp_audio_volume(bees_source, bees_source.volume, 0.0f, 5.0f, true));
+					yield return StartCoroutine(Util.lerp_material_alpha(intro_renderer, 0.0f, 3.0f));
 
-					// Renderer player_movie = null;
-					// if(start_player == PlayerType.PLAYER1) {
-					// 	player_movie = lan_screen.player_movies[0];
-					// 	lan_screen.player_movies[1].gameObject.SetActive(false);
-					// }
-					// else {
-					// 	player_movie = lan_screen.player_movies[1];
-					// 	lan_screen.player_movies[0].gameObject.SetActive(false);
-					// }
-					// player_movie.gameObject.SetActive(true);
-					// player_movie.material.color = Util.white;
-
-					// MovieTexture player_texture = (MovieTexture)player_movie.material.mainTexture;
-					// player_texture.loop = false;
-					// player_texture.Stop();
-					// player_texture.Play();
-
-					// menu_sfx_source.volume = 1.0f;
-
-					// while(player_texture.isPlaying) {
-					// 	yield return Util.wait_for_frame;
-					// }
-
-					menu_sfx_source.volume = 0.0f;
-					menu_audio_source.volume = 0.0f;
+					intro_movie.Stop();
+					intro_renderer.gameObject.SetActive(false);
 
 					StartCoroutine(start_game(start_player));
 				}
+
+				menu_sfx_source.volume = 0.0f;
 
 #if !UNITY_EDITOR
 				QualitySettings.vSyncCount = VSYNC_COUNT;
@@ -981,7 +963,7 @@ public class GameManager : MonoBehaviour {
 		network_view = GetComponent<NetworkView>();
 
 		menu_camera = transform.Find("Camera").GetComponent<Camera>();
-		menu_audio_source = GetComponent<AudioSource>();
+		bees_source = GetComponent<AudioSource>();
 
 		splash_screen = new SplashScreen();
 		splash_screen.transform = transform.Find("Camera/Splash");
@@ -996,10 +978,7 @@ public class GameManager : MonoBehaviour {
 
 		lan_screen = new LanScreen();
 		lan_screen.transform = transform.Find("Camera/LAN");
-		lan_screen.killbox_movie = lan_screen.transform.Find("KillboxMovie").GetComponent<Renderer>();
-		lan_screen.player_movies = new Renderer[2];
-		lan_screen.player_movies[0] = lan_screen.transform.Find("Player1Movie").GetComponent<Renderer>();
-		lan_screen.player_movies[1] = lan_screen.transform.Find("Player2Movie").GetComponent<Renderer>();
+		lan_screen.intro_renderer = lan_screen.transform.Find("IntroMovie").GetComponent<Renderer>();
 
 		end_screen = new EndScreen();
 		end_screen.transform = transform.Find("Camera/End");

@@ -143,7 +143,7 @@ Material:
       data:
         first:
           name: _Temperature
-        second: {r: .0470588244, g: .0470588244, b: .0470588244, a: 1}
+        second: {r: .0117647061, g: .0117647061, b: .0117647061, a: 1}
       data:
         first:
           name: _Wave

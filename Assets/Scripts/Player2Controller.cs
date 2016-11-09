@@ -37,6 +37,7 @@ public class Player2Controller : MonoBehaviour {
 
 	bool jump_key = false;
 	bool on_ground = true;
+	float fall_velocity = 0.0f;
 	float look_time = 0.0f;
 
 	[System.NonSerialized] public ControlsHint hint = null;
@@ -67,14 +68,15 @@ public class Player2Controller : MonoBehaviour {
 	Transform mesh;
 	[System.NonSerialized] public float mesh_radius = 1.0f;
 	Animation anim;
-	// [System.NonSerialized] public Renderer anim_renderer;
 
-	AudioSource[] audio_sources = null;
-	AudioSource sfx_audio_source = null;
+	[System.NonSerialized] public AudioSource bird_source;
+	[System.NonSerialized] public AudioSource drone_source;
+	[System.NonSerialized] public AudioSource scream_source;
+	[System.NonSerialized] public AudioSource missile_source;
 
-	AudioSource walk_sfx_source;
-	float walk_sfx_volume;
-	float walk_sfx_volume_pos;
+	AudioSource walk_source;
+	float walk_volume;
+	float walk_volume_pos;
 
 	bool first_missile_fired = false;
 	float first_missile_fired_time = 0.0f;
@@ -98,19 +100,18 @@ public class Player2Controller : MonoBehaviour {
 	}
 
 	IEnumerator wait_for_hit(float hit_time) {
-		AudioClip sfx_missile = Audio.get_random_clip(game_manager.audio, Audio.Clip.MISSILE);
-		sfx_audio_source.clip = sfx_missile;
-		if(hit_time < sfx_missile.length) {
-			sfx_audio_source.time = sfx_missile.length - hit_time;
+		AudioClip missile_clip = missile_source.clip;
+		if(hit_time < missile_clip.length) {
+			missile_source.time = missile_clip.length - hit_time;
 		}
 		else {
-			yield return new WaitForSeconds(hit_time - sfx_audio_source.clip.length);
+			yield return new WaitForSeconds(hit_time - missile_source.clip.length);
 		}
 
-		sfx_audio_source.Play();
+		missile_source.Play();
 		//NOTE: Assumes hit_time is greater than 0.2f!!
-		StartCoroutine(Util.lerp_audio_volume(sfx_audio_source, 0.0f, 1.0f, 0.2f));
-		while(sfx_audio_source.isPlaying) {
+		StartCoroutine(Util.lerp_audio_volume(missile_source, 0.0f, 1.0f, 0.2f));
+		while(missile_source.isPlaying) {
 			yield return Util.wait_for_frame;
 		}
 	}
@@ -124,14 +125,16 @@ public class Player2Controller : MonoBehaviour {
 		control_flags &= ~CAN_JUMP;
 
 		Environment.play_explosion(game_manager, this, game_manager.env, hit_pos);
-		audio_sources[0].volume = 0.0f;
-		audio_sources[1].volume = 0.0f;
+		bird_source.volume = 0.0f;
+		drone_source.volume = 0.0f;
 
 		for(int i = 0; i < game_manager.env.collectables.Length; i++) {
 			Collectable.mark_as_used(game_manager.env.collectables[i], true);
 		}
 
-		Environment.play_screams(game_manager.env, game_manager.audio);
+		scream_source.volume = 1.0f;
+		scream_source.Play();
+		NpcController.play_screams(game_manager.env, game_manager.audio);
 
 		dust_particles.Stop();
 		dust_particles.Clear();
@@ -159,12 +162,6 @@ public class Player2Controller : MonoBehaviour {
 			FadeImageEffect.set_alpha(camera_fade, 1.0f);
 			yield return new WaitForSeconds(3.0f);
 			yield return StartCoroutine(FadeImageEffect.lerp_alpha(camera_fade, 0.0f, 5.0f));
-
-			while(!second_missile_fired) {
-				yield return Util.wait_for_frame;
-			}
-
-			yield return StartCoroutine(wait_for_hit(hit_time));
 		}
 		else {
 			AudioSource exp_source = game_manager.env.explosion.audio_source;
@@ -196,19 +193,21 @@ public class Player2Controller : MonoBehaviour {
 
 				yield return wait_for_time_step;
 			}
-
-			while(!second_missile_fired) {
-				yield return Util.wait_for_frame;
-			}
-
-			yield return StartCoroutine(wait_for_hit(hit_time));
 		}
 
+		while(!second_missile_fired) {
+			yield return Util.wait_for_frame;
+		}
+
+		yield return StartCoroutine(wait_for_hit(hit_time));
+
 		Environment env = game_manager.env;
-		Environment.stop_screams(env);
 		for(int i = 0; i < env.npcs.Length; i++) {
 			NpcController.on_explosion(game_manager, env.npcs[i], env.target_point, hit_pos);
 		}
+
+		NpcController.stop_screams(game_manager.env);
+		scream_source.volume = 0.0f;
 
 		control_flags = 0;
 		FadeImageEffect.set_alpha(camera_fade, 1.0f);
@@ -227,10 +226,10 @@ public class Player2Controller : MonoBehaviour {
 
 		yield return new WaitForSeconds(10.0f);
 
-		// StartCoroutine(Util.lerp_audio_volume(audio_sources[1], 1.0f, 0.0f, 5.0f));
 		yield return StartCoroutine(FadeImageEffect.lerp_alpha(camera_fade, 1.0f, 5.0f));
-		audio_sources[0].Stop();
-		audio_sources[1].Stop();
+		bird_source.Stop();
+		drone_source.Stop();
+		scream_source.Stop();
 
 		game_manager.show_stats(camera_);
 		yield return null;
@@ -245,10 +244,10 @@ public class Player2Controller : MonoBehaviour {
 		control_flags &= ~(CAN_LOOK | CAN_MOVE | CAN_JUMP);
 		GameManager.set_world_brightness_(game_manager, 0.0f);
 
-		StartCoroutine(Util.lerp_audio_volume(audio_sources[0], 1.0f, 0.0f, 2.0f));
-		yield return StartCoroutine(Util.lerp_audio_volume(audio_sources[1], 1.0f, 0.0f, 2.0f));
-		audio_sources[0].Stop();
-		audio_sources[1].Stop();
+		StartCoroutine(Util.lerp_audio_volume(bird_source, 1.0f, 0.0f, 2.0f));
+		yield return StartCoroutine(Util.lerp_audio_volume(drone_source, 1.0f, 0.0f, 2.0f));
+		bird_source.Stop();
+		drone_source.Stop();
 
 		FadeImageEffect.set_alpha(camera_fade, 0.0f);
 		yield return StartCoroutine(FadeImageEffect.lerp_alpha(camera_fade, 1.0f, 5.0f));
@@ -301,8 +300,8 @@ public class Player2Controller : MonoBehaviour {
 			camera_.backgroundColor = Util.black;
 			FadeImageEffect.set_alpha(camera_fade, 1.0f);
 
-			yield return StartCoroutine(Util.lerp_audio_volume(audio_sources[1], 0.0f, 1.0f, 3.0f));
-			StartCoroutine(Util.lerp_audio_volume(audio_sources[0], 0.0f, 1.0f, 2.0f));
+			yield return StartCoroutine(Util.lerp_audio_volume(drone_source, 0.0f, 1.0f, 3.0f));
+			StartCoroutine(Util.lerp_audio_volume(bird_source, 0.0f, 1.0f, 2.0f));
 
 			control_flags |= CAN_LOOK | CAN_MOVE;
 			if(!first_missile_fired) {
@@ -315,11 +314,9 @@ public class Player2Controller : MonoBehaviour {
 
 			speed = default_speed;
 
-			// yield return StartCoroutine(GameManager.set_world_brightness(game_manager, 0.0f, 1.0f, 2.0f));
-			StartCoroutine(GameManager.set_world_brightness(game_manager, 0.0f, 1.0f, 2.0f));
 			float world_fade = 2.0f;
 			float r_world_fade = 1.0f / world_fade;
-			StartCoroutine(FadeImageEffect.lerp_alpha(camera_fade, 0.0f, world_fade));
+			StartCoroutine(GameManager.set_world_brightness(game_manager, 0.0f, 1.0f, world_fade));
 			{
 				float t = 0.0f;
 				while(t < 1.0f) {
@@ -333,17 +330,23 @@ public class Player2Controller : MonoBehaviour {
 			}
 			dust_particles.Play();
 
-			//TODO: Still show this??
-			// yield return StartCoroutine(fade_in_hint(hint, "WAZIRISTAN, PAKISTAN", false));
-
-			yield return StartCoroutine(fade_in_hint(hint, "LOOK: MOUSE", false));
+			if(Settings.TRACKBALL) {
+				yield return StartCoroutine(fade_in_hint(hint, "LOOK: TRACKBALL", false));
+			}
+			else {
+				yield return StartCoroutine(fade_in_hint(hint, "LOOK: MOUSE", false));
+			}
 			while((control_flags & HAS_LOOKED) == 0) {
 				yield return Util.wait_for_frame;
 			}
 
 			yield return StartCoroutine(fade_in_hint(hint, "LOOK UP: LEFT CLICK & HOLD"));
-			while((control_flags & HAS_LOOKED_UP) == 0) {
-				yield return Util.wait_for_frame;
+			{
+				float t = 0.0f;
+				while((control_flags & HAS_LOOKED_UP) == 0 && t < 5.0f) {
+					t += Time.deltaTime;
+					yield return Util.wait_for_frame;
+				}
 			}
 
 			yield return StartCoroutine(fade_in_hint(hint, "JUMP: SPACE"));
@@ -370,8 +373,8 @@ public class Player2Controller : MonoBehaviour {
 		}
 		else {
 			control_flags |= CAN_LOOK | CAN_MOVE | CAN_JUMP;
-			yield return StartCoroutine(Util.lerp_audio_volume(audio_sources[1], 0.0f, 1.0f, 3.0f));
-			StartCoroutine(Util.lerp_audio_volume(audio_sources[0], 0.0f, 1.0f, 2.0f));
+			yield return StartCoroutine(Util.lerp_audio_volume(drone_source, 0.0f, 1.0f, 3.0f));
+			StartCoroutine(Util.lerp_audio_volume(bird_source, 0.0f, 1.0f, 2.0f));
 			FadeImageEffect.set_alpha(camera_fade, 0.0f);
 			dust_particles.Play();
 		}
@@ -387,9 +390,9 @@ public class Player2Controller : MonoBehaviour {
 		}
 	}
 
-	public void set_walk_sfx_volume(float volume) {
-		walk_sfx_volume = volume;
-		walk_sfx_volume_pos = 0.0f;
+	public void set_walk_volume(float volume) {
+		walk_volume = volume;
+		walk_volume_pos = 0.0f;
 	}
 
 	void Start() {
@@ -464,27 +467,20 @@ public class Player2Controller : MonoBehaviour {
 			hint.text_mesh = hint.go.GetComponent<TextMesh>();
 			hint.text_mesh.text = "";
 
-			audio_sources = new AudioSource[2];
-			for(int i = 0; i < audio_sources.Length; i++) {
-				AudioSource source = Util.new_audio_source(transform, "AudioSource" + i);
-				source.clip = (AudioClip)Resources.Load("player2_track" + i);
-				source.loop = true;
-				source.volume = 0.0f;
-				source.Play();
+			bird_source = Audio.new_source(game_manager.audio, transform, Audio.Clip.PLAYER2_BIRDS);
+			bird_source.volume = 0.0f;
+			bird_source.Play();
 
-				audio_sources[i] = source;
-			}
+			drone_source = Audio.new_source(game_manager.audio, transform, Audio.Clip.PLAYER2_DRONE);
+			drone_source.volume = 0.0f;
+			drone_source.Play();
 
-			sfx_audio_source = (new GameObject()).AddComponent<AudioSource>();
-			sfx_audio_source.name = "SfxAudioSource";
-			sfx_audio_source.transform.parent = transform;
+			scream_source = Audio.new_source(game_manager.audio, transform, Audio.Clip.SCREAM);
+			missile_source = Audio.new_source(game_manager.audio, transform, Audio.Clip.MISSILE, false);
 
-			walk_sfx_source = Util.new_audio_source(transform, "WalkAudioSource");
-			walk_sfx_source.clip = Audio.get_random_clip(game_manager.audio, Audio.Clip.PLAYER_WALK);
-			walk_sfx_source.loop = true;
-			walk_sfx_source.volume = 0.0f;
-			walk_sfx_volume = 0.0f;
-			walk_sfx_volume_pos = 0.0f;
+			walk_source = Audio.new_source(game_manager.audio, transform, Audio.Clip.PLAYER_WALK);
+			walk_source.volume = walk_volume = 0.0f;
+			walk_volume_pos = 0.0f;
 
 			ash_particles = mesh.Find("AshParticleSystem").GetComponent<ParticleSystem>();
 			dust_particles = mesh.Find("DustParticleSystem").GetComponent<ParticleSystem>();
@@ -504,16 +500,20 @@ public class Player2Controller : MonoBehaviour {
 		}
 #endif
 
-		walk_sfx_volume_pos += Time.deltaTime / 0.1f;
-		walk_sfx_source.volume = Mathf.Lerp(walk_sfx_source.volume, walk_sfx_volume, walk_sfx_volume_pos);
-
-		if(walk_sfx_source.volume == 0.0f && walk_sfx_source.isPlaying) {
-			walk_sfx_source.Stop();
+		if(game_manager.first_missile_hit) {
+			set_walk_volume(0.0f);
 		}
 
-		if(walk_sfx_source.volume > 0.0f && !walk_sfx_source.isPlaying) {
-			walk_sfx_source.time = 0.0f;
-			walk_sfx_source.Play();
+		walk_volume_pos += Time.deltaTime * 10.0f;
+		walk_source.volume = Mathf.Lerp(walk_source.volume, walk_volume, walk_volume_pos);
+
+		if(walk_source.volume == 0.0f && walk_source.isPlaying) {
+			walk_source.Stop();
+		}
+
+		if(walk_source.volume > 0.0f && !walk_source.isPlaying) {
+			walk_source.time = 0.0f;
+			walk_source.Play();
 		}
 
 		if(!game_manager.connected_to_another_player() || game_manager.network_player1_inst == null) {
@@ -574,9 +574,15 @@ public class Player2Controller : MonoBehaviour {
 				if(look_time > 0.1f) {
 					control_flags |= HAS_LOOKED;
 				}
+
+				if(Settings.TRACKBALL) {
+					float sensitivity = 0.75f;
+					mouse_x *= sensitivity;
+					mouse_y *= sensitivity;
+				}
 			}
 
-			camera_looking_up = game_manager.get_key(KeyCode.Mouse0);
+			camera_looking_up = game_manager.get_key(KeyCode.Mouse0) || game_manager.get_key(KeyCode.Mouse1);
 		}
 
 		float rotation_y = Mathf.Clamp(mouse_x * angular_speed, -max_angular_speed, max_angular_speed);
@@ -710,29 +716,42 @@ public class Player2Controller : MonoBehaviour {
 
 		RaycastHit hit_info_;
 		if(Physics.SphereCast(mesh.position + Vector3.up * min_ground_distance, mesh_radius, -mesh.up, out hit_info_, min_ground_distance * 2.0f)) {
-			if(!on_ground) {
+			if(!on_ground && fall_velocity < -5.0f) {
 				anim.Play("land");
 
-				AudioClip clip = Audio.get_random_clip(game_manager.audio, Audio.Clip.PLAYER_LAND);
-				Audio.play(game_manager.audio, clip, 1.0f, 0.9f + Random.value * 0.2f);
+				if(!game_manager.first_missile_hit) {
+					AudioClip clip = Audio.get_random_clip(game_manager.audio, Audio.Clip.PLAYER_LAND);
+					Audio.play(game_manager.audio, clip, 1.0f, 0.9f + Random.value * 0.2f);
+				}
 			}
 
 			on_ground = true;
+			fall_velocity = 0.0f;
 		}
 		else {
 			on_ground = false;
-			set_walk_sfx_volume(0.0f);
+			set_walk_volume(0.0f);
+
+			if(rigidbody_.velocity.y < fall_velocity) {
+				fall_velocity = rigidbody_.velocity.y;
+			}
 		}
 
 		if(on_ground) {
 			if(acceleration == Vector3.zero) {
 				anim.CrossFade("idle");
-				set_walk_sfx_volume(0.0f);
+				set_walk_volume(0.0f);
 			}
 			else {
 				control_flags |= HAS_MOVED;
 				anim.CrossFade("walk");
-				set_walk_sfx_volume(camera_.gameObject.activeSelf ? 1.0f : 0.0f);
+
+				if(camera_.gameObject.activeSelf && !game_manager.first_missile_hit) {
+					set_walk_volume(1.0f);
+				}
+				else {
+					set_walk_volume(0.0f);
+				}
 			}
 		}
 
@@ -747,7 +766,7 @@ public class Player2Controller : MonoBehaviour {
 		if(!camera_looking_up && jump_key) {
 			rigidbody_.velocity += transform.up * jump_speed;
 			anim.CrossFade("jump");
-			set_walk_sfx_volume(0.0f);
+			set_walk_volume(0.0f);
 
 			AudioClip clip = Audio.get_random_clip(game_manager.audio, Audio.Clip.PLAYER_JUMP);
 			Audio.play(game_manager.audio, clip, 1.0f, 0.9f + Random.value * 0.2f);

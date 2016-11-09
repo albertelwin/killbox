@@ -112,6 +112,8 @@ ModelImporter:
     100208: tree97
     100210: tree98
     100212: tree99
+    100214: tree121
+    100216: tree122
     400000: big_tree
     400002: bush
     400004: flower
@@ -219,6 +221,8 @@ ModelImporter:
     400208: tree97
     400210: tree98
     400212: tree99
+    400214: tree121
+    400216: tree122
     2300000: big_tree
     2300002: bush
     2300004: flower
@@ -324,6 +328,8 @@ ModelImporter:
     2300204: tree97
     2300206: tree98
     2300208: tree99
+    2300210: tree121
+    2300212: tree122
     3300000: big_tree
     3300002: bush
     3300004: flower
@@ -429,6 +435,8 @@ ModelImporter:
     3300204: tree97
     3300206: tree98
     3300208: tree99
+    3300210: tree121
+    3300212: tree122
     4300000: tree
     4300002: tree1
     4300004: tree2
@@ -534,6 +542,8 @@ ModelImporter:
     4300204: tree118
     4300206: tree119
     4300208: tree120
+    4300210: tree121
+    4300212: tree122
   materials:
     importMaterials: 1
     materialName: 0

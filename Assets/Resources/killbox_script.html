@@ -19,7 +19,9 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">
+
 
 
 
@@ -56,35 +58,42 @@ KIL(delay)
 PRESS [ L ] FOR LINK
 KIL(wait_key, L, [[search]])</tw-passagedata>
 <tw-passagedata pid="4" name="search" tags="" position="728,1376">SEARCHING...
+…………………………………
+…………………………………
 
 KIL(wait, 2)
 D-LINK CONNECTING
 
 KIL(wait, 3.0)
 
-UHF:      Y
-VHF:      Y
-CBND:   N
-KBND:   Y
-ROUTE:        RAMSTEIN_DL
+UHF:            Y
+VHF:            Y
+CBND:         N
+KBND:         Y
+
+ROUTE:       RAMSTEIN_DL
 KIL(wait, 0.82)
-LATENCY:    0.82s
+LATENCY:   0.82s
 KIL(wait, 0.7)
 
 KIL(wait, 0.7)
 LINK ACTIVE:
+KIL(crosshair_style, 1)
 
 VIA:     US COMSAT RR/909_DSAT US404
 TO:      GAAS MQ-1A PREDATOR 6664-RPV_HFR
 KIL(wait, 0.8)
-KIL(cls)
+
+
 UAV LOCATED:  32.26.03.1&quot; 69.43.27.0&quot;
 WAZIRISTAN, PAKISTAN
 KIL(wait, 2.2)
-KIL(cls)
+
+
 KIL(wait, 1.0)
 SYSTEM CHECK:
 KIL(wait, 1.0)
+KIL(cls)
 OS: UAV OS6.2.2
 SYSTEM OK:
 KIL(wait, 2.0)
@@ -107,9 +116,9 @@ DOF:            7616.8234M
 
 KIL(wait, 1.0)
 M1:              AGM-117 ARMED
-KIL(crosshair_style, 0)
 M2:              AGM-117 ARMED
-KIL(crosshair_style, 1)
+KIL(crosshair_style, 0)
+KIL(crosshair_style, 0)
 KIL(wait, 2.5)
 KIL(cls)
 KIL(wait, 1.5)
@@ -117,6 +126,7 @@ CHANNELS:
 KIL(wait, 2.6)
 KIL(chatter)
 KIL(wait, 0.8)
+
 SNSR:  ONLINE
 CMND: ONLINE
 INTL:    ONLINE
@@ -124,13 +134,13 @@ INTL:    ONLINE
 KIL(wait, 0.5)
 CAM OFFLINE
 KIL(wait, 2.3)
-KIL(cls)
+
 KIL(wait, 1.5)
 CAM ONLINE : PRESS [C]
 KIL(wait_key, C)
 KIL(wait, 0.6)
 KIL(display_on)
-KIL(crosshair_style, 0)
+KIL(crosshair_style, 1)
 KIL(wait, 0.6)
 CAM ONLINE
 KIL(wait, 1.6)
@@ -217,7 +227,7 @@ TRANSFERRING
 …………………………………
 …………………………………
 …………………………………
-……………………..
+…………………………………
 KIL(wait, 2.0)
 KIL(cls)
 KIL(wait, 1.0)
@@ -232,7 +242,7 @@ KIL(go_to, [[fire2]])
 KIL(fire)
 KIL(wait, 1.0)
 KIL(crosshair_style, 0)
-KIL(wait, 6.0)
+KIL(wait, 8.0)
 KIL(death_count)
 KIL(wait, 9.0)
 KIL(display_off)

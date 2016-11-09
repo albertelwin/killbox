@@ -290,12 +290,16 @@ public static class Util {
 		yield return null;
 	}
 
-	public static IEnumerator lerp_audio_volume(AudioSource audio_source, float from, float to, float d = 1.0f) {
+	public static IEnumerator lerp_audio_volume(AudioSource audio_source, float from, float to, float d = 1.0f, bool linear = false) {
 		audio_source.volume = from;
 
 		float t = 0.0f;
 		while(t < 1.0f) {
-			audio_source.volume = Mathf.Lerp(from, to, t * t);
+			float v = t;
+			if(!linear) {
+				v *= v;
+			}
+			audio_source.volume = Mathf.Lerp(from, to, v);
 
 			t += Time.deltaTime * (1.0f / d);
 			yield return wait_for_frame;

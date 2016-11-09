@@ -9,9 +9,8 @@ public class Audio {
 	}
 
 	public enum Clip {
-		//TODO: Add these!!
-		// PLAYER2_BIRDS,
-		// PLAYER2_DRONE,
+		PLAYER2_BIRDS,
+		PLAYER2_DRONE,
 
 		PLAYER_WALK,
 		PLAYER_JUMP,
@@ -20,6 +19,7 @@ public class Audio {
 		NPC_ADULT,
 		NPC_CHILD,
 		NPC_CHICKEN,
+		NPC_SCREAM,
 		SCREAM,
 		COLLECTABLE,
 
@@ -119,7 +119,7 @@ public class Audio {
 	public static void load(Audio audio, MonoBehaviour mono_behaviour, bool async = false) {
 		YieldInstruction yield_instruction = null;
 		if(async) {
-			yield_instruction = Util.wait_for_10ms;
+			yield_instruction = Util.wait_for_frame;
 		}
 		mono_behaviour.StartCoroutine(__load(audio, yield_instruction));
 	}
@@ -203,10 +203,10 @@ public class Audio {
 		}
 	}
 
-	public static AudioSource new_source(Audio audio, Transform parent, Clip clip) {
+	public static AudioSource new_source(Audio audio, Transform parent, Clip clip, bool loop = true) {
 		AudioSource source = Util.new_audio_source(parent, clip.ToString() + "AudioSource");
 		source.clip = get_clip(audio, clip);
-		source.loop = true;
+		source.loop = loop;
 		return source;
 	}
 

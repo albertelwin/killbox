@@ -143,4 +143,4 @@ Material:
       data:
         first:
           name: _Temperature
-        second: {r: 0, g: 0, b: 0, a: 1}
+        second: {r: .0313725509, g: .0313725509, b: .0313725509, a: 1}

@@ -19,6 +19,7 @@ public class Audio {
 		NPC_ADULT,
 		NPC_CHILD,
 		NPC_CHICKEN,
+		NPC_COW,
 		NPC_SCREAM,
 		SCREAM,
 		COLLECTABLE,

@@ -47,12 +47,6 @@ public class Environment {
 		public Vector3 initial_pos;
 	}
 
-	public class Animal {
-		public Transform transform;
-		public Animation anim;
-		public Vector3 initial_pos;
-	}
-
 	public class Explosion {
 		public Transform transform;
 		public AudioSource audio_source;
@@ -71,7 +65,6 @@ public class Environment {
 
 	public Building[] buildings;
 	public Prop[] props;
-	public Animal[] animals;
 	public Collectable[] collectables;
 	public NpcController[] npcs;
 	public int npc_scream_index;
@@ -135,21 +128,6 @@ public class Environment {
 			env.props[i] = prop;
 		}
 
-		Transform animals_parent = transform.Find("Animals");
-		env.animals = new Animal[animals_parent.childCount];
-		for(int i = 0; i < env.animals.Length; i++) {
-			Animal animal = new Animal();
-			animal.transform = animals_parent.GetChild(i);
-			animal.anim = animal.transform.GetComponent<Animation>();
-			Assert.is_true(animal.anim != null);
-			animal.initial_pos = animal.transform.position;
-
-			Util.offset_first_anim(animal.anim);
-			animal.anim.Play();
-
-			env.animals[i] = animal;
-		}
-
 		Transform collectables_parent = transform.Find("Collectables");
 		env.collectables = new Collectable[collectables_parent.childCount];
 		for(int i = 0; i < env.collectables.Length; i++) {
@@ -198,7 +176,6 @@ public class Environment {
 		// env.transform.Find("FarmBuildings").gameObject.SetActive(false);
 		// env.transform.Find("Terrain").gameObject.SetActive(false);
 		// env.transform.Find("Trees").gameObject.SetActive(false);
-		// env.transform.Find("Animals").gameObject.SetActive(false);
 		// env.transform.Find("Buildings").gameObject.SetActive(false);
 		// env.transform.Find("Props").gameObject.SetActive(false);
 		// env.transform.Find("Foliage").gameObject.SetActive(false);
@@ -246,15 +223,6 @@ public class Environment {
 
 			prop.rigidbody.velocity = Vector3.zero;
 			prop.rigidbody.angularVelocity = Vector3.zero;
-		}
-
-		for(int i = 0; i < env.animals.Length; i++) {
-			Animal animal = env.animals[i];
-			animal.transform.position = animal.initial_pos;
-
-			animal.anim.Stop();
-			Util.offset_first_anim(animal.anim);
-			animal.anim.Play();
 		}
 
 		for(int i = 0; i < env.npcs.Length; i++) {

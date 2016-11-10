@@ -6,7 +6,7 @@ Material:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: crator_dark_grey
+  m_Name: post_explosion_grey_2
   m_Shader: {fileID: 4800000, guid: 0881e35595b7b484ab80afb8366412d6, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 5
@@ -139,8 +139,8 @@ Material:
       data:
         first:
           name: _Color
-        second: {r: .449000001, g: .420165151, b: .403688073, a: 1}
+        second: {r: .145999998, g: .129023239, b: .105255812, a: 1}
       data:
         first:
           name: _Temperature
-        second: {r: .178000003, g: .178000003, b: .178000003, a: 1}
+        second: {r: .184, g: .184, b: .184, a: 1}

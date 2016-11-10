@@ -32,8 +32,7 @@ public class FadeImageEffect : UnityStandardAssets.ImageEffects.ImageEffectBase 
 			Graphics.Blit(src, dst, material);
 		}
 		else {
-			//TODO: Is this free?
-			Graphics.Blit(src, dst);
+			Assert.invalid_path();
 		}
 	}
 }

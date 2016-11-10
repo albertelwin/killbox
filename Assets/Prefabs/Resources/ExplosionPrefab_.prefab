@@ -1530,16 +1530,16 @@ ParticleSystem:
       maxGradient:
         key0:
           serializedVersion: 2
-          rgba: 1191182335
+          rgba: 2164260863
         key1:
           serializedVersion: 2
-          rgba: 1409286143
+          rgba: 285212671
         key2:
           serializedVersion: 2
-          rgba: 838860800
+          rgba: 0
         key3:
           serializedVersion: 2
-          rgba: 201326592
+          rgba: 0
         key4:
           serializedVersion: 2
           rgba: 0
@@ -1561,15 +1561,15 @@ ParticleSystem:
         ctime6: 0
         ctime7: 0
         atime0: 0
-        atime1: 4048
-        atime2: 17155
-        atime3: 33153
+        atime1: 9830
+        atime2: 65535
+        atime3: 65535
         atime4: 65535
         atime5: 0
         atime6: 0
         atime7: 0
         m_NumColorKeys: 2
-        m_NumAlphaKeys: 5
+        m_NumAlphaKeys: 3
       minGradient:
         key0:
           serializedVersion: 2

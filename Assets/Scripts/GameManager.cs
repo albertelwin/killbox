@@ -714,10 +714,10 @@ public class GameManager : MonoBehaviour {
 				StartCoroutine(Util.lerp_text_alpha(splash_screen.name, 0.0f, 3.5f));
 
 				stop_bees_coroutine(this);
-				bees_coroutine = StartCoroutine(Util.lerp_audio_volume(bees_source, 0.0f, 1.0f, 6.0f));
+				bees_coroutine = StartCoroutine(Util.lerp_audio_volume(bees_source, 0.0f, 1.0f, 5.0f));
 				bees_source.Play();
 
-				yield return new WaitForSeconds(5.0f);
+				yield return new WaitForSeconds(4.0f);
 
 				splash_screen.transform.gameObject.SetActive(false);
 			}
@@ -725,7 +725,7 @@ public class GameManager : MonoBehaviour {
 				Assert.is_true(!splash_screen.transform.gameObject.activeSelf);
 
 				stop_bees_coroutine(this);
-				bees_coroutine = StartCoroutine(Util.lerp_audio_volume(bees_source, 0.0f, 1.0f));
+				bees_coroutine = StartCoroutine(Util.lerp_audio_volume(bees_source, 0.0f, 1.0f, 5.0f, true));
 				bees_source.Play();
 			}
 

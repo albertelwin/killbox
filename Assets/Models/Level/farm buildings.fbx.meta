@@ -558,6 +558,10 @@ ModelImporter:
     101100: pole036
     101102: pole037
     101104: pole038
+    101106: pCylinder73
+    101108: pCylinder74
+    101110: pCylinder75
+    101112: pCylinder76
     400000: animal_feed
     400002: building_1_wall
     400004: building_2_red
@@ -1111,6 +1115,10 @@ ModelImporter:
     401100: pole036
     401102: pole037
     401104: pole038
+    401106: pCylinder73
+    401108: pCylinder74
+    401110: pCylinder75
+    401112: pCylinder76
     2300000: animal_feed
     2300002: building_1_wall
     2300004: building_2_red
@@ -1232,6 +1240,10 @@ ModelImporter:
     2300236: pole036
     2300238: pole037
     2300240: pole038
+    2300242: pCylinder73
+    2300244: pCylinder74
+    2300246: pCylinder75
+    2300248: pCylinder76
     3300000: animal_feed
     3300002: building_1_wall
     3300004: building_2_red
@@ -1353,6 +1365,10 @@ ModelImporter:
     3300236: pole036
     3300238: pole037
     3300240: pole038
+    3300242: pCylinder73
+    3300244: pCylinder74
+    3300246: pCylinder75
+    3300248: pCylinder76
     4300000: building_5
     4300002: building_3_wall
     4300004: building_2_red
@@ -1474,6 +1490,10 @@ ModelImporter:
     4300236: pole038
     4300238: pCylinder71
     4300240: pCylinder72
+    4300242: pCylinder73
+    4300244: pCylinder74
+    4300246: pCylinder75
+    4300248: pCylinder76
   materials:
     importMaterials: 1
     materialName: 0

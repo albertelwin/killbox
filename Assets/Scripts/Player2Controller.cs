@@ -538,7 +538,7 @@ public class Player2Controller : MonoBehaviour {
 				}
 			}
 			else if(!second_missile_fired) {
-				float second_missile_delay = 45.0f;
+				float second_missile_delay = 50.0f;
 				if(game_manager.total_playing_time > (first_missile_fired_time + second_missile_delay)) {
 					missile_fired(Vector3.up * GameManager.drone_height + game_manager.env.target_point.pos, -Vector3.up, hit_time);
 				}

@@ -7,6 +7,7 @@ public enum NpcType {
 	CHILD,
 	CHICKEN,
 	BIRD,
+	COW,
 }
 
 //TODO: Remove awake/update/etc.!!
@@ -90,6 +91,9 @@ public class NpcController : MonoBehaviour {
 		}
 		else if(type == NpcType.CHICKEN) {
 			clip_pool = Audio.Clip.NPC_CHICKEN;
+		}
+		else if(type == NpcType.COW) {
+			clip_pool = Audio.Clip.NPC_COW;
 		}
 
 		if(screams) {
@@ -214,15 +218,31 @@ public class NpcController : MonoBehaviour {
 			}
 		}
 		else {
-			if(npc.nav_agent) {
+			NavMeshAgent nav = npc.nav_agent;
+			if(nav != null && npc.is_human) {
 				float new_time = npc.delay_time - Time.deltaTime;
 				if(new_time <= 0.0f && npc.delay_time > 0.0f) {
 					Util.cross_fade_anim(npc.anim, "moving");
 
-					npc.nav_agent.enabled = true;
-					//TODO: Tweak this!!
-					npc.nav_agent.speed = 6.0f + Random.value * 4.0f;
-					npc.nav_agent.SetDestination(npc.safe_point.position);
+					nav.enabled = true;
+					nav.speed = 6.0f + Random.value * 4.0f;
+					nav.SetDestination(npc.safe_point.position);
+					if(!npc.screams) {
+						nav.stoppingDistance = 2.0f;
+					}
+				}
+
+				if(nav.enabled) {
+					if((!nav.hasPath && nav.remainingDistance > 0.0f) || (nav.hasPath && nav.remainingDistance <= nav.stoppingDistance)) {
+						nav.enabled = false;
+
+						if(npc.screams) {
+							Util.cross_fade_anim(npc.anim, "action");
+						}
+						else {
+							Util.cross_fade_anim(npc.anim, "idle");
+						}
+					}
 				}
 
 				npc.delay_time = new_time;
@@ -233,7 +253,9 @@ public class NpcController : MonoBehaviour {
 
 		//TODO: We don't need to be doing this every frame!!
 		npc.emission = Mathf.Lerp(npc.emission, npc.activated ? 0.5f : 0.0f, Time.deltaTime * 8.0f);
-		npc.renderer_.material.SetFloat("_Emission", npc.emission);
+		for(int i = 0; i < npc.renderer_.materials.Length; i++) {
+			npc.renderer_.materials[i].SetFloat("_Emission", npc.emission);
+		}
 	}
 
 	public static void on_kill(NpcController npc) {
@@ -264,16 +286,16 @@ public class NpcController : MonoBehaviour {
 				Util.cross_fade_anim(npc.anim, "idle");
 
 				npc.delay_time = 7.5f;
-
-				// if(npc.nav_agent) {
-				// 	Util.cross_fade_anim(npc.anim, "moving");
-
-				// 	npc.nav_agent.enabled = true;
-				// 	//TODO: Tweak this!!
-				// 	npc.nav_agent.speed = 5.0f + Random.value * 5.0f;
-				// 	npc.nav_agent.SetDestination(npc.safe_point.position);
-				// }
+				if(npc.nav_agent) {
+					npc.nav_agent.enabled = false;
+				}
 			}
+		}
+		else if(npc.type == NpcType.CHICKEN || npc.type == NpcType.COW) {
+			if(npc.nav_agent) {
+				npc.nav_agent.enabled = false;
+			}
+			npc.anim.Stop();
 		}
 		else if(npc.type == NpcType.BIRD) {
 			npc.anim.gameObject.SetActive(false);

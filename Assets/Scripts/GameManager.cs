@@ -186,29 +186,29 @@ public class GameManager : MonoBehaviour {
 		return GameObject.Find("GameManager").GetComponent<GameManager>();
 	}
 
-	static public IEnumerator set_world_brightness(GameManager game_manager, float from, float to, float d = 1.0f) {
+	static public IEnumerator set_world_brightness(GameManager game_manager, float from, float to, float d = 1.0f, Camera camera = null) {
 		float t = 0.0f;
 		while(t < 1.0f) {
 			t += Time.deltaTime * (1.0f / d);
-			set_world_brightness_(game_manager, Mathf.Lerp(from, to, t));
+			set_world_brightness_(game_manager, Mathf.Lerp(from, to, t), camera);
 			yield return Util.wait_for_frame;
 		}
 
-		set_world_brightness_(game_manager, to);
+		set_world_brightness_(game_manager, to, camera);
 	}
 
-	static public void set_world_brightness_(GameManager game_manager, float brightness) {
+	static public void set_world_brightness_(GameManager game_manager, float brightness, Camera camera = null) {
 		Shader.SetGlobalFloat("_Brightness", brightness);
 		if(RenderSettings.skybox != null) {
 			RenderSettings.skybox.color = Util.sky * brightness;
 		}
 
+		if(camera != null) {
+			camera.backgroundColor = Util.sky * brightness;
+		}
+
 		//TODO: Tidy this up somehow??
 		if(game_manager != null) {
-			// if(game_manager.env.controls_hint != null) {
-			// 	game_manager.env.controls_hint.renderer.material.color = Util.white * brightness;
-			// }
-
 			if(game_manager.player2_inst != null) {
 				game_manager.player2_inst.renderer_.material.SetFloat("_Brightness", 1.0f);
 			}
@@ -942,6 +942,7 @@ public class GameManager : MonoBehaviour {
 			case 1: {
 				Settings.LAN_MODE = true;
 				Settings.LAN_SERVER_MACHINE = true;
+				Settings.LAN_FORCE_CONNECTION = true;
 
 				break;
 			}
@@ -949,12 +950,13 @@ public class GameManager : MonoBehaviour {
 			case 2: {
 				Settings.LAN_MODE = true;
 				Settings.LAN_SERVER_MACHINE = false;
+				Settings.LAN_FORCE_CONNECTION = true;
 
 				break;
 			}
 		}
 
-		// Settings.USE_TRANSITIONS = true;
+		Settings.USE_TRANSITIONS = true;
 
 		QualitySettings.vSyncCount = VSYNC_COUNT;
 		QualitySettings.antiAliasing = 4;

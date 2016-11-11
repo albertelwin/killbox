@@ -32,7 +32,7 @@ public class FadeImageEffect : UnityStandardAssets.ImageEffects.ImageEffectBase 
 			Graphics.Blit(src, dst, material);
 		}
 		else {
-			Assert.invalid_path();
+			// Assert.invalid_path();
 		}
 	}
 }

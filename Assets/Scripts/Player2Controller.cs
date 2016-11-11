@@ -17,6 +17,7 @@ public class Player2Controller : MonoBehaviour {
 	[System.NonSerialized] public Collider collider_;
 	[System.NonSerialized] public Rigidbody rigidbody_;
 	[System.NonSerialized] public NetworkView network_view;
+	[System.NonSerialized] public AudioListener audio_listener;
 
 	[System.NonSerialized] public float default_speed;
 	[System.NonSerialized] public float speed;
@@ -230,6 +231,7 @@ public class Player2Controller : MonoBehaviour {
 		bird_source.Stop();
 		drone_source.Stop();
 		scream_source.Stop();
+		audio_listener.enabled = false;
 
 		game_manager.show_stats(camera_);
 		yield return null;
@@ -239,7 +241,7 @@ public class Player2Controller : MonoBehaviour {
 		first_missile_fired = true;
 		second_missile_fired = true;
 
-		yield return StartCoroutine(GameManager.set_world_brightness(game_manager, 1.0f, 0.0f, 5.0f));
+		yield return StartCoroutine(GameManager.set_world_brightness(game_manager, 1.0f, 0.0f, 5.0f, camera_));
 
 		control_flags &= ~(CAN_LOOK | CAN_MOVE | CAN_JUMP);
 		GameManager.set_world_brightness_(game_manager, 0.0f);
@@ -248,6 +250,7 @@ public class Player2Controller : MonoBehaviour {
 		yield return StartCoroutine(Util.lerp_audio_volume(drone_source, 1.0f, 0.0f, 2.0f));
 		bird_source.Stop();
 		drone_source.Stop();
+		audio_listener.enabled = false;
 
 		FadeImageEffect.set_alpha(camera_fade, 0.0f);
 		yield return StartCoroutine(FadeImageEffect.lerp_alpha(camera_fade, 1.0f, 5.0f));
@@ -296,7 +299,6 @@ public class Player2Controller : MonoBehaviour {
 
 	IEnumerator fade_in_and_start() {
 		if(Settings.USE_TRANSITIONS) {
-			Color sky_color = camera_.backgroundColor;
 			camera_.backgroundColor = Util.black;
 			FadeImageEffect.set_alpha(camera_fade, 1.0f);
 
@@ -314,33 +316,20 @@ public class Player2Controller : MonoBehaviour {
 
 			speed = default_speed;
 
-			float world_fade = 2.0f;
-			float r_world_fade = 1.0f / world_fade;
-			StartCoroutine(GameManager.set_world_brightness(game_manager, 0.0f, 1.0f, world_fade));
-			{
-				float t = 0.0f;
-				while(t < 1.0f) {
-					camera_.backgroundColor = Color.Lerp(Util.black, sky_color, t);
-
-					t += Time.deltaTime * r_world_fade;
-					yield return Util.wait_for_frame;
-				}
-
-				camera_.backgroundColor = sky_color;
-			}
+			yield return StartCoroutine(GameManager.set_world_brightness(game_manager, 0.0f, 1.0f, 2.0f, camera_));
 			dust_particles.Play();
 
 			if(Settings.TRACKBALL) {
-				yield return StartCoroutine(fade_in_hint(hint, "LOOK: TRACKBALL", false));
+				yield return StartCoroutine(fade_in_hint(hint, "ROLL THE TRACKBALL TO LOOK AROUND", false));
 			}
 			else {
-				yield return StartCoroutine(fade_in_hint(hint, "LOOK: MOUSE", false));
+				yield return StartCoroutine(fade_in_hint(hint, "MOVE THE MOUSE TO LOOK AROUND", false));
 			}
 			while((control_flags & HAS_LOOKED) == 0) {
 				yield return Util.wait_for_frame;
 			}
 
-			yield return StartCoroutine(fade_in_hint(hint, "LOOK UP: LEFT CLICK & HOLD"));
+			yield return StartCoroutine(fade_in_hint(hint, "HOLD THE LEFT TRACKBALL BUTTON TO LOOK UP"));
 			{
 				float t = 0.0f;
 				while((control_flags & HAS_LOOKED_UP) == 0 && t < 5.0f) {
@@ -349,12 +338,12 @@ public class Player2Controller : MonoBehaviour {
 				}
 			}
 
-			yield return StartCoroutine(fade_in_hint(hint, "JUMP: SPACE"));
+			yield return StartCoroutine(fade_in_hint(hint, "PRESS THE SPACEBAR TO JUMP"));
 			while(!first_missile_fired && (control_flags & HAS_JUMPED) == 0) {
 				yield return Util.wait_for_frame;
 			}
 
-			yield return StartCoroutine(fade_in_hint(hint, "MOVE: W"));
+			yield return StartCoroutine(fade_in_hint(hint, "HOLD THE \"W\" KEY TO MOVE"));
 			while((control_flags & HAS_MOVED) == 0) {
 				yield return Util.wait_for_frame;
 			}
@@ -422,6 +411,7 @@ public class Player2Controller : MonoBehaviour {
 		anim = mesh.Find("Animation").GetComponent<Animation>();
 		renderer_ = GetComponentInChildren<SkinnedMeshRenderer>();
 		collider_ = mesh.GetComponent<Collider>();
+		audio_listener = mesh.GetComponent<AudioListener>();
 
 		string material_id = Environment.get_pov_material_id(game_manager.env.pov);
 		renderer_.material = (Material)Resources.Load("other_" + material_id + "_mat");
@@ -488,6 +478,7 @@ public class Player2Controller : MonoBehaviour {
 			StartCoroutine(fade_in_and_start());
 		}
 		else {
+			audio_listener.enabled = false;
 			enabled = false;
 		}
 	}
@@ -496,7 +487,8 @@ public class Player2Controller : MonoBehaviour {
 #if UNITY_EDITOR
 		if(Input.GetKeyDown(KeyCode.Alpha2)) {
 			GameManager.persistent_player_type = PlayerType.PLAYER2;
-			game_manager.show_stats(camera_);
+			StartCoroutine(fade_out_and_end());
+			// game_manager.show_stats(camera_);
 		}
 #endif
 
@@ -554,11 +546,11 @@ public class Player2Controller : MonoBehaviour {
 					}
 				}
 
-				float max_playing_time = 240.0f;
-				if(connected_playing_time > max_playing_time) {
-					fade_out_triggered = true;
-					StartCoroutine(fade_out_and_end());
-				}
+				// float max_playing_time = 600.0f;
+				// if(connected_playing_time > max_playing_time) {
+				// 	fade_out_triggered = true;
+				// 	StartCoroutine(fade_out_and_end());
+				// }
 			}
 		}
 
@@ -693,19 +685,19 @@ public class Player2Controller : MonoBehaviour {
 		Vector3 acceleration = Vector3.zero;
 
 		if(!camera_looking_up && (control_flags & CAN_MOVE) != 0) {
-			if(game_manager.get_key(KeyCode.W)) {
+			if(game_manager.get_key(KeyCode.W) || game_manager.get_key(KeyCode.UpArrow)) {
 				acceleration += Vector3.forward;
 			}
 
-			if(game_manager.get_key(KeyCode.S)) {
+			if(game_manager.get_key(KeyCode.S) || game_manager.get_key(KeyCode.DownArrow)) {
 				acceleration -= Vector3.forward;
 			}
 
-			if(game_manager.get_key(KeyCode.A)) {
+			if(game_manager.get_key(KeyCode.A) || game_manager.get_key(KeyCode.LeftArrow)) {
 				acceleration -= Vector3.right;
 			}
 
-			if(game_manager.get_key(KeyCode.D)) {
+			if(game_manager.get_key(KeyCode.D) || game_manager.get_key(KeyCode.RightArrow)) {
 				acceleration += Vector3.right;
 			}
 

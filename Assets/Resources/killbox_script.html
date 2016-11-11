@@ -39,32 +39,25 @@ NEVADA USA
 USAF CREECH AIRBASE 432D
 J09NV0399
 KIL(wait, 2.0)
-KIL(cls)
-KIL(wait, 0.5)
-LINEVU:         JP.95.TS.D
-COGENT:        B/3/H0E
-AGENTAREA:  6X9EU_5Y8.FN.TB6
-SENSCOM:    OPR B8
-KIL(wait, 0.5)
+
 TELEM:          4Y0D9-KA-DSAT
 D-LINK:          NULL
 KIL(wait, 1.8)
-KIL(cls)
+
 KIL(go_to, [[locate]])</tw-passagedata>
-<tw-passagedata pid="3" name="locate" tags="" position="421,1103">LINK AVAILABLE: PRESS [ L ] TO CONNECT
-KIL(wait_key, L, [[search]], 5.0)
-KIL(delay)
-
-PRESS [ L ] FOR LINK
-KIL(wait_key, L, [[search]])</tw-passagedata>
-<tw-passagedata pid="4" name="search" tags="" position="728,1376">SEARCHING...
-…………………………………
-…………………………………
-
-KIL(wait, 2)
+<tw-passagedata pid="3" name="locate" tags="" position="421,1103">D-LINK OFFLINE: PRESS [ L ] TO CONNECT
+KIL(wait_key, L, [[search]])
+KIL(delay)</tw-passagedata>
+<tw-passagedata pid="4" name="search" tags="" position="728,1376">
 D-LINK CONNECTING
+…………………………………
+…………………………………
+…………………………………
+KIL(wait, 0.5)
 
-KIL(wait, 3.0)
+D-LINK: ONLINE
+KIL(crosshair_style, 1)
+KIL(wait, 0.5)
 
 UHF:            Y
 VHF:            Y
@@ -76,52 +69,39 @@ KIL(wait, 0.82)
 LATENCY:   0.82s
 KIL(wait, 0.7)
 
-KIL(wait, 0.7)
-LINK ACTIVE:
-KIL(crosshair_style, 1)
-
 VIA:     US COMSAT RR/909_DSAT US404
 TO:      GAAS MQ-1A PREDATOR 6664-RPV_HFR
 KIL(wait, 0.8)
 
-
 UAV LOCATED:  32.26.03.1&quot; 69.43.27.0&quot;
 WAZIRISTAN, PAKISTAN
-KIL(wait, 2.2)
-
-
-KIL(wait, 1.0)
+KIL(wait, 4.0)
+KIL(cls)
 SYSTEM CHECK:
 KIL(wait, 1.0)
-KIL(cls)
+
 OS: UAV OS6.2.2
-SYSTEM OK:
-KIL(wait, 2.0)
-KIL(cls)
-
-ACFT:
 KIL(wait, 0.5)
-AUTOPILOT ONLINE
 
+AUTO-PILOT: ONLINE
 KIL(wait, 0.5)
+
 ALT:             24,886.4
 SPEED:       192.057K
 EXT TEMP:  -30.05
 W DR:          37.N
 W SPEED:    2. 4
-TOT:             39H:26M
-DOF:            7616.8234M
-
-
-
 KIL(wait, 1.0)
+
 M1:              AGM-117 ARMED
 M2:              AGM-117 ARMED
 KIL(crosshair_style, 0)
-KIL(crosshair_style, 0)
-KIL(wait, 2.5)
+KIL(wait, 2.0)
+
+SYSTEM: OK
+KIL(wait, 0.5)
 KIL(cls)
-KIL(wait, 1.5)
+
 CHANNELS:
 KIL(wait, 2.6)
 KIL(chatter)
@@ -130,86 +110,83 @@ KIL(wait, 0.8)
 SNSR:  ONLINE
 CMND: ONLINE
 INTL:    ONLINE
-
-KIL(wait, 0.5)
-CAM OFFLINE
-KIL(wait, 2.3)
-
 KIL(wait, 1.5)
-CAM ONLINE : PRESS [C]
+
+CAM OFFLINE: PRESS [C] TO CONNECT
 KIL(wait_key, C)
 KIL(wait, 0.6)
 KIL(display_on)
 KIL(crosshair_style, 1)
 KIL(wait, 0.6)
-CAM ONLINE
-KIL(wait, 1.6)
-KIL(cls)
+
+CAM: ONLINE
 KIL(wait, 1.0)
-CALIBRATION: PRESS [T]
-KIL(wait_key, T)
+
+CALIBRATION TEST
+KIL(delay)
+KIL(wait, 0.5)
 KIL(cls)
+
 KIL(tutorial)
 KIL(cls)
 MANUAL CONTROL ONLINE
 KIL(wait, 25.0)
 KIL(delay)
-CMND:     UPDATE TARGET ID
+
+CMND:    UPDATE TARGET ID
 KIL(wait, 2.0)
-INTL:      INCOMING  POSITIVE ID ON PRIMARY TARGET
+
+INTL:      INCOMING POSITIVE ID
 INTL:      HOSTILE TRACKED TO LOCATION
 INTL:      PID IS 613/OPER 362.6
 KIL(wait, 1.3)
-KIL(cls)
-CMND:   READ POSITIVE ID- 613/OPER 362.6
-CMND:   PID CONFIRMED
-KIL(wait, 0.7)
 
+CMND:   OK POSITIVE ID- 613/OPER 362.6
+KIL(wait, 1.3)
 
-KIL(wait, 1.7)
 INTL:      SENDING COORDINATES
 KIL(wait, 2.0)
-KIL(cls)
-KIL(wait, 1.8)
+
 SNSR:    COORDS RECEIVED
 KIL(wait, 1.0)
-SNSR:    LASER
+SNSR:    TARGETING
 KIL(target_style, 1)
 KIL(wait, 1.5)
 KIL(cls)
 CONFIRM TARGET PRESS [ T ]
 KIL(wait_key, T)
 KIL(target_style, 2)
-KIL(wait, 2.0)
-KIL(cls)
-SNSR:     TARGET ONLINE
-KIL(wait, 3.0)
-CMND:     CLEARED HOT
-KIL(wait, 1.0)
+KIL(wait, 1.5)
 KIL(crosshair_style, 2)
+KIL(wait, 0.5)
+
+SNSR:     LASER ON TARGET ONLINE
+KIL(wait, 1.5)
+CMND:     CLEARED HOT
 KIL(wait, 2.0)
-KIL(cls)
+
 AGM-117 LAUNCH 1: PRESS [ M ]
 KIL(wait_key, M)
 KIL(fire)
-KIL(wait, 1)
-KIL(crosshair_style, 1)
-KIL(wait, 1)
-KIL(target_style, 0)
 KIL(cls)
-KIL(wait, 10)
+KIL(wait, 1.0)
+KIL(crosshair_style, 1)
+KIL(wait, 1.0)
+KIL(target_style, 0)
+KIL(wait, 7.0)
 KIL(delay)
-KIL(wait, 3.0)
+KIL(wait, 2.0)
+
 INTL:      UNCONFIRMED HIT
-KIL(wait, 4)
+KIL(wait, 3.0)
 
 CMND:   SECONDARY GO
-KIL(wait, 4)
+KIL(wait, 3.0)
 KIL(target_style, 1)
 KIL(wait, 1.0)
 KIL(crosshair_style, 2)
 KIL(wait, 0.7)
-SNSR:    LASER
+SNSR:    LASER ON
 
 KIL(wait, 0.8)
 CMND:    CLEARED HOT
@@ -227,7 +204,6 @@ TRANSFERRING
 …………………………………
 …………………………………
 …………………………………
-…………………………………
 KIL(wait, 2.0)
 KIL(cls)
 KIL(wait, 1.0)
@@ -241,11 +217,11 @@ KIL(go_to, [[fire2]])
 <tw-passagedata pid="5" name="fire2" tags="" position="1255,1425">KIL(crosshair_style, 2)
 KIL(fire)
 KIL(wait, 1.0)
+KIL(crosshair_style, 1)
+KIL(wait, 5.0)
 KIL(crosshair_style, 0)
-KIL(wait, 8.0)
-KIL(target_style, 0)
 KIL(death_count)
-KIL(wait, 9.0)
+KIL(wait, 3.0)
 KIL(display_off)
 KIL(wait, 2.0)
 KIL(log_off)

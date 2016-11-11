@@ -43,9 +43,13 @@ public class NpcController : MonoBehaviour {
 	[System.NonSerialized] public AudioSource scream_source;
 
 	[System.NonSerialized] public static Color[] COLOR_POOL = {
-		Util.new_color(47, 147, 246),
-		Util.new_color(51, 203, 152),
-		Util.new_color(220, 126, 225),
+		Util.new_color(47, 189, 246),
+		Util.new_color(215, 217, 60),
+		Util.new_color(246, 166, 65),
+		Util.new_color(170, 59, 239),
+		Util.new_color(87, 76, 218),
+		Util.new_color(231, 32, 118),
+		Util.new_color(99, 230, 77),
 	};
 
 	void Awake() {
@@ -251,8 +255,13 @@ public class NpcController : MonoBehaviour {
 			npc.activated = false;
 		}
 
+		float max_emission = 0.5f;
+		if(npc.type == NpcType.CHICKEN) {
+			max_emission = 1.0f;
+		}
+
 		//TODO: We don't need to be doing this every frame!!
-		npc.emission = Mathf.Lerp(npc.emission, npc.activated ? 0.5f : 0.0f, Time.deltaTime * 8.0f);
+		npc.emission = Mathf.Lerp(npc.emission, npc.activated ? max_emission : 0.0f, Time.deltaTime * 8.0f);
 		for(int i = 0; i < npc.renderer_.materials.Length; i++) {
 			npc.renderer_.materials[i].SetFloat("_Emission", npc.emission);
 		}
@@ -285,7 +294,7 @@ public class NpcController : MonoBehaviour {
 			else {
 				Util.cross_fade_anim(npc.anim, "idle");
 
-				npc.delay_time = 7.5f;
+				npc.delay_time = 6.0f + Random.value * 3.0f;
 				if(npc.nav_agent) {
 					npc.nav_agent.enabled = false;
 				}

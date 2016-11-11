@@ -739,7 +739,7 @@ public class Player1Console {
 	}
 
 	public static void push_confirm_deaths_cmd(CmdBuf cmd_buf) {
-		Cmd cmd = push_user_str_cmd(cmd_buf, UserStrId.DEATH_COUNT, 2, true, false, 15.0f);
+		Cmd cmd = push_user_str_cmd(cmd_buf, UserStrId.DEATH_COUNT, 2, true, false, 10.0f);
 
 		push_delay_cmd(cmd_buf);
 		push_print_str_cmd(cmd_buf, "\n");
@@ -1411,12 +1411,14 @@ public class Player1Controller : MonoBehaviour {
 
 	public class Control {
 		public KeyCode key;
+		public KeyCode alt_key;
 		public bool enabled;
 
-		public static Control new_inst(KeyCode key, bool enabled = false) {
+		public static Control new_inst(KeyCode key, KeyCode alt_key = KeyCode.None) {
 			Control control = new Control();
 			control.key = key;
-			control.enabled = enabled;
+			control.alt_key = alt_key;
+			control.enabled = false;
 			return control;
 		}
 	}
@@ -1586,12 +1588,12 @@ public class Player1Controller : MonoBehaviour {
 		join_time_stamp = Time.time;
 
 		controls = new Control[(int)ControlType.COUNT];
-		controls[(int)ControlType.LOOK_LEFT] = Control.new_inst(KeyCode.A);
-		controls[(int)ControlType.LOOK_RIGHT] = Control.new_inst(KeyCode.D);
-		controls[(int)ControlType.LOOK_UP] = Control.new_inst(KeyCode.W);
-		controls[(int)ControlType.LOOK_DOWN] = Control.new_inst(KeyCode.S);
-		controls[(int)ControlType.ZOOM_IN] = Control.new_inst(KeyCode.J);
-		controls[(int)ControlType.ZOOM_OUT] = Control.new_inst(KeyCode.K);
+		controls[(int)ControlType.LOOK_LEFT] = Control.new_inst(KeyCode.A, KeyCode.LeftArrow);
+		controls[(int)ControlType.LOOK_RIGHT] = Control.new_inst(KeyCode.D, KeyCode.RightArrow);
+		controls[(int)ControlType.LOOK_UP] = Control.new_inst(KeyCode.W, KeyCode.UpArrow);
+		controls[(int)ControlType.LOOK_DOWN] = Control.new_inst(KeyCode.S, KeyCode.DownArrow);
+		controls[(int)ControlType.ZOOM_IN] = Control.new_inst(KeyCode.J, KeyCode.Q);
+		controls[(int)ControlType.ZOOM_OUT] = Control.new_inst(KeyCode.K, KeyCode.E);
 		controls[(int)ControlType.TOGGLE_INFRARED] = Control.new_inst(KeyCode.R);
 	}
 
@@ -1823,36 +1825,36 @@ public class Player1Controller : MonoBehaviour {
 		float camera_delta = Time.deltaTime * MathExt.TAU * Mathf.Rad2Deg * 0.02f;
 
 		Control look_left = controls[(int)ControlType.LOOK_LEFT];
-		if(look_left.enabled && game_manager.get_key(look_left.key)) {
+		if(look_left.enabled && (game_manager.get_key(look_left.key) || game_manager.get_key(look_left.alt_key))) {
 			camera_moved = true;
 			camera_xy.x += camera_delta;
 		}
 
 		Control look_right = controls[(int)ControlType.LOOK_RIGHT];
-		if(look_right.enabled && game_manager.get_key(look_right.key)) {
+		if(look_right.enabled && (game_manager.get_key(look_right.key) || game_manager.get_key(look_right.alt_key))) {
 			camera_moved = true;
 			camera_xy.x -= camera_delta;
 		}
 
 		Control look_up = controls[(int)ControlType.LOOK_UP];
-		if(look_up.enabled && game_manager.get_key(look_up.key)) {
+		if(look_up.enabled && (game_manager.get_key(look_up.key) || game_manager.get_key(look_up.alt_key))) {
 			camera_moved = true;
 			camera_xy.y -= camera_delta;
 		}
 
 		Control look_down = controls[(int)ControlType.LOOK_DOWN];
-		if(look_down.enabled && game_manager.get_key(look_down.key)) {
+		if(look_down.enabled && (game_manager.get_key(look_down.key) || game_manager.get_key(look_down.alt_key))) {
 			camera_moved = true;
 			camera_xy.y += camera_delta;
 		}
 
 		Control zoom_in = controls[(int)ControlType.ZOOM_IN];
-		if(zoom_in.enabled && game_manager.get_key(zoom_in.key)) {
+		if(zoom_in.enabled && (game_manager.get_key(zoom_in.key) || game_manager.get_key(zoom_in.alt_key))) {
 			camera_zoom -= Time.deltaTime * zoom_speed;
 		}
 
 		Control zoom_out = controls[(int)ControlType.ZOOM_OUT];
-		if(zoom_out.enabled && game_manager.get_key(zoom_out.key)) {
+		if(zoom_out.enabled && (game_manager.get_key(zoom_out.key) || game_manager.get_key(zoom_out.alt_key))) {
 			camera_zoom += Time.deltaTime * zoom_speed;
 		}
 

@@ -3,7 +3,7 @@ using System.Collections;
 
 public static class Settings {
 	public static bool INSTALLATION_BUILD = true;
-	public static bool TRACKBALL = true;
+	public static bool TRACKBALL = false;
 
 	public static bool LAN_MODE = true;
 	public static bool LAN_SERVER_MACHINE = true;

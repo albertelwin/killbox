@@ -329,7 +329,12 @@ public class Player2Controller : MonoBehaviour {
 				yield return Util.wait_for_frame;
 			}
 
-			yield return StartCoroutine(fade_in_hint(hint, "HOLD THE LEFT TRACKBALL BUTTON TO LOOK UP"));
+			if(Settings.TRACKBALL) {
+				yield return StartCoroutine(fade_in_hint(hint, "HOLD THE LEFT TRACKBALL BUTTON TO LOOK UP"));
+			}
+			else {
+				yield return StartCoroutine(fade_in_hint(hint, "HOLD THE LEFT MOUSE BUTTON TO LOOK UP"));
+			}
 			{
 				float t = 0.0f;
 				while((control_flags & HAS_LOOKED_UP) == 0 && t < 5.0f) {

@@ -256,7 +256,7 @@ public class NpcController : MonoBehaviour {
 		}
 
 		float max_emission = 0.5f;
-		if(npc.type == NpcType.CHICKEN) {
+		if(npc.type == NpcType.CHICKEN || npc.type == NpcType.COW) {
 			max_emission = 1.0f;
 		}
 

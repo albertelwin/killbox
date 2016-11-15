@@ -112,7 +112,7 @@ public class GameManager : MonoBehaviour {
 
 	public static string PREF_KEY_PLAY_COUNT = "killbox_play_count";
 
-	public static float AUTO_PAUSE_TIME = 120.0f;
+	public static float AUTO_PAUSE_TIME = 90.0f;
 	public static float AUTO_RESTART_FROM_PAUSED_TIME = 30.0f;
 
 	public static int VSYNC_COUNT = 1;
@@ -129,8 +129,8 @@ public class GameManager : MonoBehaviour {
 	[System.NonSerialized] public TextMesh network_log;
 	[System.NonSerialized] public TextMesh loading_log;
 
-	public Color player1_text_color = Color.green;
-	public Color player2_text_color = Color.red;
+	public Color player1_text_color = Color.red;
+	public Color player2_text_color = Color.green;
 
 	public Texture2D player1_head_texture = null;
 	public Texture2D player1_alt_head_texture = null;
@@ -776,6 +776,10 @@ public class GameManager : MonoBehaviour {
 					yield return Util.wait_for_frame;
 				}
 
+#if !UNITY_EDITOR
+				yield return Util.wait_for_2s;
+#endif
+
 				bool reconnect = false;
 
 				while(true) {
@@ -796,6 +800,9 @@ public class GameManager : MonoBehaviour {
 							start_player = PlayerType.PLAYER2;
 						}
 #endif
+
+						Debug.Log("We're in!!");
+
 						break;
 					}
 

@@ -714,6 +714,7 @@ public class Player1Console {
 
 		if(control_type == Player1Controller.ControlType.TOGGLE_INFRARED) {
 			push_print_str_cmd(cmd_buf, "\n");
+			//TODO: We should hard-code this!!
 			push_wait_key_cmd(cmd_buf, KeyCode.R);
 
 			Cmd cmd = Player1Console.push_cmd(cmd_buf, Player1Console.CmdType.ENABLE_CONTROLS);
@@ -1175,7 +1176,7 @@ public class Player1Console {
 							push_text_mesh(inst, "");
 						}
 
-						if(game_manager.get_key(control.key)) {
+						if(game_manager.get_key(control.key) || game_manager.get_key(control.alt_key)) {
 							float new_time = inst.current_cmd_time + time_left;
 
 							int step_count = 12;

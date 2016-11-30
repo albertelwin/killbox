@@ -1,4 +1,5 @@
-﻿Shader "Custom/FlatShadowed" {
+﻿
+Shader "Custom/FlatShadowed" {
 	Properties {
 		_Color ("Main Color", Color) = (1.0, 1.0, 1.0, 1.0)
 		_Emission ("Emission", Float) = 0.0
@@ -6,7 +7,7 @@
 	}
 
 	SubShader {
-		Tags {"Queue" = "Geometry" "RenderType" = "Opaque" "LightMode" = "Always" "LightMode" = "ForwardBase"}
+		Tags { "Queue" = "Geometry" "RenderType" = "Opaque" "LightMode" = "Always" "LightMode" = "ForwardBase" }
 
 		Pass {
 			CGPROGRAM
@@ -26,8 +27,6 @@
 				uniform float _Brightness;
 				uniform float _InfraredAmount;
 
-				// uniform float4 _LightColor0;
-
 				struct appdata {
 					float4 vertex : POSITION;
 					float3 normal : NORMAL;
@@ -38,7 +37,6 @@
 					float3 normal : TEXCOORD0;
 					float3 light_dir : TEXCOORD1;
 					LIGHTING_COORDS(2, 3)
-					// UNITY_FOG_COORDS(4)
 				};
 
 				v2f vert(appdata v) {
@@ -47,7 +45,6 @@
 					o.normal = v.normal;
 					o.light_dir = ObjSpaceLightDir(v.vertex);
 					TRANSFER_VERTEX_TO_FRAGMENT(o)
-					// UNITY_TRANSFER_FOG(o, o.pos);
 					return o;
 				}
 
@@ -68,7 +65,6 @@
 					}
 					color.rgb *= _Brightness;
 
-					// UNITY_APPLY_FOG(i.fogCoord, color);
 					return color;
 				}
 			ENDCG

@@ -333,7 +333,7 @@ public class Environment {
 		sphere.enabled = true;
 
 		yield return player.StartCoroutine(Util.lerp_local_scale(sphere.transform, Vector3.zero, Vector3.one * EXPLOSION_RADIUS * 2.0f, 0.2f));
-		yield return player.StartCoroutine(Util.lerp_material_color(sphere, Util.black, Util.black_no_alpha, 8.0f));
+		yield return Util.lerp_color(player, sphere, Util.black, Util.black_no_alpha, 8.0f);
 
 		sphere.enabled = false;
 	}

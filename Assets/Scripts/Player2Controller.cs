@@ -492,8 +492,9 @@ public class Player2Controller : MonoBehaviour {
 #if UNITY_EDITOR
 		if(Input.GetKeyDown(KeyCode.Alpha2)) {
 			GameManager.persistent_player_type = PlayerType.PLAYER2;
-			StartCoroutine(fade_out_and_end());
-			// game_manager.show_stats(camera_);
+			// StartCoroutine(fade_out_and_end());
+			audio_listener.enabled = false;
+			game_manager.show_stats(camera_);
 		}
 #endif
 

@@ -7,7 +7,6 @@ TODO:
 	Optimise pilot view (clear -> render camera feeds -> render ui)
 	Camera clipping
 	Dump password/kills/etc. to Google Drive
-	Load scene async
 
 DONE:
 
@@ -350,12 +349,34 @@ public class GameManager : MonoBehaviour {
 			QualitySettings.vSyncCount = 0;
 
 			end_screen.outro_renderer.enabled = true;
-			end_screen.outro_movie.Stop();
-			end_screen.outro_movie.Play();
+			end_screen.outro_renderer.material.color = Util.white;
 
-			while(end_screen.outro_movie.isPlaying) {
-				yield return Util.wait_for_frame;
+			MovieTexture movie = end_screen.outro_movie;
+			movie.loop = false;
+			movie.Stop();
+			movie.Play();
+
+			if(Settings.LAN_MODE) {
+				while(movie.isPlaying) {
+					yield return Util.wait_for_frame;
+				}
 			}
+			else {
+				float start_time = Time.realtimeSinceStartup;
+
+				while(movie.isPlaying) {
+					float t = Time.realtimeSinceStartup - start_time;
+					if(t >= 25.0f) {
+						break;
+					}
+
+					yield return Util.wait_for_frame;
+				}
+
+				yield return Util.lerp_color(this, end_screen.outro_renderer, Util.white, Util.black, 10.0f);
+			}
+
+			movie.Stop();
 
 			end_screen.outro_renderer.enabled = false;
 
@@ -563,10 +584,10 @@ public class GameManager : MonoBehaviour {
 
 		if(Settings.USE_TRANSITIONS) {
 			if(player_type == PlayerType.PLAYER1) {
-				StartCoroutine(Util.lerp_material_alpha(main_screen.player2.head, 0.0f, fade_duration));
-				StartCoroutine(Util.lerp_material_alpha(main_screen.player2.body, 0.0f, fade_duration));
+				Util.lerp_alpha(this, main_screen.player2.head, 0.0f, fade_duration);
+				Util.lerp_alpha(this, main_screen.player2.body, 0.0f, fade_duration);
 
-				yield return StartCoroutine(Util.lerp_material_alpha(main_screen.cursor.GetComponent<Renderer>(), 0.0f, fade_duration));
+				yield return Util.lerp_alpha(this, main_screen.cursor.GetComponent<Renderer>(), 0.0f, fade_duration);
 				main_screen.cursor.gameObject.SetActive(false);
 
 				stop_bees_coroutine(this);
@@ -574,17 +595,17 @@ public class GameManager : MonoBehaviour {
 				bees_source.Play();
 
 				yield return new WaitForSeconds(0.5f);
-				StartCoroutine(Util.lerp_material_alpha(main_screen.player1.helmet, 0.0f));
-				yield return StartCoroutine(Util.lerp_material_alpha(main_screen.player1.body, 0.0f));
+				Util.lerp_alpha(this, main_screen.player1.helmet, 0.0f);
+				yield return Util.lerp_alpha(this, main_screen.player1.body, 0.0f);
 				yield return new WaitForSeconds(0.5f);
-				yield return StartCoroutine(Util.lerp_material_alpha(main_screen.player1.head, 0.0f));
+				yield return Util.lerp_alpha(this, main_screen.player1.head, 0.0f);
 			}
 			else {
-				StartCoroutine(Util.lerp_material_alpha(main_screen.player1.head, 0.0f, fade_duration));
-				StartCoroutine(Util.lerp_material_alpha(main_screen.player1.helmet, 0.0f, fade_duration));
-				StartCoroutine(Util.lerp_material_alpha(main_screen.player1.body, 0.0f, fade_duration));
+				Util.lerp_alpha(this, main_screen.player1.head, 0.0f, fade_duration);
+				Util.lerp_alpha(this, main_screen.player1.helmet, 0.0f, fade_duration);
+				Util.lerp_alpha(this, main_screen.player1.body, 0.0f, fade_duration);
 
-				yield return StartCoroutine(Util.lerp_material_alpha(main_screen.cursor.GetComponent<Renderer>(), 0.0f, fade_duration));
+				yield return Util.lerp_alpha(this, main_screen.cursor.GetComponent<Renderer>(), 0.0f, fade_duration);
 				main_screen.cursor.gameObject.SetActive(false);
 
 				stop_bees_coroutine(this);
@@ -592,9 +613,9 @@ public class GameManager : MonoBehaviour {
 				bees_source.Play();
 
 				yield return new WaitForSeconds(0.5f);
-				yield return StartCoroutine(Util.lerp_material_alpha(main_screen.player2.body, 0.0f));
+				yield return Util.lerp_alpha(this, main_screen.player2.body, 0.0f);
 				yield return new WaitForSeconds(0.5f);
-				yield return StartCoroutine(Util.lerp_material_alpha(main_screen.player2.head, 0.0f));
+				yield return Util.lerp_alpha(this, main_screen.player2.head, 0.0f);
 			}
 		}
 		else {
@@ -697,38 +718,6 @@ public class GameManager : MonoBehaviour {
 		}
 
 		if(persistent_player_type == PlayerType.NONE) {
-			if(Settings.USE_SPLASH) {
-				splash_screen.transform.gameObject.SetActive(true);
-
-				splash_screen.logo.material.color = new Color(1.0f, 1.0f, 1.0f, 0.0f);
-				splash_screen.name.color = new Color(1.0f, 1.0f, 1.0f, 0.0f);
-
-				yield return new WaitForSeconds(0.5f);
-				yield return StartCoroutine(Util.lerp_material_alpha(splash_screen.logo, 1.0f, 2.0f));
-				yield return new WaitForSeconds(0.5f);
-				yield return StartCoroutine(Util.lerp_text_alpha(splash_screen.name, 1.0f));
-
-				yield return new WaitForSeconds(1.5f);
-
-				StartCoroutine(Util.lerp_material_alpha(splash_screen.logo, 0.0f, 3.5f));
-				StartCoroutine(Util.lerp_text_alpha(splash_screen.name, 0.0f, 3.5f));
-
-				stop_bees_coroutine(this);
-				bees_coroutine = StartCoroutine(Util.lerp_audio_volume(bees_source, 0.0f, 1.0f, 5.0f));
-				bees_source.Play();
-
-				yield return new WaitForSeconds(4.0f);
-
-				splash_screen.transform.gameObject.SetActive(false);
-			}
-			else {
-				Assert.is_true(!splash_screen.transform.gameObject.activeSelf);
-
-				stop_bees_coroutine(this);
-				bees_coroutine = StartCoroutine(Util.lerp_audio_volume(bees_source, 0.0f, 1.0f, 5.0f, true));
-				bees_source.Play();
-			}
-
 			{
 				loading_log.gameObject.SetActive(true);
 
@@ -754,6 +743,40 @@ public class GameManager : MonoBehaviour {
 				}
 
 				loading_log.gameObject.SetActive(false);
+			}
+
+			if(Settings.USE_SPLASH) {
+				//TODO: Splash images!!
+
+				splash_screen.transform.gameObject.SetActive(true);
+
+				splash_screen.logo.material.color = new Color(1.0f, 1.0f, 1.0f, 0.0f);
+				splash_screen.name.color = new Color(1.0f, 1.0f, 1.0f, 0.0f);
+
+				yield return new WaitForSeconds(0.5f);
+				yield return Util.lerp_alpha(this, splash_screen.logo, 1.0f, 2.0f);
+				yield return new WaitForSeconds(0.5f);
+				yield return Util.lerp_alpha(this, splash_screen.name, 1.0f);
+
+				yield return new WaitForSeconds(1.5f);
+
+				Util.lerp_alpha(this, splash_screen.logo, 0.0f, 3.5f);
+				Util.lerp_alpha(this, splash_screen.name, 0.0f, 3.5f);
+
+				stop_bees_coroutine(this);
+				bees_coroutine = StartCoroutine(Util.lerp_audio_volume(bees_source, 0.0f, 1.0f, 5.0f));
+				bees_source.Play();
+
+				yield return new WaitForSeconds(4.0f);
+
+				splash_screen.transform.gameObject.SetActive(false);
+			}
+			else {
+				Assert.is_true(!splash_screen.transform.gameObject.activeSelf);
+
+				stop_bees_coroutine(this);
+				bees_coroutine = StartCoroutine(Util.lerp_audio_volume(bees_source, 0.0f, 1.0f, 5.0f, true));
+				bees_source.Play();
 			}
 
 			if(Settings.LAN_MODE) {
@@ -801,8 +824,6 @@ public class GameManager : MonoBehaviour {
 						}
 #endif
 
-						Debug.Log("We're in!!");
-
 						break;
 					}
 
@@ -822,9 +843,11 @@ public class GameManager : MonoBehaviour {
 					PlayerPrefs.Save();
 					game_log.gameObject.SetActive(false);
 
-					stop_bees_coroutine(this);
-					bees_coroutine = StartCoroutine(Util.lerp_audio_volume(bees_source, bees_source.volume, 0.0f, 5.0f, true));
-					yield return StartCoroutine(Util.lerp_material_alpha(intro_renderer, 0.0f, 3.0f));
+					if(Settings.USE_TRANSITIONS) {
+						stop_bees_coroutine(this);
+						bees_coroutine = StartCoroutine(Util.lerp_audio_volume(bees_source, bees_source.volume, 0.0f, 5.0f, true));
+						yield return Util.lerp_alpha(this, intro_renderer, 0.0f, 3.0f);
+					}
 
 					intro_movie.Stop();
 					intro_renderer.gameObject.SetActive(false);
@@ -858,13 +881,13 @@ public class GameManager : MonoBehaviour {
 					main_screen.player1.head.material.color = Util.new_color(player1_text_color, 0.0f);
 					main_screen.player2.head.material.color = Util.new_color(player2_text_color, 0.0f);
 
-					yield return StartCoroutine(Util.lerp_material_color(main_screen.player1.head, main_screen.player1.head.material.color, player1_text_color));
-					yield return StartCoroutine(Util.lerp_material_color(main_screen.player2.head, main_screen.player2.head.material.color, player2_text_color));
+					yield return Util.lerp_color(this, main_screen.player1.head, main_screen.player1.head.material.color, player1_text_color);
+					yield return Util.lerp_color(this, main_screen.player2.head, main_screen.player2.head.material.color, player2_text_color);
 				}
 
 				Cursor.lockState = CursorLockMode.Locked;
 				main_screen.cursor.gameObject.SetActive(true);
-				StartCoroutine(Util.lerp_material_color(main_screen.cursor.GetComponent<Renderer>(), Util.white_no_alpha, Util.white));
+				Util.lerp_color(this, main_screen.cursor.GetComponent<Renderer>(), Util.white_no_alpha, Util.white);
 				Cursor.lockState = CursorLockMode.None;
 
 				while(true) {

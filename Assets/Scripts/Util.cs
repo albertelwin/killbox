@@ -228,7 +228,7 @@ public static class Util {
 		yield return null;
 	}
 
-	public static IEnumerator lerp_material_color(Renderer renderer, Color from, Color to, float d = 1.0f) {
+	public static IEnumerator lerp_color_(Renderer renderer, Color from, Color to, float d = 1.0f) {
 		renderer.material.color = from;
 
 		float t = 0.0f;
@@ -243,7 +243,11 @@ public static class Util {
 		yield return null;
 	}
 
-	public static IEnumerator lerp_material_alpha(Renderer renderer, float to, float d = 1.0f) {
+	public static Coroutine lerp_color(MonoBehaviour mono_behaviour, Renderer renderer, Color from, Color to, float d = 1.0f) {
+		return mono_behaviour.StartCoroutine(lerp_color_(renderer, from, to, d));
+	}
+
+	public static IEnumerator lerp_alpha_(Renderer renderer, float to, float d = 1.0f) {
 		Color from_color = renderer.material.color;
 		Color to_color = new_color(from_color, to);
 
@@ -259,22 +263,7 @@ public static class Util {
 		yield return null;
 	}
 
-	public static IEnumerator lerp_text_color(TextMesh text_mesh, Color from, Color to, float d = 1.0f) {
-		text_mesh.color = from;
-
-		float t = 0.0f;
-		while(t < 1.0f) {
-			text_mesh.color = Color.Lerp(from, to, t);
-
-			t += Time.deltaTime * (1.0f / d);
-			yield return wait_for_frame;
-		}
-
-		text_mesh.color = to;
-		yield return null;
-	}
-
-	public static IEnumerator lerp_text_alpha(TextMesh text_mesh, float to, float d = 1.0f) {
+	public static IEnumerator lerp_alpha_(TextMesh text_mesh, float to, float d = 1.0f) {
 		Color from_color = text_mesh.color;
 		Color to_color = new_color(from_color, to);
 
@@ -288,6 +277,14 @@ public static class Util {
 
 		text_mesh.color = to_color;
 		yield return null;
+	}
+
+	public static Coroutine lerp_alpha(MonoBehaviour mono_behaviour, Renderer renderer, float to, float d = 1.0f) {
+		return mono_behaviour.StartCoroutine(lerp_alpha_(renderer, to, d));
+	}
+
+	public static Coroutine lerp_alpha(MonoBehaviour mono_behaviour, TextMesh text_mesh, float to, float d = 1.0f) {
+		return mono_behaviour.StartCoroutine(lerp_alpha_(text_mesh, to, d));
 	}
 
 	public static IEnumerator lerp_audio_volume(AudioSource audio_source, float from, float to, float d = 1.0f, bool linear = false) {

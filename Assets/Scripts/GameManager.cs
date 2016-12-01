@@ -36,6 +36,8 @@ public class GameManager : MonoBehaviour {
 
 		public Renderer logo;
 		public TextMesh name;
+
+		public Renderer[] credits;
 	}
 
 	public class PlayerButton {
@@ -746,11 +748,26 @@ public class GameManager : MonoBehaviour {
 			}
 
 			if(Settings.USE_SPLASH) {
-				//TODO: Splash images!!
-
 				splash_screen.transform.gameObject.SetActive(true);
+				splash_screen.logo.enabled = false;
+				splash_screen.name.GetComponent<Renderer>().enabled = false;
 
+				// for(int i = 0; i < splash_screen.credits.Length; i++) {
+				// 	Renderer credit = splash_screen.credits[i];
+				// 	credit.enabled = true;
+
+				// 	credit.material.color = Util.white_no_alpha;
+				// 	yield return Util.lerp_alpha(this, credit, 1.0f, 1.0f);
+				// 	yield return Util.wait_for_2s;
+				// 	yield return Util.lerp_alpha(this, credit, 0.0f, 1.0f);
+
+				// 	credit.enabled = false;
+				// }
+
+				splash_screen.logo.enabled = true;
 				splash_screen.logo.material.color = new Color(1.0f, 1.0f, 1.0f, 0.0f);
+
+				splash_screen.name.GetComponent<Renderer>().enabled = true;
 				splash_screen.name.color = new Color(1.0f, 1.0f, 1.0f, 0.0f);
 
 				yield return new WaitForSeconds(0.5f);
@@ -999,8 +1016,17 @@ public class GameManager : MonoBehaviour {
 
 		splash_screen = new SplashScreen();
 		splash_screen.transform = transform.Find("Camera/Splash");
+		splash_screen.transform.gameObject.SetActive(false);
 		splash_screen.logo = splash_screen.transform.Find("Logo").GetComponent<Renderer>();
 		splash_screen.name = splash_screen.transform.Find("Name").GetComponent<TextMesh>();
+		splash_screen.credits = new Renderer[2];
+		for(int i = 0; i < splash_screen.credits.Length; i++) {
+			Transform child = splash_screen.transform.Find("Credits" + i);
+			Assert.is_true(child != null);
+
+			Renderer render = splash_screen.credits[i] = child.GetComponent<Renderer>();
+			render.enabled = false;
+		}
 
 		main_screen = new MainScreen();
 		main_screen.transform = transform.Find("Camera/Main");

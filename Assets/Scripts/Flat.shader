@@ -13,7 +13,6 @@ Shader "Custom/Flat" {
 			CGPROGRAM
 				#pragma vertex vert
 				#pragma fragment frag
-				#pragma multi_compile_fog
 				#pragma multi_compile_fwdbase
 				#pragma fragmentoption ARB_precision_hint_fastest
 
@@ -27,8 +26,6 @@ Shader "Custom/Flat" {
 				uniform float _Brightness;
 				uniform float _InfraredAmount;
 
-				// uniform float4 _LightColor0;
-
 				struct appdata {
 					float4 vertex : POSITION;
 				};
@@ -36,14 +33,12 @@ Shader "Custom/Flat" {
 				struct v2f {
 					float4 pos : SV_POSITION;
 					LIGHTING_COORDS(2, 3)
-					// UNITY_FOG_COORDS(4)
 				};
 
 				v2f vert(appdata v) {
 					v2f o;
 					o.pos = mul(UNITY_MATRIX_MVP, v.vertex);
 					TRANSFER_VERTEX_TO_FRAGMENT(o)
-					// UNITY_TRANSFER_FOG(o, o.pos);
 					return o;
 				}
 
@@ -59,7 +54,6 @@ Shader "Custom/Flat" {
 					}
 					color.rgb *= _Brightness;
 
-					// UNITY_APPLY_FOG(i.fogCoord, color);
 					return color;
 				}
 			ENDCG

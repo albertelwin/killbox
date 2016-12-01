@@ -16,7 +16,6 @@ Shader "Custom/Water" {
             CGPROGRAM
                 #pragma vertex vert
                 #pragma fragment frag
-                #pragma multi_compile_fog
                 #pragma multi_compile_fwdbase
                 #pragma fragmentoption ARB_precision_hint_fastest
                 #pragma target 4.0
@@ -33,8 +32,6 @@ Shader "Custom/Water" {
                 uniform float _Brightness;
                 uniform float _InfraredAmount;
 
-                // uniform float4 _LightColor0;
-
                 struct appdata {
                     float4 vertex : POSITION;
                     float3 normal : NORMAL;
@@ -46,7 +43,6 @@ Shader "Custom/Water" {
                     float3 light_dir : TEXCOORD1;
                     float3 view_dir : TEXCOORD2;
                     LIGHTING_COORDS(3, 4)
-                    UNITY_FOG_COORDS(5)
                 };
 
                 v2f vert(appdata v) {
@@ -81,7 +77,6 @@ Shader "Custom/Water" {
                     o.light_dir = ObjSpaceLightDir(vertex);
                     o.view_dir = ObjSpaceViewDir(vertex);
                     TRANSFER_VERTEX_TO_FRAGMENT(o)
-                    UNITY_TRANSFER_FOG(o, o.pos);
                     return o;
                 }
 
@@ -91,27 +86,26 @@ Shader "Custom/Water" {
                     i.view_dir = normalize(i.view_dir);
 
                     float dot_nl = saturate(dot(i.normal, i.light_dir));
-                    fixed light = LIGHT_ATTENUATION(i) * dot_nl;
+                    float light = LIGHT_ATTENUATION(i) * (dot_nl * 0.25) + 0.75;
 
                     float3 h = normalize(i.light_dir + i.view_dir);
                     float dot_nh = saturate(dot(i.normal, h));
                     float spec = saturate(pow(dot_nh, _Spec.y)) * _Spec.x;
 
-                    fixed4 color = fixed4(0.0, 0.0, 0.0, 0.0);
-                    color += _Color * light;
-                    color += UNITY_LIGHTMODEL_AMBIENT;
+                    fixed4 color;
                     color.a = _Color.a;
+                    if(_InfraredAmount > 0.0f) {
+                        color.rgb = _Temperature.rgb;
+                    }
+                    else {
+                        color.rgb = _Color.rgb * light + UNITY_LIGHTMODEL_AMBIENT.rgb + spec;
+                    }
+                    color.rgb *= _Brightness;
 
-                    color += spec;
-
-                    color = lerp(color, _Temperature, _InfraredAmount);
-
-                    color *= _Brightness;
-                    UNITY_APPLY_FOG(i.fogCoord, color);
                     return color;
                 }
             ENDCG
         }
     }
-    FallBack "VertexLit"
+    FallBack "Custom/Flat"
 }

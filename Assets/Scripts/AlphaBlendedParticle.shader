@@ -17,7 +17,6 @@ Category {
 			#pragma vertex vert
 			#pragma fragment frag
 			#pragma multi_compile_particles
-			#pragma multi_compile_fog
 
 			#include "UnityCG.cginc"
 
@@ -40,7 +39,6 @@ Category {
 				float4 vertex : SV_POSITION;
 				fixed4 color : COLOR;
 				float2 texcoord : TEXCOORD0;
-				// UNITY_FOG_COORDS(1)
 			};
 
 			v2f vert(appdata_t v) {
@@ -56,14 +54,11 @@ Category {
 				o.color *= 2.0;
 				o.color.rgb *= _Brightness;
 				o.texcoord = TRANSFORM_TEX(v.texcoord,_MainTex);
-				// UNITY_TRANSFER_FOG(o,o.vertex);
 				return o;
 			}
 
 			fixed4 frag(v2f i) : SV_Target {
-				fixed4 col = i.color * tex2D(_MainTex, i.texcoord);
-				// UNITY_APPLY_FOG(i.fogCoord, col);
-				return col;
+				return i.color * tex2D(_MainTex, i.texcoord);
 			}
 			ENDCG
 		}

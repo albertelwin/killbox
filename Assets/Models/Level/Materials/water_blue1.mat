@@ -139,7 +139,7 @@ Material:
       data:
         first:
           name: _Color
-        second: {r: .134499997, g: .5, b: .485940427, a: .802999973}
+        second: {r: .107599951, g: .400000006, b: .388752341, a: 1}
       data:
         first:
           name: _Temperature
@@ -147,7 +147,7 @@ Material:
       data:
         first:
           name: _Wave
-        second: {r: .100000001, g: .100000001, b: 2, a: .5}
+        second: {r: .100000001, g: .100000001, b: 2, a: 3}
       data:
         first:
           name: _Spec

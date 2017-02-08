@@ -737,7 +737,9 @@ public class GameManager : MonoBehaviour {
 							loading_log.text = wait_str;
 						}
 						else {
+#if UNITY_EDITOR || !UNITY_STANDALONE_OSX
 							loading_log.text += ".";
+#endif
 						}
 
 						yield return Util.wait_for_250ms;

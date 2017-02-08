@@ -921,11 +921,12 @@ public class Player1Console {
 			inst.cursor_time += Time.deltaTime;
 
 			bool skip = false;
-#if UNITY_EDITOR
+//TODO: TEMP!!
+// #if UNITY_EDITOR
 			if(game_manager.get_key(KeyCode.Alpha1)) {
 				skip = true;
 			}
-#endif
+// #endif
 
 			Audio.stop_on_next_loop(inst.print_source);
 
@@ -1669,7 +1670,6 @@ public class Player1Controller : MonoBehaviour {
 
 		Transform hud_transform = hud_camera.transform.Find("Hud");
 		meter_x = Meter.new_inst(hud_transform, new Vector3(0.0f, 0.425f, 0.0f), Quaternion.Euler(0.0f, 0.0f, -90.0f), 0.04f, 0.02f, 3);
-		// meter_y = Meter.new_inst(hud_transform, new Vector3(-0.525f, 0.0f, 0.0f), Quaternion.identity, 0.025f, 0.015f, 2);
 		meter_y = Meter.new_inst(hud_transform, new Vector3(-0.435f, 0.0f, 0.0f), Quaternion.identity, 0.025f, 0.015f, 2);
 
 		missile_controller = main_camera.transform.Find("Missile").GetComponent<MissileController>();

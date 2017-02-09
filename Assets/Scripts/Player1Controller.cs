@@ -567,7 +567,8 @@ public class Player1Console {
 
 	public Transform text_mesh_prefab;
 
-	public static float LINE_HEIGHT = 0.005f;
+	public static float LINE_WIDTH = 0.4f;
+	public static float LINE_HEIGHT = 0.004f;
 
 	public static float LOADING_BAR_WIDTH = 0.4f;
 	public static float LOADING_BAR_HEIGHT = 0.04f;
@@ -821,7 +822,7 @@ public class Player1Console {
 		text_mesh.text = str;
 
 		Renderer renderer = transform.GetComponent<Renderer>();
-		float height = renderer.bounds.size.y + LINE_HEIGHT;
+		float height = renderer.bounds.size.y / inst.transform.localScale.x + LINE_HEIGHT;
 
 		Item item = new Item();
 		item.transform = transform;
@@ -872,13 +873,11 @@ public class Player1Console {
 		inst.renderer = transform.GetComponent<Renderer>();
 		inst.enabled = true;
 
-		inst.width = 0.28125f * ((float)Screen.width / (float)Screen.height);
-
 		inst.str_builder = new StringBuilder();
 
 		inst.text_mesh_prefab = Util.load_prefab("TextMeshPrefab");
 
-		inst.item_queue = new Item[64];
+		inst.item_queue = new Item[128];
 		inst.item_count = 0;
 		inst.item_head_index = 0;
 
@@ -1146,14 +1145,16 @@ public class Player1Console {
 					}
 
 					case CmdType.SWITCH_ON_DISPLAY: {
-						player1.StartCoroutine(FadeImageEffect.lerp_alpha(player1.camera_fade, 0.0f, DISPLAY_FADE_IN_DURATION));
+						Util.lerp_alpha(player1, player1.view.overlay, 0.0f, DISPLAY_FADE_IN_DURATION);
+						// player1.StartCoroutine(FadeImageEffect.lerp_alpha(player1.camera_fade, 0.0f, DISPLAY_FADE_IN_DURATION));
 
 						done = true;
 						break;
 					}
 
 					case CmdType.SWITCH_OFF_DISPLAY: {
-						player1.StartCoroutine(FadeImageEffect.lerp_alpha(player1.camera_fade, 1.0f, DISPLAY_FADE_OUT_DURATION));
+						Util.lerp_alpha(player1, player1.view.overlay, 1.0f, DISPLAY_FADE_OUT_DURATION);
+						// player1.StartCoroutine(FadeImageEffect.lerp_alpha(player1.camera_fade, 1.0f, DISPLAY_FADE_OUT_DURATION));
 
 						done = true;
 						break;
@@ -1311,8 +1312,8 @@ public class Player1Console {
 					else {
 						tail_item.text_mesh.text = inst.str_builder.ToString(0, i);
 
-						float width = tail_item.text_mesh_renderer.bounds.size.x;
-						if(width >= inst.width) {
+						float width = tail_item.text_mesh_renderer.bounds.size.x / inst.transform.localScale.x;
+						if(width >= LINE_WIDTH) {
 							int word_start_index = 0;
 							for(int j = i - 1; j >= 0; j--) {
 								if(inst.str_builder[j] == ' ') {
@@ -1364,7 +1365,8 @@ public class Player1Console {
 					string str = tail_item.text_mesh.text;
 					tail_item.text_mesh.text += prompt_str + CURSOR_SYM;
 
-					if(tail_item.text_mesh_renderer.bounds.size.x >= inst.width) {
+					float width = tail_item.text_mesh_renderer.bounds.size.x / inst.transform.localScale.x;
+					if(width >= LINE_WIDTH) {
 						inst.prompt_length = 0;
 						tail_item.text_mesh.text = str + CURSOR_SYM;
 					}
@@ -1450,11 +1452,13 @@ public class Player1Controller : MonoBehaviour {
 
 			meter.transform = Util.new_transform(parent, "Meter", pos, Vector3.one, rotation);
 
-			meter.line = Player1Util.new_quad(meter.transform, "HUD", Vector3.zero, new Vector3(LINE_THICKNESS, 0.5f + LINE_THICKNESS, 1.0f), hud_material);
+			string layer = "UI";
+
+			meter.line = Player1Util.new_quad(meter.transform, layer, Vector3.zero, new Vector3(LINE_THICKNESS, 0.5f + LINE_THICKNESS, 1.0f), hud_material);
 
 			meter.bounds = new Transform[2];
-			meter.bounds[0] = Player1Util.new_quad(meter.transform, "HUD", new Vector3(medium_x, METER_LENGTH * 0.5f, 0.0f), medium_scale, hud_material);
-			meter.bounds[1] = Player1Util.new_quad(meter.transform, "HUD", new Vector3(medium_x, -METER_LENGTH * 0.5f, 0.0f), medium_scale, hud_material);
+			meter.bounds[0] = Player1Util.new_quad(meter.transform, layer, new Vector3(medium_x, METER_LENGTH * 0.5f, 0.0f), medium_scale, hud_material);
+			meter.bounds[1] = Player1Util.new_quad(meter.transform, layer, new Vector3(medium_x, -METER_LENGTH * 0.5f, 0.0f), medium_scale, hud_material);
 
 			int marker_count = 3 * resolution;
 			meter.marker_spacing = METER_LENGTH / (float)marker_count;
@@ -1468,7 +1472,7 @@ public class Player1Controller : MonoBehaviour {
 					scale = medium_scale;
 				}
 
-				meter.markers[i] = Player1Util.new_quad(meter.transform, "HUD", new Vector3(x, METER_LENGTH * 0.5f - meter.marker_spacing * i, 0.0f), scale, hud_material);
+				meter.markers[i] = Player1Util.new_quad(meter.transform, layer, new Vector3(x, METER_LENGTH * 0.5f - meter.marker_spacing * i, 0.0f), scale, hud_material);
 			}
 
 			return meter;
@@ -1507,6 +1511,78 @@ public class Player1Controller : MonoBehaviour {
 		public int style_id;
 	}
 
+	public class ViewFeed {
+		public Transform transform;
+		public Renderer renderer;
+		public Camera camera;
+		public RenderTexture render_texture;
+	}
+
+	public enum ViewLayer {
+		MAIN,
+		HUD,
+		MAIN_MASK,
+
+		CONSOLE,
+		CONSOLE_MASK,
+
+		AGM,
+
+		OVERLAY,
+
+		COUNT,
+	}
+
+	public class View {
+		public static float PADDING = 0.01f;
+
+		public Transform transform;
+		public Camera camera;
+		public FadeImageEffect camera_fade;
+
+		public int screen_width;
+		public int screen_height;
+
+		public int pixel_width;
+		public int pixel_height;
+		public float width;
+		public float height;
+
+		public ViewFeed main_feed;
+		public ViewFeed agm_feed;
+
+		public Renderer[] main_mask;
+		public Renderer console_mask;
+		public Renderer overlay;
+
+		public static ViewFeed new_feed(Camera camera, Renderer renderer) {
+			ViewFeed feed = new ViewFeed();
+			feed.transform = renderer.transform;
+			feed.renderer = renderer;
+			feed.camera = camera;
+			feed.render_texture = null;
+			return feed;
+		}
+
+		public static void set_feed_texture(View view, ViewFeed feed) {
+			Vector3 scale = feed.transform.localScale;
+			int tex_width = (int)(view.pixel_width * (scale.x / view.width) + 0.5f);
+			int tex_height = (int)(view.pixel_height * (scale.y / view.height) + 0.5f);
+
+			RenderTexture render_texture = new RenderTexture(tex_width, tex_height, 24);
+			render_texture.antiAliasing = 4;
+			render_texture.Create();
+
+			feed.renderer.material.mainTexture = render_texture;
+			feed.camera.targetTexture = render_texture;
+			feed.render_texture = render_texture;
+		}
+
+		public static float get_layer_z(ViewLayer layer) {
+			return (float)ViewLayer.COUNT - (float)layer;
+		}
+	}
+
 	[System.NonSerialized] public GameManager game_manager = null;
 
 	[System.NonSerialized] public NetworkView network_view;
@@ -1524,9 +1600,6 @@ public class Player1Controller : MonoBehaviour {
 	[System.NonSerialized] public Vector2 camera_xy;
 	[System.NonSerialized] public float camera_zoom;
 
-	[System.NonSerialized] public FadeImageEffect camera_fade;
-	[System.NonSerialized] public UnityStandardAssets.ImageEffects.Antialiasing camera_aa;
-
 	float angular_pos = Mathf.PI;
 
 	float zero_fov = 40.0f;
@@ -1537,7 +1610,7 @@ public class Player1Controller : MonoBehaviour {
 	MissileController missile_controller;
 	int missile_index;
 
-	Camera hud_camera = null;
+	Transform hud_transform = null;
 	TextMesh hud_acft_text = null;
 
 	[System.NonSerialized] public Marker marker;
@@ -1551,15 +1624,12 @@ public class Player1Controller : MonoBehaviour {
 	[System.NonSerialized] public bool infrared_mode;
 	[System.NonSerialized] public TextMesh[] ui_text_meshes;
 
-	[System.NonSerialized] public Camera ui_camera = null;
-	Transform console_transform = null;
-	Vector3 console_local_position = Vector3.zero;
-	Vector3 console_local_scale = Vector3.one;
-
-	[System.NonSerialized] public Player1Console console_;
+	[System.NonSerialized] public Player1Console console;
 
 	[System.NonSerialized] public AudioSource air_source;
 	[System.NonSerialized] public AudioSource chatter_source;
+
+	[System.NonSerialized] public View view;
 
 	void Awake() {
 		game_manager = GameObject.Find("GameManager").GetComponent<GameManager>();
@@ -1604,8 +1674,8 @@ public class Player1Controller : MonoBehaviour {
 			Destroy(player.missile_controller.gameObject);
 		}
 
-		if(player.ui_camera.transform.parent == null) {
-			Destroy(player.ui_camera.gameObject);
+		if(player.view.transform.parent == null) {
+			Destroy(player.view.transform.gameObject);
 		}
 
 		Network.Destroy(player.gameObject);
@@ -1622,15 +1692,22 @@ public class Player1Controller : MonoBehaviour {
 	}
 
 	void Start() {
-		camera_aa = main_camera.GetComponent<UnityStandardAssets.ImageEffects.Antialiasing>();
-		// camera_aa.enabled = true;
+		view = new View();
+		view.transform = transform.Find("View");
+		view.transform.parent = null;
+		view.transform.position = Vector3.zero;
+		view.transform.rotation = Quaternion.identity;
+		view.camera = view.transform.GetComponent<Camera>();
+		view.camera_fade = view.camera.GetComponent<FadeImageEffect>();
+		FadeImageEffect.set_alpha(view.camera_fade, 0.0f);
+		view.screen_width = -1;
+		view.screen_height = -1;
 
-		hud_camera = main_camera.transform.Find("HudCamera").GetComponent<Camera>();
-		hud_acft_text = hud_camera.transform.Find("Hud/ACFT").GetComponent<TextMesh>();
-		camera_fade = hud_camera.GetComponent<FadeImageEffect>();
+		hud_transform = view.transform.Find("Hud");
+		hud_acft_text = hud_transform.Find("ACFT").GetComponent<TextMesh>();
 
 		marker = new Marker();
-		marker.renderer = hud_camera.transform.Find("Hud/Marker").GetComponent<Renderer>();
+		marker.renderer = hud_transform.Find("Marker").GetComponent<Renderer>();
 		marker.color = Util.white;
 		marker.materials = new Material[3];
 		marker.materials[0] = (Material)Resources.Load("player1_target_mat");
@@ -1640,7 +1717,7 @@ public class Player1Controller : MonoBehaviour {
 		marker.style_id = 0;
 
 		crosshair = new Crosshair();
-		crosshair.renderer = hud_camera.transform.Find("Hud/Crosshair").GetComponent<Renderer>();
+		crosshair.renderer = hud_transform.Find("Crosshair").GetComponent<Renderer>();
 		crosshair.materials = new Material[3];
 		crosshair.materials[0] = (Material)Resources.Load("player1_crosshair_mat");
 		crosshair.materials[1] = (Material)Resources.Load("player1_crosshair_mat");
@@ -1648,13 +1725,13 @@ public class Player1Controller : MonoBehaviour {
 		crosshair.style_id = 1;
 
 		infrared_mode = false;
-		ui_text_meshes = hud_camera.GetComponentsInChildren<TextMesh>();
+		ui_text_meshes = hud_transform.GetComponentsInChildren<TextMesh>();
 
 		ui_indicator_alpha = 0.5f;
 		ui_indicators = new UiIndicator[2];
 		for(int i = 0; i < ui_indicators.Length; i++) {
 			UiIndicator indicator = new UiIndicator();
-			indicator.transform = hud_camera.transform.Find("Hud/Indicator" + i);
+			indicator.transform = hud_transform.Find("Indicator" + i);
 
 			indicator.lines = new Renderer[4];
 			for(int ii = 0; ii < indicator.lines.Length; ii++) {
@@ -1668,57 +1745,26 @@ public class Player1Controller : MonoBehaviour {
 			ui_indicators[i] = indicator;
 		}
 
-		Transform hud_transform = hud_camera.transform.Find("Hud");
 		meter_x = Meter.new_inst(hud_transform, new Vector3(0.0f, 0.425f, 0.0f), Quaternion.Euler(0.0f, 0.0f, -90.0f), 0.04f, 0.02f, 3);
 		meter_y = Meter.new_inst(hud_transform, new Vector3(-0.435f, 0.0f, 0.0f), Quaternion.identity, 0.025f, 0.015f, 2);
 
-		missile_controller = main_camera.transform.Find("Missile").GetComponent<MissileController>();
+		Transform agm_transform = main_camera.transform.Find("Missile");
+		missile_controller = agm_transform.GetComponent<MissileController>();
 		missile_controller.player1 = this;
 		missile_index = 0;
 
-		ui_camera = main_camera.transform.Find("UiCamera").GetComponent<Camera>();
-		ui_camera.transform.parent = null;
-		ui_camera.transform.position = Vector3.zero;
-		ui_camera.transform.rotation = Quaternion.identity;
-		FadeImageEffect ui_camera_fade = ui_camera.GetComponent<FadeImageEffect>();
-		FadeImageEffect.set_alpha(ui_camera_fade, 0.0f);
-		console_transform = ui_camera.transform.Find("Console");
-		console_local_position = console_transform.localPosition;
-		console_local_scale = console_transform.localScale;
-
-		{
-			float aspect_ratio_x = 16.0f / 9.0f;
-			float aspect_ratio_y = 9.0f / 16.0f;
-
-			float screen_width = (float)Screen.width;
-			float screen_height = (float)Screen.height;
-			float screen_aspect_ratio_x = screen_width / screen_height;
-
-			float adjusted_aspect_ratio_y = aspect_ratio_y * screen_aspect_ratio_x;
-
-			float viewport_padding_x = 0.01f;
-			float viewport_padding_y = (viewport_padding_x * aspect_ratio_x) * adjusted_aspect_ratio_y;
-
-			float main_camera_width = 0.75f - viewport_padding_x;
-			float main_camera_height = adjusted_aspect_ratio_y - viewport_padding_y;
-			float main_camera_height_offset = (1.0f - main_camera_height) * 0.5f;
-
-			main_camera.rect = new Rect(viewport_padding_x * 0.5f, main_camera_height_offset, main_camera_width, main_camera_height);
-			hud_camera.rect = main_camera.rect;
-
-			float missile_camera_width = 0.25f - viewport_padding_x * 0.5f;
-			float missile_camera_height = (missile_camera_width * aspect_ratio_x) * adjusted_aspect_ratio_y;
-
-			missile_controller.camera_.rect = new Rect((1.0f - missile_camera_width) - viewport_padding_x * 0.5f, (main_camera_height_offset + main_camera_height) - missile_camera_height, missile_camera_width, missile_camera_height);
-
-			console_transform.localPosition = new Vector3(console_local_position.x * adjusted_aspect_ratio_y, console_local_position.y * adjusted_aspect_ratio_y, console_local_position.z);
-			console_transform.localScale = console_local_scale * adjusted_aspect_ratio_y;
-
-			float occluder_pos_y = 0.5265f;
-			Transform occluder = ui_camera.transform.Find("Occluder");
-			occluder.localPosition = new Vector3(0.0f, occluder_pos_y * adjusted_aspect_ratio_y, 0.5f);
-			occluder.localScale = new Vector3(2.0f, 1.0f, 1.0f) * adjusted_aspect_ratio_y;
+		view.main_feed = View.new_feed(main_camera, view.transform.Find("MainCameraQuad").GetComponent<Renderer>());
+		view.agm_feed = View.new_feed(agm_transform.GetComponent<Camera>(), view.transform.Find("MissileCameraQuad").GetComponent<Renderer>());
+		view.console_mask = view.transform.Find("ConsoleMask").GetComponent<Renderer>();
+		view.main_mask = new Renderer[4];
+		for(int i = 0; i < view.main_mask.Length; i++) {
+			Transform quad = Player1Util.new_quad(view.transform, "UI", Vector3.zero, new Vector3(2.0f, 2.0f, 1.0f), view.console_mask.material);
+			view.main_mask[i] = quad.GetComponent<Renderer>();
 		}
+		view.overlay = view.transform.Find("Overlay").GetComponent<Renderer>();
+
+		view.agm_feed.camera.enabled = false;
+		view.agm_feed.renderer.enabled = false;
 
 		air_source = Audio.new_source(game_manager.audio, transform, Audio.Clip.PLAYER1_AIR);
 		chatter_source = Audio.new_source(game_manager.audio, transform, Audio.Clip.PLAYER1_CHATTER);
@@ -1730,8 +1776,8 @@ public class Player1Controller : MonoBehaviour {
 			Debug.Log("LOG: Showing network player2");
 		}
 
-		console_ = Player1Console.new_inst(console_transform, game_manager.audio);
-		console_.enabled = false;
+		console = Player1Console.new_inst(view.transform.Find("Console"), game_manager.audio);
+		console.enabled = false;
 		StartCoroutine(start_console());
 	}
 
@@ -1785,7 +1831,7 @@ public class Player1Controller : MonoBehaviour {
 	}
 
 	IEnumerator start_console() {
-		FadeImageEffect.set_alpha(camera_fade, 1.0f);
+		view.overlay.material.color = Util.black;
 
 		air_source.volume = 0.0f;
 		air_source.Play();
@@ -1798,17 +1844,15 @@ public class Player1Controller : MonoBehaviour {
 			air_source.volume = 1.0f;
 		}
 
-		console_.enabled = true;
+		console.enabled = true;
 	}
 
 	public IEnumerator log_off() {
-		FadeImageEffect ui_camera_fade = ui_camera.GetComponent<FadeImageEffect>();
-		// FadeImageEffect.set_alpha(ui_camera_fade, 0.0f);
-		yield return StartCoroutine(FadeImageEffect.lerp_alpha(ui_camera_fade, 1.0f));
+		yield return StartCoroutine(FadeImageEffect.lerp_alpha(view.camera_fade, 1.0f));
 
 		//TODO: Tidy up how we shutdown player1!!
-		ui_camera.transform.parent = main_camera.transform;
-		console_.enabled = false;
+		view.transform.parent = transform;
+		console.enabled = false;
 
 		StartCoroutine(Util.lerp_audio_volume(air_source, 1.0f, 0.0f, 2.0f));
 		yield return StartCoroutine(Util.lerp_audio_volume(chatter_source, 1.0f, 0.0f, 2.0f));
@@ -1820,7 +1864,102 @@ public class Player1Controller : MonoBehaviour {
 	}
 
 	void Update() {
-		Player1Console.update(console_, this);
+		bool view_dirty = false;
+		if(view.screen_width != Screen.width || view.screen_height != Screen.height) {
+			view_dirty = true;
+		}
+
+		if(view.main_feed.renderer.material.mainTexture == null || view.main_feed.camera.targetTexture == null || view.main_feed.render_texture == null) {
+			view_dirty = true;
+		}
+		if(view.agm_feed.renderer.material.mainTexture == null || view.agm_feed.camera.targetTexture == null || view.agm_feed.render_texture == null) {
+			view_dirty = true;
+		}
+
+		if(view_dirty) {
+			view.screen_width = Screen.width;
+			view.screen_height = Screen.height;
+
+			float view_aspect_ratio = 16.0f / 9.0f;
+			float r_view_aspect_ratio = 1.0f / view_aspect_ratio;
+
+			float screen_aspect_ratio = (float)view.screen_width / (float)view.screen_height;
+
+			float scale_factor = 1.0f;
+			if(screen_aspect_ratio > view_aspect_ratio) {
+				view.pixel_height = view.screen_height;
+				view.pixel_width = (int)((float)view.pixel_height * view_aspect_ratio + 0.5f);
+
+				scale_factor = (float)view.pixel_width / (float)view.screen_width;
+			}
+			else {
+				view.pixel_width = view.screen_width;
+				view.pixel_height = (int)((float)view.pixel_width * r_view_aspect_ratio + 0.5f);
+
+				scale_factor = (float)view.pixel_height / (float)view.screen_height;
+			}
+
+			view.width = 1.6f * scale_factor;
+			view.height = view.width * r_view_aspect_ratio;
+
+			float view_width = view.width;
+			float view_height = view.height;
+			float view_x = view_width * -0.5f;
+			float view_y = view_height * 0.5f;
+
+			float main_h = view_height - View.PADDING;
+			float main_w = main_h * (4.0f / 3.0f);
+			float main_x = view_x + View.PADDING * 0.5f + main_w * 0.5f;
+			float main_y = view_y - View.PADDING * 0.5f - main_h * 0.5f;
+			view.main_feed.transform.localPosition = new Vector3(main_x, main_y, View.get_layer_z(ViewLayer.MAIN));
+			view.main_feed.transform.localScale = new Vector3(main_w, main_h, 1.0f);
+			View.set_feed_texture(view, view.main_feed);
+
+			for(int i = 0; i < view.main_mask.Length; i++) {
+				Renderer mask = view.main_mask[i];
+				mask.transform.position = new Vector3(100.0f, 100.0f, View.get_layer_z(ViewLayer.MAIN_MASK));
+			}
+
+			{
+				float mask_width = view.main_mask[0].transform.localScale.x;
+				float mask_z = View.get_layer_z(ViewLayer.MAIN_MASK);
+
+				view.main_mask[0].transform.localPosition = new Vector3(main_x - main_w * 0.5f - mask_width * 0.5f, main_y, mask_z);
+				view.main_mask[1].transform.localPosition = new Vector3(main_x + main_w * 0.5f + mask_width * 0.5f, main_y, mask_z);
+				view.main_mask[2].transform.localPosition = new Vector3(main_x, main_y + main_h * 0.5f + mask_width * 0.5f, mask_z);
+				view.main_mask[3].transform.localPosition = new Vector3(main_x, main_y - main_h * 0.5f - mask_width * 0.5f, mask_z);
+			}
+
+			float hud_scale = 0.775f * (main_w / 1.2f);
+			hud_transform.localPosition = new Vector3(main_x, main_y, View.get_layer_z(ViewLayer.HUD));
+			hud_transform.localScale = new Vector3(hud_scale, hud_scale, 1.0f);
+
+			view.overlay.transform.localPosition = new Vector3(main_x, main_y, View.get_layer_z(ViewLayer.OVERLAY));
+			view.overlay.transform.localScale = view.main_feed.transform.localScale;
+
+			view_width -= View.PADDING * 0.5f + main_w;
+			view_x += View.PADDING * 0.5f + main_w;
+
+			float agm_w = view_width - View.PADDING;
+			float agm_x = view_x + View.PADDING * 0.5f + agm_w * 0.5f;
+			float agm_y = view_y - View.PADDING * 0.5f - agm_w * 0.5f;
+			view.agm_feed.transform.localPosition = new Vector3(agm_x, agm_y, View.get_layer_z(ViewLayer.AGM));
+			view.agm_feed.transform.localScale = new Vector3(agm_w, agm_w, 1.0f);
+			View.set_feed_texture(view, view.agm_feed);
+
+			view_y -= View.PADDING * 0.5f + agm_w;
+
+			float console_mask_x = view_x + view.console_mask.transform.localScale.x * 0.5f;
+			float console_mask_y = view_y - View.PADDING * 0.5f + view.console_mask.transform.localScale.y * 0.5f;
+			view.console_mask.transform.localPosition = new Vector3(console_mask_x, console_mask_y, View.get_layer_z(ViewLayer.CONSOLE_MASK));
+
+			float console_x = view_x + View.PADDING * 0.5f;
+			float console_y = -view_height * 0.5f + View.PADDING * 0.5f + 0.01f * scale_factor;
+			console.transform.localPosition = new Vector3(console_x, console_y, View.get_layer_z(ViewLayer.CONSOLE));
+			console.transform.localScale = new Vector3(scale_factor, scale_factor, 1.0f);
+		}
+
+		Player1Console.update(console, this);
 
 		bool camera_moved = false;
 		float camera_delta = Time.deltaTime * MathExt.TAU * Mathf.Rad2Deg * 0.02f;
@@ -1941,13 +2080,13 @@ public class Player1Controller : MonoBehaviour {
 		bool marker_off_screen = false;
 		{
 			// float marker_size = 0.0275f * Screen.width;
-			float marker_size = 0.005f * Screen.width;
+			float marker_size = 0.005f * view.main_feed.render_texture.width;
 
-			float viewport_min_x = main_camera.rect.min.x * Screen.width + marker_size;
-			float viewport_max_x = main_camera.rect.max.x * Screen.width - marker_size;
+			float viewport_min_x = marker_size;
+			float viewport_max_x = view.main_feed.render_texture.width - marker_size;
 
-			float viewport_min_y = main_camera.rect.min.y * Screen.height + marker_size;
-			float viewport_max_y = main_camera.rect.max.y * Screen.height - marker_size;
+			float viewport_min_y = marker_size;
+			float viewport_max_y = view.main_feed.render_texture.height - marker_size;
 
 			if(target_screen_pos.x < viewport_min_x) {
 				target_screen_pos.x = viewport_min_x;
@@ -1967,19 +2106,23 @@ public class Player1Controller : MonoBehaviour {
 				marker_off_screen = true;
 			}
 
-			// target_screen_pos.x = Mathf.Clamp(target_screen_pos.x, viewport_min_x + marker_size, viewport_max_x - marker_size);
-			// target_screen_pos.y = Mathf.Clamp(target_screen_pos.y, viewport_min_y + marker_size, viewport_max_y - marker_size);
+			target_screen_pos.x += (view.screen_width - view.main_feed.render_texture.width) * 0.5f;
+			target_screen_pos.y += (view.screen_height - view.main_feed.render_texture.height) * 0.5f;
 		}
 
-		Ray ray_to_target = hud_camera.ScreenPointToRay(target_screen_pos);
+		Ray ray_to_target = view.camera.ScreenPointToRay(target_screen_pos);
 
-		Plane hud_plane = new Plane(-main_camera.transform.forward, main_camera.transform.position + main_camera.transform.forward);
+		Plane camera_plane = new Plane(-view.camera.transform.forward, view.camera.transform.position + view.camera.transform.forward);
 
 		bool marker_active = false;
 
 		float hit_dist = Mathf.Infinity;
-		if(hud_plane.Raycast(ray_to_target, out hit_dist)) {
-			marker.renderer.transform.position = ray_to_target.GetPoint(hit_dist);
+		if(camera_plane.Raycast(ray_to_target, out hit_dist)) {
+			Vector3 pos = ray_to_target.GetPoint(hit_dist);
+			pos += hud_transform.position;
+			pos.z = View.get_layer_z(ViewLayer.HUD);
+
+			marker.renderer.transform.position = pos;
 			marker_active = true;
 		}
 
@@ -2034,7 +2177,8 @@ public class Player1Controller : MonoBehaviour {
 		missile.gameObject.SetActive(true);
 		missile.parent = null;
 
-		missile_controller.camera_.enabled = true;
+		view.agm_feed.camera.enabled = true;
+		view.agm_feed.renderer.enabled = true;
 
 		missile.position = missile_position;
 		missile.forward = missile_direction;
@@ -2064,7 +2208,8 @@ public class Player1Controller : MonoBehaviour {
 			}
 		}
 
-		missile_controller.camera_.enabled = false;
+		view.agm_feed.camera.enabled = false;
+		view.agm_feed.renderer.enabled = false;
 		missile.parent = main_camera.transform;
 
 		Environment.play_explosion(game_manager, this, game_manager.env, missile_position);

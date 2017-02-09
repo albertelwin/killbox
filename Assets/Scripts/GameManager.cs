@@ -2,9 +2,9 @@
 /* TODO ✓
 
 DOING:
+	Main feed mask
 
 TODO:
-	Optimise pilot view (clear -> render camera feeds -> render ui)
 	Camera clipping
 	Dump password/kills/etc. to Google Drive
 
@@ -915,7 +915,21 @@ public class GameManager : MonoBehaviour {
 
 					menu_sfx_source.volume = 0.0f;
 
-					if(Util.raycast_collider(main_screen.player1.collider, cursor_ray)) {
+					bool player1_hover = Util.raycast_collider(main_screen.player1.collider, cursor_ray);
+					bool player2_hover = Util.raycast_collider(main_screen.player2.collider, cursor_ray);
+
+#if UNITY_EDITOR
+					if(Input.GetKey(KeyCode.Alpha1)) {
+						player1_hover = true;
+						clicked = true;
+					}
+					if(Input.GetKey(KeyCode.Alpha2)) {
+						player2_hover = true;
+						clicked = true;
+					}
+#endif
+
+					if(player1_hover) {
 						main_screen.player1.text.color = Color.white;
 						main_screen.player1.helmet.material.color = player1_text_color;
 						main_screen.player1.body.material.color = player1_text_color;
@@ -931,7 +945,7 @@ public class GameManager : MonoBehaviour {
 						main_screen.player1.body.material.color = Util.black_no_alpha;
 					}
 
-					if(Util.raycast_collider(main_screen.player2.collider, cursor_ray)) {
+					if(player2_hover) {
 						player2_texture_flip_time += Time.deltaTime * player2_texture_flip_rate;
 						if(player2_texture_flip_time > 1.0f) {
 							player2_texture_id++;

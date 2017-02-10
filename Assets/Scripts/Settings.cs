@@ -11,5 +11,5 @@ public static class Settings {
 	public static bool FORCE_OFFLINE_MODE = true;
 
 	public static bool USE_SPLASH = false;
-	public static bool USE_TRANSITIONS = false;
+	public static bool USE_TRANSITIONS = true;
 }

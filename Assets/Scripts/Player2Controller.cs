@@ -325,8 +325,12 @@ public class Player2Controller : MonoBehaviour {
 			else {
 				yield return StartCoroutine(fade_in_hint(hint, "MOVE THE MOUSE TO LOOK AROUND", false));
 			}
-			while((control_flags & HAS_LOOKED) == 0) {
-				yield return Util.wait_for_frame;
+			{
+				float t = 0.0f;
+				while((control_flags & HAS_LOOKED) == 0 && t < 5.0f) {
+					t += Time.deltaTime;
+					yield return Util.wait_for_frame;
+				}
 			}
 
 			if(Settings.TRACKBALL) {
@@ -344,13 +348,21 @@ public class Player2Controller : MonoBehaviour {
 			}
 
 			yield return StartCoroutine(fade_in_hint(hint, "PRESS THE SPACEBAR TO JUMP"));
-			while(!first_missile_fired && (control_flags & HAS_JUMPED) == 0) {
-				yield return Util.wait_for_frame;
+			{
+				float t = 0.0f;
+				while(!first_missile_fired && (control_flags & HAS_JUMPED) == 0 && t < 5.0f) {
+					t += Time.deltaTime;
+					yield return Util.wait_for_frame;
+				}
 			}
 
 			yield return StartCoroutine(fade_in_hint(hint, "HOLD THE \"W\" KEY TO MOVE"));
-			while((control_flags & HAS_MOVED) == 0) {
-				yield return Util.wait_for_frame;
+			{
+				float t = 0.0f;
+				while((control_flags & HAS_MOVED) == 0 && t < 5.0f) {
+					t += Time.deltaTime;
+					yield return Util.wait_for_frame;
+				}
 			}
 
 			{

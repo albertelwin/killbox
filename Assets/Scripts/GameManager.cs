@@ -2,7 +2,6 @@
 /* TODO ✓
 
 DOING:
-	Main feed mask
 
 TODO:
 	Camera clipping
@@ -50,15 +49,18 @@ public class GameManager : MonoBehaviour {
 		public Renderer body;
 		public Renderer helmet;
 
-		public static PlayerButton new_inst(Transform transform, string name) {
+		public static PlayerButton new_inst(Transform parent, string name) {
 			PlayerButton inst = new PlayerButton();
-			inst.transform = transform.Find(name);
+			inst.transform = parent.Find(name);
 			inst.collider = inst.transform.GetComponent<Collider>();
 
 			inst.text = inst.transform.Find("Text").GetComponent<TextMesh>();
 
 			inst.head = inst.transform.Find("Head").GetComponent<Renderer>();
-			inst.body = inst.transform.Find("Body").GetComponent<Renderer>();
+			Transform body = inst.transform.Find("Body");
+			if(body) {
+				inst.body = body.GetComponent<Renderer>();
+			}
 			Transform helmet = inst.transform.Find("Helmet");
 			if(helmet) {
 				inst.helmet = helmet.GetComponent<Renderer>();
@@ -75,6 +77,9 @@ public class GameManager : MonoBehaviour {
 
 		public PlayerButton player1;
 		public PlayerButton player2;
+
+		public Renderer info_page;
+		public PlayerButton info;
 	}
 
 	public class LanScreen {
@@ -208,14 +213,17 @@ public class GameManager : MonoBehaviour {
 			camera.backgroundColor = Util.sky * brightness;
 		}
 
-		//TODO: Tidy this up somehow??
 		if(game_manager != null) {
 			if(game_manager.player2_inst != null) {
-				game_manager.player2_inst.renderer_.material.SetFloat("_Brightness", 1.0f);
+				if(game_manager.player2_inst.renderer_ != null) {
+					game_manager.player2_inst.renderer_.material.SetFloat("_Brightness", 1.0f);
+				}
 			}
 
 			if(game_manager.network_player2_inst != null) {
-				game_manager.network_player2_inst.renderer_.material.SetFloat("_Brightness", 1.0f);
+				if(game_manager.network_player2_inst.renderer_ != null) {
+					game_manager.network_player2_inst.renderer_.material.SetFloat("_Brightness", 1.0f);
+				}
 			}
 		}
 	}
@@ -576,11 +584,19 @@ public class GameManager : MonoBehaviour {
 		}
 	}
 
+	public static void stop_bees_coroutine(GameManager game_manager) {
+		if(game_manager.bees_coroutine != null) {
+			game_manager.StopCoroutine(game_manager.bees_coroutine);
+			game_manager.bees_coroutine = null;
+		}
+	}
+
 	IEnumerator start_game_from_main_screen(PlayerType player_type) {
 		this.player_type = player_type;
 
 		main_screen.player1.text.color = Util.black_no_alpha;
 		main_screen.player2.text.color = Util.black_no_alpha;
+		main_screen.info.text.color = Util.black_no_alpha;
 
 		float fade_duration = 0.25f;
 
@@ -588,14 +604,23 @@ public class GameManager : MonoBehaviour {
 			if(player_type == PlayerType.PLAYER1) {
 				Util.lerp_alpha(this, main_screen.player2.head, 0.0f, fade_duration);
 				Util.lerp_alpha(this, main_screen.player2.body, 0.0f, fade_duration);
+			}
+			else {
+				Util.lerp_alpha(this, main_screen.player1.head, 0.0f, fade_duration);
+				Util.lerp_alpha(this, main_screen.player1.helmet, 0.0f, fade_duration);
+				Util.lerp_alpha(this, main_screen.player1.body, 0.0f, fade_duration);
+			}
+			Util.lerp_alpha(this, main_screen.info.head, 0.0f, fade_duration);
+			yield return Util.lerp_alpha(this, main_screen.cursor.GetComponent<Renderer>(), 0.0f, fade_duration);
+			main_screen.cursor.gameObject.SetActive(false);
 
-				yield return Util.lerp_alpha(this, main_screen.cursor.GetComponent<Renderer>(), 0.0f, fade_duration);
-				main_screen.cursor.gameObject.SetActive(false);
-
-				stop_bees_coroutine(this);
-				bees_coroutine = StartCoroutine(Util.lerp_audio_volume(bees_source, 1.0f, 0.0f, 4.0f));
+			stop_bees_coroutine(this);
+			bees_coroutine = StartCoroutine(Util.lerp_audio_volume(bees_source, bees_source.volume, 0.0f, 4.0f * bees_source.volume));
+			if(!bees_source.isPlaying) {
 				bees_source.Play();
+			}
 
+			if(player_type == PlayerType.PLAYER1) {
 				yield return new WaitForSeconds(0.5f);
 				Util.lerp_alpha(this, main_screen.player1.helmet, 0.0f);
 				yield return Util.lerp_alpha(this, main_screen.player1.body, 0.0f);
@@ -603,17 +628,6 @@ public class GameManager : MonoBehaviour {
 				yield return Util.lerp_alpha(this, main_screen.player1.head, 0.0f);
 			}
 			else {
-				Util.lerp_alpha(this, main_screen.player1.head, 0.0f, fade_duration);
-				Util.lerp_alpha(this, main_screen.player1.helmet, 0.0f, fade_duration);
-				Util.lerp_alpha(this, main_screen.player1.body, 0.0f, fade_duration);
-
-				yield return Util.lerp_alpha(this, main_screen.cursor.GetComponent<Renderer>(), 0.0f, fade_duration);
-				main_screen.cursor.gameObject.SetActive(false);
-
-				stop_bees_coroutine(this);
-				bees_coroutine = StartCoroutine(Util.lerp_audio_volume(bees_source, 1.0f, 0.0f, 4.0f));
-				bees_source.Play();
-
 				yield return new WaitForSeconds(0.5f);
 				yield return Util.lerp_alpha(this, main_screen.player2.body, 0.0f);
 				yield return new WaitForSeconds(0.5f);
@@ -671,13 +685,6 @@ public class GameManager : MonoBehaviour {
 		}
 
 		yield return null;
-	}
-
-	public static void stop_bees_coroutine(GameManager game_manager) {
-		if(game_manager.bees_coroutine != null) {
-			game_manager.StopCoroutine(game_manager.bees_coroutine);
-			game_manager.bees_coroutine = null;
-		}
 	}
 
 	IEnumerator show_splash_screen() {
@@ -784,7 +791,9 @@ public class GameManager : MonoBehaviour {
 
 				stop_bees_coroutine(this);
 				bees_coroutine = StartCoroutine(Util.lerp_audio_volume(bees_source, 0.0f, 1.0f, 5.0f));
-				bees_source.Play();
+				if(!bees_source.isPlaying) {
+					bees_source.Play();
+				}
 
 				yield return new WaitForSeconds(4.0f);
 
@@ -794,8 +803,10 @@ public class GameManager : MonoBehaviour {
 				Assert.is_true(!splash_screen.transform.gameObject.activeSelf);
 
 				stop_bees_coroutine(this);
-				bees_coroutine = StartCoroutine(Util.lerp_audio_volume(bees_source, 0.0f, 1.0f, 5.0f, true));
-				bees_source.Play();
+				bees_coroutine = StartCoroutine(Util.lerp_audio_volume(bees_source, 0.0f, 1.0f, 5.0f));
+				if(!bees_source.isPlaying) {
+					bees_source.Play();
+				}
 			}
 
 			if(Settings.LAN_MODE) {
@@ -896,12 +907,20 @@ public class GameManager : MonoBehaviour {
 				main_screen.player2.body.material.color = Util.black_no_alpha;
 				main_screen.player2.text.color = Util.black_no_alpha;
 
+				main_screen.info.transform.gameObject.SetActive(true);
+				main_screen.info.head.material.color = Util.white_no_alpha;
+				main_screen.info.text.color = Util.black_no_alpha;
+				main_screen.info.text.text = "MORE INFORMATION";
+
+				main_screen.info_page.enabled = false;
+
 				if(Settings.USE_TRANSITIONS) {
 					main_screen.player1.head.material.color = Util.new_color(player1_text_color, 0.0f);
 					main_screen.player2.head.material.color = Util.new_color(player2_text_color, 0.0f);
 
 					yield return Util.lerp_color(this, main_screen.player1.head, main_screen.player1.head.material.color, player1_text_color);
 					yield return Util.lerp_color(this, main_screen.player2.head, main_screen.player2.head.material.color, player2_text_color);
+					yield return Util.lerp_alpha(this, main_screen.info.head, 1.0f);
 				}
 
 				Cursor.lockState = CursorLockMode.Locked;
@@ -909,14 +928,20 @@ public class GameManager : MonoBehaviour {
 				Util.lerp_color(this, main_screen.cursor.GetComponent<Renderer>(), Util.white_no_alpha, Util.white);
 				Cursor.lockState = CursorLockMode.None;
 
+				bool mouse_down = Input.GetKey(KeyCode.Mouse0);
+
 				while(true) {
 					Ray cursor_ray = move_cursor_(main_screen.cursor);
-					bool clicked = Input.GetKey(KeyCode.Mouse0);
+
+					bool mouse_was_down = mouse_down;
+					mouse_down = Input.GetKey(KeyCode.Mouse0);
+					bool clicked = mouse_down && !mouse_was_down;
 
 					menu_sfx_source.volume = 0.0f;
 
 					bool player1_hover = Util.raycast_collider(main_screen.player1.collider, cursor_ray);
 					bool player2_hover = Util.raycast_collider(main_screen.player2.collider, cursor_ray);
+					bool info_hover = Util.raycast_collider(main_screen.info.collider, cursor_ray);
 
 #if UNITY_EDITOR
 					if(Input.GetKey(KeyCode.Alpha1)) {
@@ -929,50 +954,79 @@ public class GameManager : MonoBehaviour {
 					}
 #endif
 
-					if(player1_hover) {
-						main_screen.player1.text.color = Color.white;
-						main_screen.player1.helmet.material.color = player1_text_color;
-						main_screen.player1.body.material.color = player1_text_color;
+					if(!main_screen.info_page.enabled) {
+						if(player1_hover) {
+							main_screen.player1.text.color = Color.white;
+							main_screen.player1.helmet.material.color = player1_text_color;
+							main_screen.player1.body.material.color = player1_text_color;
 
-						if(clicked) {
-							StartCoroutine(start_game_from_main_screen(PlayerType.PLAYER1));
-							break;
+							if(clicked) {
+								StartCoroutine(start_game_from_main_screen(PlayerType.PLAYER1));
+								break;
+							}
 						}
-					}
-					else {
-						main_screen.player1.text.color = Util.black_no_alpha;
-						main_screen.player1.helmet.material.color = Util.black_no_alpha;
-						main_screen.player1.body.material.color = Util.black_no_alpha;
-					}
+						else {
+							main_screen.player1.text.color = Util.black_no_alpha;
+							main_screen.player1.helmet.material.color = Util.black_no_alpha;
+							main_screen.player1.body.material.color = Util.black_no_alpha;
+						}
 
-					if(player2_hover) {
-						player2_texture_flip_time += Time.deltaTime * player2_texture_flip_rate;
-						if(player2_texture_flip_time > 1.0f) {
-							player2_texture_id++;
-							if(player2_texture_id == player2_body_textures.Length) {
-								Util.shuffle_array<Texture2D>(player2_body_textures);
-								player2_texture_id = 0;
+						if(player2_hover) {
+							player2_texture_flip_time += Time.deltaTime * player2_texture_flip_rate;
+							if(player2_texture_flip_time > 1.0f) {
+								player2_texture_id++;
+								if(player2_texture_id == player2_body_textures.Length) {
+									Util.shuffle_array<Texture2D>(player2_body_textures);
+									player2_texture_id = 0;
+								}
+
+								player2_texture_flip_time = 0.0f;
+								main_screen.player2.body.material.mainTexture = player2_body_textures[player2_texture_id];
 							}
 
-							player2_texture_flip_time = 0.0f;
-							main_screen.player2.body.material.mainTexture = player2_body_textures[player2_texture_id];
+							main_screen.player2.text.color = Color.white;
+							main_screen.player2.body.material.color = player2_text_color;
+
+							menu_sfx_source.volume = 1.0f;
+
+							if(clicked) {
+								main_screen.player2.body.material.mainTexture = Random.value > 0.5f ? player2_boy_texture : player2_girl_texture;
+								menu_sfx_source.volume = 0.0f;
+								StartCoroutine(start_game_from_main_screen(PlayerType.PLAYER2));
+								break;
+							}
+						}
+						else {
+							main_screen.player2.text.color = Util.black_no_alpha;
+							main_screen.player2.body.material.color = Util.black_no_alpha;
 						}
 
-						main_screen.player2.text.color = Color.white;
-						main_screen.player2.body.material.color = player2_text_color;
+						if(info_hover) {
+							main_screen.info.text.color = Util.white;
 
-						menu_sfx_source.volume = 1.0f;
-
-						if(clicked) {
-							main_screen.player2.body.material.mainTexture = Random.value > 0.5f ? player2_boy_texture : player2_girl_texture;
-							menu_sfx_source.volume = 0.0f;
-							StartCoroutine(start_game_from_main_screen(PlayerType.PLAYER2));
-							break;
+							if(clicked) {
+								main_screen.info_page.enabled = true;
+								main_screen.info_page.material.color = Util.white;
+								main_screen.info.text.text = "BACK";
+							}
+						}
+						else {
+							main_screen.info.text.color = Util.black_no_alpha;
 						}
 					}
 					else {
-						main_screen.player2.text.color = Util.black_no_alpha;
-						main_screen.player2.body.material.color = Util.black_no_alpha;
+						if(info_hover) {
+							main_screen.info.text.color = Util.white;
+
+							if(clicked) {
+								main_screen.info_page.enabled = false;
+								main_screen.info_page.material.color = Util.white_no_alpha;
+								main_screen.info.text.text = "MORE INFORMATION";
+							}
+						}
+						else {
+							main_screen.info.text.color = Util.black_no_alpha;
+						}
 					}
 
 					yield return Util.wait_for_frame;
@@ -1049,6 +1103,8 @@ public class GameManager : MonoBehaviour {
 		main_screen.cursor = main_screen.transform.Find("Cursor");
 		main_screen.player1 = PlayerButton.new_inst(main_screen.transform, "Player1Button");
 		main_screen.player2 = PlayerButton.new_inst(main_screen.transform, "Player2Button");
+		main_screen.info_page = main_screen.transform.Find("InfoPage").GetComponent<Renderer>();
+		main_screen.info = PlayerButton.new_inst(main_screen.transform, "InfoButton");
 
 		lan_screen = new LanScreen();
 		lan_screen.transform = transform.Find("Camera/LAN");

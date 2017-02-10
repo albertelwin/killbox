@@ -1551,6 +1551,9 @@ public class Player1Controller : MonoBehaviour {
 		public ViewFeed main_feed;
 		public ViewFeed agm_feed;
 
+		public Transform hud;
+		public Transform console;
+
 		public Renderer[] main_mask;
 		public Renderer console_mask;
 		public Renderer overlay;
@@ -1569,6 +1572,14 @@ public class Player1Controller : MonoBehaviour {
 			int tex_width = (int)(view.pixel_width * (scale.x / view.width) + 0.5f);
 			int tex_height = (int)(view.pixel_height * (scale.y / view.height) + 0.5f);
 
+			if(feed.render_texture) {
+				feed.renderer.material.mainTexture = null;
+				feed.camera.targetTexture = null;
+
+				feed.render_texture.Release();
+				feed.render_texture = null;
+			}
+
 			RenderTexture render_texture = new RenderTexture(tex_width, tex_height, 24);
 			render_texture.antiAliasing = 4;
 			render_texture.Create();
@@ -1580,6 +1591,104 @@ public class Player1Controller : MonoBehaviour {
 
 		public static float get_layer_z(ViewLayer layer) {
 			return (float)ViewLayer.COUNT - (float)layer;
+		}
+
+		public static void update(View view) {
+			bool view_dirty = false;
+			if(view.screen_width != Screen.width || view.screen_height != Screen.height) {
+				view_dirty = true;
+			}
+
+			if(view.main_feed.renderer.material.mainTexture == null || view.main_feed.camera.targetTexture == null || view.main_feed.render_texture == null) {
+				view_dirty = true;
+			}
+			if(view.agm_feed.renderer.material.mainTexture == null || view.agm_feed.camera.targetTexture == null || view.agm_feed.render_texture == null) {
+				view_dirty = true;
+			}
+
+			if(view_dirty) {
+				view.screen_width = Screen.width;
+				view.screen_height = Screen.height;
+
+				float view_aspect_ratio = 16.0f / 9.0f;
+				float r_view_aspect_ratio = 1.0f / view_aspect_ratio;
+
+				float screen_aspect_ratio = (float)view.screen_width / (float)view.screen_height;
+
+				float scale_factor = 1.0f;
+				if(screen_aspect_ratio > view_aspect_ratio) {
+					view.pixel_height = view.screen_height;
+					view.pixel_width = (int)((float)view.pixel_height * view_aspect_ratio + 0.5f);
+
+					// scale_factor = (float)view.pixel_width / (float)view.screen_width;
+					scale_factor = 1.0f;
+				}
+				else {
+					view.pixel_width = view.screen_width;
+					view.pixel_height = (int)((float)view.pixel_width * r_view_aspect_ratio + 0.5f);
+
+					scale_factor = (float)view.pixel_height / (float)view.screen_height;
+				}
+
+				view.width = 1.6f * scale_factor;
+				view.height = view.width * r_view_aspect_ratio;
+
+				float view_width = view.width;
+				float view_height = view.height;
+				float view_x = view_width * -0.5f;
+				float view_y = view_height * 0.5f;
+
+				float main_h = view_height - View.PADDING;
+				float main_w = main_h * (4.0f / 3.0f);
+				float main_x = view_x + View.PADDING * 0.5f + main_w * 0.5f;
+				float main_y = view_y - View.PADDING * 0.5f - main_h * 0.5f;
+				view.main_feed.transform.localPosition = new Vector3(main_x, main_y, View.get_layer_z(ViewLayer.MAIN));
+				view.main_feed.transform.localScale = new Vector3(main_w, main_h, 1.0f);
+				View.set_feed_texture(view, view.main_feed);
+
+				for(int i = 0; i < view.main_mask.Length; i++) {
+					Renderer mask = view.main_mask[i];
+					mask.transform.position = new Vector3(100.0f, 100.0f, View.get_layer_z(ViewLayer.MAIN_MASK));
+				}
+
+				{
+					float mask_width = view.main_mask[0].transform.localScale.x;
+					float mask_z = View.get_layer_z(ViewLayer.MAIN_MASK);
+
+					view.main_mask[0].transform.localPosition = new Vector3(main_x - main_w * 0.5f - mask_width * 0.5f, main_y, mask_z);
+					view.main_mask[1].transform.localPosition = new Vector3(main_x + main_w * 0.5f + mask_width * 0.5f, main_y, mask_z);
+					view.main_mask[2].transform.localPosition = new Vector3(main_x, main_y + main_h * 0.5f + mask_width * 0.5f, mask_z);
+					view.main_mask[3].transform.localPosition = new Vector3(main_x, main_y - main_h * 0.5f - mask_width * 0.5f, mask_z);
+				}
+
+				float hud_scale = 0.775f * (main_w / 1.2f);
+				view.hud.localPosition = new Vector3(main_x, main_y, View.get_layer_z(ViewLayer.HUD));
+				view.hud.localScale = new Vector3(hud_scale, hud_scale, 1.0f);
+
+				view.overlay.transform.localPosition = new Vector3(main_x, main_y, View.get_layer_z(ViewLayer.OVERLAY));
+				view.overlay.transform.localScale = view.main_feed.transform.localScale;
+
+				view_width -= View.PADDING * 0.5f + main_w;
+				view_x += View.PADDING * 0.5f + main_w;
+
+				float agm_w = view_width - View.PADDING;
+				float agm_x = view_x + View.PADDING * 0.5f + agm_w * 0.5f;
+				float agm_y = view_y - View.PADDING * 0.5f - agm_w * 0.5f;
+				view.agm_feed.transform.localPosition = new Vector3(agm_x, agm_y, View.get_layer_z(ViewLayer.AGM));
+				view.agm_feed.transform.localScale = new Vector3(agm_w, agm_w, 1.0f);
+				View.set_feed_texture(view, view.agm_feed);
+
+				view_y -= View.PADDING * 0.5f + agm_w;
+
+				float console_mask_x = view_x + view.console_mask.transform.localScale.x * 0.5f;
+				float console_mask_y = view_y - View.PADDING * 0.5f + view.console_mask.transform.localScale.y * 0.5f;
+				view.console_mask.transform.localPosition = new Vector3(console_mask_x, console_mask_y, View.get_layer_z(ViewLayer.CONSOLE_MASK));
+
+				float console_x = view_x + View.PADDING * 0.5f;
+				float console_y = -view_height * 0.5f + View.PADDING * 0.5f + 0.01f * scale_factor;
+				view.console.localPosition = new Vector3(console_x, console_y, View.get_layer_z(ViewLayer.CONSOLE));
+				view.console.localScale = new Vector3(scale_factor, scale_factor, 1.0f);
+			}
 		}
 	}
 
@@ -1610,7 +1719,6 @@ public class Player1Controller : MonoBehaviour {
 	MissileController missile_controller;
 	int missile_index;
 
-	Transform hud_transform = null;
 	TextMesh hud_acft_text = null;
 
 	[System.NonSerialized] public Marker marker;
@@ -1703,11 +1811,31 @@ public class Player1Controller : MonoBehaviour {
 		view.screen_width = -1;
 		view.screen_height = -1;
 
-		hud_transform = view.transform.Find("Hud");
-		hud_acft_text = hud_transform.Find("ACFT").GetComponent<TextMesh>();
+		view.main_feed = View.new_feed(main_camera, view.transform.Find("MainCameraQuad").GetComponent<Renderer>());
+
+		Transform agm_transform = main_camera.transform.Find("Missile");
+		view.agm_feed = View.new_feed(agm_transform.GetComponent<Camera>(), view.transform.Find("MissileCameraQuad").GetComponent<Renderer>());
+		view.agm_feed.camera.enabled = false;
+		view.agm_feed.renderer.enabled = false;
+
+		view.console = view.transform.Find("Console");
+
+		view.console_mask = view.transform.Find("ConsoleMask").GetComponent<Renderer>();
+		view.main_mask = new Renderer[4];
+		for(int i = 0; i < view.main_mask.Length; i++) {
+			Transform quad = Player1Util.new_quad(view.transform, "UI", Vector3.zero, new Vector3(2.0f, 2.0f, 1.0f), view.console_mask.material);
+			view.main_mask[i] = quad.GetComponent<Renderer>();
+		}
+		view.overlay = view.transform.Find("Overlay").GetComponent<Renderer>();
+
+		view.hud = view.transform.Find("Hud");
+
+		View.update(view);
+
+		hud_acft_text = view.hud.Find("ACFT").GetComponent<TextMesh>();
 
 		marker = new Marker();
-		marker.renderer = hud_transform.Find("Marker").GetComponent<Renderer>();
+		marker.renderer = view.hud.Find("Marker").GetComponent<Renderer>();
 		marker.color = Util.white;
 		marker.materials = new Material[3];
 		marker.materials[0] = (Material)Resources.Load("player1_target_mat");
@@ -1717,7 +1845,7 @@ public class Player1Controller : MonoBehaviour {
 		marker.style_id = 0;
 
 		crosshair = new Crosshair();
-		crosshair.renderer = hud_transform.Find("Crosshair").GetComponent<Renderer>();
+		crosshair.renderer = view.hud.Find("Crosshair").GetComponent<Renderer>();
 		crosshair.materials = new Material[3];
 		crosshair.materials[0] = (Material)Resources.Load("player1_crosshair_mat");
 		crosshair.materials[1] = (Material)Resources.Load("player1_crosshair_mat");
@@ -1725,13 +1853,13 @@ public class Player1Controller : MonoBehaviour {
 		crosshair.style_id = 1;
 
 		infrared_mode = false;
-		ui_text_meshes = hud_transform.GetComponentsInChildren<TextMesh>();
+		ui_text_meshes = view.hud.GetComponentsInChildren<TextMesh>();
 
 		ui_indicator_alpha = 0.5f;
 		ui_indicators = new UiIndicator[2];
 		for(int i = 0; i < ui_indicators.Length; i++) {
 			UiIndicator indicator = new UiIndicator();
-			indicator.transform = hud_transform.Find("Indicator" + i);
+			indicator.transform = view.hud.Find("Indicator" + i);
 
 			indicator.lines = new Renderer[4];
 			for(int ii = 0; ii < indicator.lines.Length; ii++) {
@@ -1745,26 +1873,12 @@ public class Player1Controller : MonoBehaviour {
 			ui_indicators[i] = indicator;
 		}
 
-		meter_x = Meter.new_inst(hud_transform, new Vector3(0.0f, 0.425f, 0.0f), Quaternion.Euler(0.0f, 0.0f, -90.0f), 0.04f, 0.02f, 3);
-		meter_y = Meter.new_inst(hud_transform, new Vector3(-0.435f, 0.0f, 0.0f), Quaternion.identity, 0.025f, 0.015f, 2);
+		meter_x = Meter.new_inst(view.hud, new Vector3(0.0f, 0.425f, 0.0f), Quaternion.Euler(0.0f, 0.0f, -90.0f), 0.04f, 0.02f, 3);
+		meter_y = Meter.new_inst(view.hud, new Vector3(-0.435f, 0.0f, 0.0f), Quaternion.identity, 0.025f, 0.015f, 2);
 
-		Transform agm_transform = main_camera.transform.Find("Missile");
 		missile_controller = agm_transform.GetComponent<MissileController>();
 		missile_controller.player1 = this;
 		missile_index = 0;
-
-		view.main_feed = View.new_feed(main_camera, view.transform.Find("MainCameraQuad").GetComponent<Renderer>());
-		view.agm_feed = View.new_feed(agm_transform.GetComponent<Camera>(), view.transform.Find("MissileCameraQuad").GetComponent<Renderer>());
-		view.console_mask = view.transform.Find("ConsoleMask").GetComponent<Renderer>();
-		view.main_mask = new Renderer[4];
-		for(int i = 0; i < view.main_mask.Length; i++) {
-			Transform quad = Player1Util.new_quad(view.transform, "UI", Vector3.zero, new Vector3(2.0f, 2.0f, 1.0f), view.console_mask.material);
-			view.main_mask[i] = quad.GetComponent<Renderer>();
-		}
-		view.overlay = view.transform.Find("Overlay").GetComponent<Renderer>();
-
-		view.agm_feed.camera.enabled = false;
-		view.agm_feed.renderer.enabled = false;
 
 		air_source = Audio.new_source(game_manager.audio, transform, Audio.Clip.PLAYER1_AIR);
 		chatter_source = Audio.new_source(game_manager.audio, transform, Audio.Clip.PLAYER1_CHATTER);
@@ -1776,7 +1890,7 @@ public class Player1Controller : MonoBehaviour {
 			Debug.Log("LOG: Showing network player2");
 		}
 
-		console = Player1Console.new_inst(view.transform.Find("Console"), game_manager.audio);
+		console = Player1Console.new_inst(view.console, game_manager.audio);
 		console.enabled = false;
 		StartCoroutine(start_console());
 	}
@@ -1864,100 +1978,7 @@ public class Player1Controller : MonoBehaviour {
 	}
 
 	void Update() {
-		bool view_dirty = false;
-		if(view.screen_width != Screen.width || view.screen_height != Screen.height) {
-			view_dirty = true;
-		}
-
-		if(view.main_feed.renderer.material.mainTexture == null || view.main_feed.camera.targetTexture == null || view.main_feed.render_texture == null) {
-			view_dirty = true;
-		}
-		if(view.agm_feed.renderer.material.mainTexture == null || view.agm_feed.camera.targetTexture == null || view.agm_feed.render_texture == null) {
-			view_dirty = true;
-		}
-
-		if(view_dirty) {
-			view.screen_width = Screen.width;
-			view.screen_height = Screen.height;
-
-			float view_aspect_ratio = 16.0f / 9.0f;
-			float r_view_aspect_ratio = 1.0f / view_aspect_ratio;
-
-			float screen_aspect_ratio = (float)view.screen_width / (float)view.screen_height;
-
-			float scale_factor = 1.0f;
-			if(screen_aspect_ratio > view_aspect_ratio) {
-				view.pixel_height = view.screen_height;
-				view.pixel_width = (int)((float)view.pixel_height * view_aspect_ratio + 0.5f);
-
-				scale_factor = (float)view.pixel_width / (float)view.screen_width;
-			}
-			else {
-				view.pixel_width = view.screen_width;
-				view.pixel_height = (int)((float)view.pixel_width * r_view_aspect_ratio + 0.5f);
-
-				scale_factor = (float)view.pixel_height / (float)view.screen_height;
-			}
-
-			view.width = 1.6f * scale_factor;
-			view.height = view.width * r_view_aspect_ratio;
-
-			float view_width = view.width;
-			float view_height = view.height;
-			float view_x = view_width * -0.5f;
-			float view_y = view_height * 0.5f;
-
-			float main_h = view_height - View.PADDING;
-			float main_w = main_h * (4.0f / 3.0f);
-			float main_x = view_x + View.PADDING * 0.5f + main_w * 0.5f;
-			float main_y = view_y - View.PADDING * 0.5f - main_h * 0.5f;
-			view.main_feed.transform.localPosition = new Vector3(main_x, main_y, View.get_layer_z(ViewLayer.MAIN));
-			view.main_feed.transform.localScale = new Vector3(main_w, main_h, 1.0f);
-			View.set_feed_texture(view, view.main_feed);
-
-			for(int i = 0; i < view.main_mask.Length; i++) {
-				Renderer mask = view.main_mask[i];
-				mask.transform.position = new Vector3(100.0f, 100.0f, View.get_layer_z(ViewLayer.MAIN_MASK));
-			}
-
-			{
-				float mask_width = view.main_mask[0].transform.localScale.x;
-				float mask_z = View.get_layer_z(ViewLayer.MAIN_MASK);
-
-				view.main_mask[0].transform.localPosition = new Vector3(main_x - main_w * 0.5f - mask_width * 0.5f, main_y, mask_z);
-				view.main_mask[1].transform.localPosition = new Vector3(main_x + main_w * 0.5f + mask_width * 0.5f, main_y, mask_z);
-				view.main_mask[2].transform.localPosition = new Vector3(main_x, main_y + main_h * 0.5f + mask_width * 0.5f, mask_z);
-				view.main_mask[3].transform.localPosition = new Vector3(main_x, main_y - main_h * 0.5f - mask_width * 0.5f, mask_z);
-			}
-
-			float hud_scale = 0.775f * (main_w / 1.2f);
-			hud_transform.localPosition = new Vector3(main_x, main_y, View.get_layer_z(ViewLayer.HUD));
-			hud_transform.localScale = new Vector3(hud_scale, hud_scale, 1.0f);
-
-			view.overlay.transform.localPosition = new Vector3(main_x, main_y, View.get_layer_z(ViewLayer.OVERLAY));
-			view.overlay.transform.localScale = view.main_feed.transform.localScale;
-
-			view_width -= View.PADDING * 0.5f + main_w;
-			view_x += View.PADDING * 0.5f + main_w;
-
-			float agm_w = view_width - View.PADDING;
-			float agm_x = view_x + View.PADDING * 0.5f + agm_w * 0.5f;
-			float agm_y = view_y - View.PADDING * 0.5f - agm_w * 0.5f;
-			view.agm_feed.transform.localPosition = new Vector3(agm_x, agm_y, View.get_layer_z(ViewLayer.AGM));
-			view.agm_feed.transform.localScale = new Vector3(agm_w, agm_w, 1.0f);
-			View.set_feed_texture(view, view.agm_feed);
-
-			view_y -= View.PADDING * 0.5f + agm_w;
-
-			float console_mask_x = view_x + view.console_mask.transform.localScale.x * 0.5f;
-			float console_mask_y = view_y - View.PADDING * 0.5f + view.console_mask.transform.localScale.y * 0.5f;
-			view.console_mask.transform.localPosition = new Vector3(console_mask_x, console_mask_y, View.get_layer_z(ViewLayer.CONSOLE_MASK));
-
-			float console_x = view_x + View.PADDING * 0.5f;
-			float console_y = -view_height * 0.5f + View.PADDING * 0.5f + 0.01f * scale_factor;
-			console.transform.localPosition = new Vector3(console_x, console_y, View.get_layer_z(ViewLayer.CONSOLE));
-			console.transform.localScale = new Vector3(scale_factor, scale_factor, 1.0f);
-		}
+		View.update(view);
 
 		Player1Console.update(console, this);
 
@@ -2069,6 +2090,8 @@ public class Player1Controller : MonoBehaviour {
 	}
 
 	void LateUpdate() {
+		View.update(view);
+
 		//TODO: Only change the material when we need to!!
 		crosshair.renderer.enabled = crosshair.style_id != 0;
 		crosshair.renderer.material = crosshair.materials[crosshair.style_id];
@@ -2078,8 +2101,8 @@ public class Player1Controller : MonoBehaviour {
 		Vector3 target_screen_pos = main_camera.WorldToScreenPoint(target.position);
 
 		bool marker_off_screen = false;
-		{
-			// float marker_size = 0.0275f * Screen.width;
+		RenderTexture render_texture = view.main_feed.render_texture;
+		if(render_texture != null) {
 			float marker_size = 0.005f * view.main_feed.render_texture.width;
 
 			float viewport_min_x = marker_size;
@@ -2109,6 +2132,9 @@ public class Player1Controller : MonoBehaviour {
 			target_screen_pos.x += (view.screen_width - view.main_feed.render_texture.width) * 0.5f;
 			target_screen_pos.y += (view.screen_height - view.main_feed.render_texture.height) * 0.5f;
 		}
+		else {
+			Assert.is_true(false);
+		}
 
 		Ray ray_to_target = view.camera.ScreenPointToRay(target_screen_pos);
 
@@ -2119,7 +2145,7 @@ public class Player1Controller : MonoBehaviour {
 		float hit_dist = Mathf.Infinity;
 		if(camera_plane.Raycast(ray_to_target, out hit_dist)) {
 			Vector3 pos = ray_to_target.GetPoint(hit_dist);
-			pos += hud_transform.position;
+			pos += view.hud.position;
 			pos.z = View.get_layer_z(ViewLayer.HUD);
 
 			marker.renderer.transform.position = pos;

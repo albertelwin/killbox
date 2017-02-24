@@ -74,10 +74,11 @@ public class Environment {
 	public static float EXPLOSION_RADIUS = 10.0f;
 	public Explosion explosion;
 
-	public Transform explosion_prefab;
-	public Transform explosion_;
 	public Transform smoke_prefab;
-	public Transform smoke_;
+	public Transform[] smoke;
+	public int smoke_count;
+	public Transform plume_prefab;
+	public Transform plume;
 
 	public Crater crater;
 
@@ -158,8 +159,11 @@ public class Environment {
 		env.explosion.sphere.transform.parent = env.explosion.transform;
 		env.explosion.sphere.name = "Sphere";
 
-		env.explosion_prefab = Util.load_prefab("ExplosionPrefab_");
-		env.smoke_prefab = Util.load_prefab("SmokePrefab");
+		env.smoke_prefab = Util.load_prefab("ExplosionPrefab_");
+		env.plume_prefab = Util.load_prefab("SmokePrefab");
+
+		env.smoke = new Transform[4];
+		env.smoke_count = 0;
 
 		env.crater = new Crater();
 		env.crater.transform = transform.Find("Crater");
@@ -239,14 +243,17 @@ public class Environment {
 		env.explosion.sphere.enabled = false;
 		env.explosion.sphere.material.color = Util.black;
 
-		if(env.explosion_) {
-			Object.Destroy(env.explosion_.gameObject);
-			env.explosion_ = null;
+		for(int i = 0; i < env.smoke.Length; i++) {
+			if(env.smoke[i] != null) {
+				Object.Destroy(env.smoke[i].gameObject);
+				env.smoke[i] = null;
+			}
 		}
+		env.smoke_count = 0;
 
-		if(env.smoke_) {
-			Object.Destroy(env.smoke_.gameObject);
-			env.smoke_ = null;
+		if(env.plume) {
+			Object.Destroy(env.plume.gameObject);
+			env.plume = null;
 		}
 
 		if(env.crater.transform != null) {
@@ -341,9 +348,12 @@ public class Environment {
 	public static void play_explosion_(MonoBehaviour player, Environment env, Vector3 hit_pos) {
 		env.explosion.transform.position = hit_pos;
 
-		env.explosion_ = (Transform)Object.Instantiate(env.explosion_prefab, hit_pos, Quaternion.identity);
-		if(env.smoke_prefab && env.smoke_ == null) {
-			env.smoke_ = (Transform)Object.Instantiate(env.smoke_prefab, hit_pos, Quaternion.identity);
+		if(env.smoke_count < env.smoke.Length) {
+			env.smoke[env.smoke_count++] = (Transform)Object.Instantiate(env.smoke_prefab, hit_pos, Quaternion.identity);
+		}
+		// env.smoke = (Transform)Object.Instantiate(env.smoke_prefab, hit_pos, Quaternion.identity);
+		if(env.plume_prefab && env.plume == null) {
+			env.plume = (Transform)Object.Instantiate(env.plume_prefab, hit_pos, Quaternion.identity);
 		}
 		player.StartCoroutine(play_explosion_sphere(player, env.explosion.sphere));
 	}

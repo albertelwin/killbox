@@ -6,11 +6,11 @@ Material:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: info_mat
-  m_Shader: {fileID: 4800000, guid: 7d09cf45981ecf74b8fbb51b7f007272, type: 3}
+  m_Name: splash_mat
+  m_Shader: {fileID: 4800000, guid: 99fbe5edf15ebcc4f9e095a3abba6f8f, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 5
-  m_CustomRenderQueue: 3002
+  m_CustomRenderQueue: 3000
   stringTagMap: {}
   m_SavedProperties:
     serializedVersion: 2
@@ -19,7 +19,7 @@ Material:
         first:
           name: _MainTex
         second:
-          m_Texture: {fileID: 2800000, guid: 8fb5abfbe9191304fa297b1d60e11b77, type: 3}
+          m_Texture: {fileID: 2800000, guid: 011e00fe33cf438439fd71ad1fe6f8e8, type: 3}
           m_Scale: {x: 1, y: 1}
           m_Offset: {x: 0, y: 0}
       data:

@@ -82,7 +82,6 @@ public class Player2Controller : MonoBehaviour {
 	bool first_missile_fired = false;
 	float first_missile_fired_time = 0.0f;
 	bool second_missile_fired = false;
-	bool fade_out_triggered = false;
 
 	[System.NonSerialized] public ParticleSystem ash_particles = null;
 	[System.NonSerialized] public ParticleSystem dust_particles = null;
@@ -232,30 +231,9 @@ public class Player2Controller : MonoBehaviour {
 		drone_source.Stop();
 		scream_source.Stop();
 		audio_listener.enabled = false;
+		camera_.gameObject.SetActive(false);
 
-		game_manager.show_stats(camera_);
-		yield return null;
-	}
-
-	IEnumerator fade_out_and_end() {
-		first_missile_fired = true;
-		second_missile_fired = true;
-
-		yield return StartCoroutine(GameManager.set_world_brightness(game_manager, 1.0f, 0.0f, 5.0f, camera_));
-
-		control_flags &= ~(CAN_LOOK | CAN_MOVE | CAN_JUMP);
-		GameManager.set_world_brightness_(game_manager, 0.0f);
-
-		StartCoroutine(Util.lerp_audio_volume(bird_source, 1.0f, 0.0f, 2.0f));
-		yield return StartCoroutine(Util.lerp_audio_volume(drone_source, 1.0f, 0.0f, 2.0f));
-		bird_source.Stop();
-		drone_source.Stop();
-		audio_listener.enabled = false;
-
-		FadeImageEffect.set_alpha(camera_fade, 0.0f);
-		yield return StartCoroutine(FadeImageEffect.lerp_alpha(camera_fade, 1.0f, 5.0f));
-
-		game_manager.show_stats(camera_);
+		game_manager.show_stats();
 		yield return null;
 	}
 
@@ -319,12 +297,7 @@ public class Player2Controller : MonoBehaviour {
 			yield return StartCoroutine(GameManager.set_world_brightness(game_manager, 0.0f, 1.0f, 2.0f, camera_));
 			dust_particles.Play();
 
-			if(Settings.TRACKBALL) {
-				yield return StartCoroutine(fade_in_hint(hint, "ROLL THE TRACKBALL TO LOOK AROUND", false));
-			}
-			else {
-				yield return StartCoroutine(fade_in_hint(hint, "MOVE THE MOUSE TO LOOK AROUND", false));
-			}
+			yield return StartCoroutine(fade_in_hint(hint, "MOVE THE MOUSE TO LOOK AROUND", false));
 			{
 				float t = 0.0f;
 				while((control_flags & HAS_LOOKED) == 0 && t < 5.0f) {
@@ -333,12 +306,7 @@ public class Player2Controller : MonoBehaviour {
 				}
 			}
 
-			if(Settings.TRACKBALL) {
-				yield return StartCoroutine(fade_in_hint(hint, "HOLD THE LEFT TRACKBALL BUTTON TO LOOK UP"));
-			}
-			else {
-				yield return StartCoroutine(fade_in_hint(hint, "HOLD THE LEFT MOUSE BUTTON TO LOOK UP"));
-			}
+			yield return StartCoroutine(fade_in_hint(hint, "HOLD THE LEFT MOUSE BUTTON TO LOOK UP"));
 			{
 				float t = 0.0f;
 				while((control_flags & HAS_LOOKED_UP) == 0 && t < 5.0f) {
@@ -503,10 +471,10 @@ public class Player2Controller : MonoBehaviour {
 	void Update() {
 #if UNITY_EDITOR
 		if(Input.GetKeyDown(KeyCode.Alpha2)) {
-			GameManager.persistent_player_type = PlayerType.PLAYER2;
-			// StartCoroutine(fade_out_and_end());
+			GameManager.last_player_type = PlayerType.PLAYER2;
 			audio_listener.enabled = false;
-			game_manager.show_stats(camera_);
+			camera_.gameObject.SetActive(false);
+			game_manager.show_stats();
 		}
 #endif
 
@@ -555,7 +523,7 @@ public class Player2Controller : MonoBehaviour {
 			}
 		}
 		else {
-			if(!fade_out_triggered && !first_missile_fired) {
+			if(!first_missile_fired) {
 				float connected_playing_time = game_manager.total_playing_time;
 				if(game_manager.network_player1_inst != null) {
 					float time_since_player1_joined = Time.time - game_manager.network_player1_inst.join_time_stamp;
@@ -563,12 +531,6 @@ public class Player2Controller : MonoBehaviour {
 						connected_playing_time = time_since_player1_joined;
 					}
 				}
-
-				// float max_playing_time = 600.0f;
-				// if(connected_playing_time > max_playing_time) {
-				// 	fade_out_triggered = true;
-				// 	StartCoroutine(fade_out_and_end());
-				// }
 			}
 		}
 
@@ -583,12 +545,6 @@ public class Player2Controller : MonoBehaviour {
 				look_time += Time.deltaTime;
 				if(look_time > 0.1f) {
 					control_flags |= HAS_LOOKED;
-				}
-
-				if(Settings.TRACKBALL) {
-					float sensitivity = 0.75f;
-					mouse_x *= sensitivity;
-					mouse_y *= sensitivity;
 				}
 			}
 

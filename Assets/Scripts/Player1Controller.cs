@@ -920,12 +920,11 @@ public class Player1Console {
 			inst.cursor_time += Time.deltaTime;
 
 			bool skip = false;
-//TODO: TEMP!!
-// #if UNITY_EDITOR
+#if UNITY_EDITOR
 			if(game_manager.get_key(KeyCode.Alpha1)) {
 				skip = true;
 			}
-// #endif
+#endif
 
 			Audio.stop_on_next_loop(inst.print_source);
 
@@ -1581,7 +1580,7 @@ public class Player1Controller : MonoBehaviour {
 			}
 
 			RenderTexture render_texture = new RenderTexture(tex_width, tex_height, 24);
-			render_texture.antiAliasing = 4;
+			render_texture.antiAliasing = QualitySettings.antiAliasing;
 			render_texture.Create();
 
 			feed.renderer.material.mainTexture = render_texture;
@@ -1761,6 +1760,7 @@ public class Player1Controller : MonoBehaviour {
 			name = "NetworkPlayer1";
 			game_manager.network_player1_inst = this;
 
+			transform.Find("View").gameObject.SetActive(false);
 			main_camera.gameObject.SetActive(false);
 			this.enabled = false;
 		}
@@ -1973,7 +1973,10 @@ public class Player1Controller : MonoBehaviour {
 		air_source.Stop();
 		chatter_source.Stop();
 
-		game_manager.show_stats(main_camera);
+		main_camera.gameObject.SetActive(false);
+		view.camera.gameObject.SetActive(false);
+
+		game_manager.show_stats();
 		yield return null;
 	}
 

@@ -213,6 +213,12 @@ public static class Util {
 		}
 	}
 
+	public static void set_renderer_alpha(Renderer renderer, float a) {
+		Color color = renderer.material.color;
+		color.a = a;
+		renderer.material.color = color;
+	}
+
 	public static IEnumerator lerp_local_scale(Transform transform, Vector3 from, Vector3 to, float d = 1.0f) {
 		transform.localScale = from;
 

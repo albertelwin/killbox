@@ -31,12 +31,9 @@ public enum ConnectionType {
 
 public class GameManager : MonoBehaviour {
 	public class SplashScreen {
+		public GameObject go;
 		public Transform transform;
-
-		public Renderer logo;
-		public TextMesh name;
-
-		public Renderer[] credits;
+		public Renderer image;
 	}
 
 	public class PlayerButton {
@@ -80,6 +77,7 @@ public class GameManager : MonoBehaviour {
 
 		public Renderer info_page;
 		public PlayerButton info;
+		public Collider hyperlink;
 	}
 
 	public class LanScreen {
@@ -150,14 +148,14 @@ public class GameManager : MonoBehaviour {
 
 	static string game_type_player1 = "killbox_player1_server";
 	static string game_type_player2 = "killbox_player2_server";
-	//TODO: Stable naming scheme!!
-	static string game_name = "killbox_server_____";
+	static string game_name = "killbox_server_v" + Settings.VERSION;
 
 	Camera menu_camera = null;
 	AudioSource bees_source = null;
 	Coroutine bees_coroutine = null;
 
-	public static PlayerType persistent_player_type = PlayerType.NONE;
+	public static bool splash_shown = false;
+	public static PlayerType last_player_type = PlayerType.NONE;
 
 	public static float drone_height = 240.0f;
 	public static float drone_radius = 90.0f;
@@ -187,10 +185,6 @@ public class GameManager : MonoBehaviour {
 	[System.NonSerialized] public Transform player2_prefab = null;
 	//TODO: Remove this!!
 	[System.NonSerialized] public Transform explosion_prefab = null;
-
-	public static GameManager get_inst() {
-		return GameObject.Find("GameManager").GetComponent<GameManager>();
-	}
 
 	static public IEnumerator set_world_brightness(GameManager game_manager, float from, float to, float d = 1.0f, Camera camera = null) {
 		float t = 0.0f;
@@ -339,15 +333,13 @@ public class GameManager : MonoBehaviour {
 		}
 	}
 
-	public void show_stats(Camera camera) {
-		StartCoroutine(show_stats_(camera));
+	public void show_stats() {
+		StartCoroutine(show_stats_());
 	}
 
-	public IEnumerator show_stats_(Camera camera) {
-		bool show_info = persistent_player_type != PlayerType.NONE;
+	public IEnumerator show_stats_() {
+		bool show_info = last_player_type != PlayerType.NONE;
 		if(show_info) {
-			camera.gameObject.SetActive(false);
-
 			menu_camera.gameObject.SetActive(true);
 			main_screen.transform.gameObject.SetActive(false);
 			lan_screen.transform.gameObject.SetActive(false);
@@ -365,27 +357,9 @@ public class GameManager : MonoBehaviour {
 			movie.loop = false;
 			movie.Stop();
 			movie.Play();
-
-			if(Settings.LAN_MODE) {
-				while(movie.isPlaying) {
-					yield return Util.wait_for_frame;
-				}
+			while(movie.isPlaying) {
+				yield return Util.wait_for_frame;
 			}
-			else {
-				float start_time = Time.realtimeSinceStartup;
-
-				while(movie.isPlaying) {
-					float t = Time.realtimeSinceStartup - start_time;
-					if(t >= 25.0f) {
-						break;
-					}
-
-					yield return Util.wait_for_frame;
-				}
-
-				yield return Util.lerp_color(this, end_screen.outro_renderer, Util.white, Util.black, 10.0f);
-			}
-
 			movie.Stop();
 
 			end_screen.outro_renderer.enabled = false;
@@ -395,7 +369,7 @@ public class GameManager : MonoBehaviour {
 #endif
 		}
 		else {
-			persistent_player_type = player_type == PlayerType.PLAYER1 ? PlayerType.PLAYER2 : PlayerType.PLAYER1;
+			last_player_type = player_type == PlayerType.PLAYER1 ? PlayerType.PLAYER2 : PlayerType.PLAYER1;
 		}
 
 		game_over(show_info);
@@ -438,6 +412,9 @@ public class GameManager : MonoBehaviour {
 				{ "player_type", player_type_str },
 			});
 
+			PlayerPrefs.SetInt(PREF_KEY_PLAY_COUNT, PlayerPrefs.GetInt(PREF_KEY_PLAY_COUNT) + 1);
+			PlayerPrefs.Save();
+
 			menu_camera.gameObject.SetActive(false);
 
 			if(player_type == PlayerType.PLAYER1) {
@@ -458,8 +435,6 @@ public class GameManager : MonoBehaviour {
 				Cursor.lockState = CursorLockMode.Locked;
 				Cursor.visible = !(Cursor.lockState == CursorLockMode.Locked);
 
-				//TODO: Pick this randomly from pool of points!!
-				// Transform spawn_point = env.target_point.spawn_point;
 				Transform spawn_point = env.target_point.spawn_points.GetChild(0);
 
 				if(connection_type != ConnectionType.OFFLINE) {
@@ -490,7 +465,7 @@ public class GameManager : MonoBehaviour {
 
 	public void game_over(bool reset_persistent_state = false) {
 		if(reset_persistent_state) {
-			persistent_player_type = PlayerType.NONE;
+			last_player_type = PlayerType.NONE;
 
 			if(!Settings.LAN_MODE) {
 				network_disconnect();
@@ -661,7 +636,7 @@ public class GameManager : MonoBehaviour {
 				create_player(ConnectionType.OFFLINE);
 			}
 			else {
-				if(persistent_player_type == PlayerType.NONE) {
+				if(last_player_type == PlayerType.NONE) {
 					string request_game_type = (player_type == PlayerType.PLAYER1) ? game_type_player2 : game_type_player1;
 					MasterServer.RequestHostList(request_game_type);
 					Debug.Log("Looking for " + request_game_type + "...");
@@ -693,7 +668,7 @@ public class GameManager : MonoBehaviour {
 		lan_screen.transform.gameObject.SetActive(false);
 
 		if(Settings.LAN_MODE && Settings.LAN_FORCE_CONNECTION) {
-			if(!connected_to_another_player() && persistent_player_type == PlayerType.NONE) {
+			if(!connected_to_another_player() && last_player_type == PlayerType.NONE) {
 				splash_screen.transform.gameObject.SetActive(false);
 
 				if(Settings.LAN_SERVER_MACHINE) {
@@ -726,7 +701,7 @@ public class GameManager : MonoBehaviour {
 			}
 		}
 
-		if(persistent_player_type == PlayerType.NONE) {
+		if(last_player_type == PlayerType.NONE) {
 			{
 				loading_log.gameObject.SetActive(true);
 
@@ -756,60 +731,34 @@ public class GameManager : MonoBehaviour {
 				loading_log.gameObject.SetActive(false);
 			}
 
-			if(Settings.USE_SPLASH) {
+			if(Settings.USE_SPLASH && !splash_shown) {
 				splash_screen.transform.gameObject.SetActive(true);
-				splash_screen.logo.enabled = false;
-				splash_screen.name.GetComponent<Renderer>().enabled = false;
 
-				// for(int i = 0; i < splash_screen.credits.Length; i++) {
-				// 	Renderer credit = splash_screen.credits[i];
-				// 	credit.enabled = true;
-
-				// 	credit.material.color = Util.white_no_alpha;
-				// 	yield return Util.lerp_alpha(this, credit, 1.0f, 1.0f);
-				// 	yield return Util.wait_for_2s;
-				// 	yield return Util.lerp_alpha(this, credit, 0.0f, 1.0f);
-
-				// 	credit.enabled = false;
-				// }
-
-				splash_screen.logo.enabled = true;
-				splash_screen.logo.material.color = new Color(1.0f, 1.0f, 1.0f, 0.0f);
-
-				splash_screen.name.GetComponent<Renderer>().enabled = true;
-				splash_screen.name.color = new Color(1.0f, 1.0f, 1.0f, 0.0f);
+				splash_screen.image.material.color = new Color(1.0f, 1.0f, 1.0f, 0.0f);
 
 				yield return new WaitForSeconds(0.5f);
-				yield return Util.lerp_alpha(this, splash_screen.logo, 1.0f, 2.0f);
-				yield return new WaitForSeconds(0.5f);
-				yield return Util.lerp_alpha(this, splash_screen.name, 1.0f);
+				yield return Util.lerp_alpha(this, splash_screen.image, 1.0f, 2.0f);
 
 				yield return new WaitForSeconds(1.5f);
 
-				Util.lerp_alpha(this, splash_screen.logo, 0.0f, 3.5f);
-				Util.lerp_alpha(this, splash_screen.name, 0.0f, 3.5f);
+				Util.lerp_alpha(this, splash_screen.image, 0.0f, 3.5f);
+			}
 
-				stop_bees_coroutine(this);
-				bees_coroutine = StartCoroutine(Util.lerp_audio_volume(bees_source, 0.0f, 1.0f, 5.0f));
-				if(!bees_source.isPlaying) {
-					bees_source.Play();
-				}
+			stop_bees_coroutine(this);
+			bees_coroutine = StartCoroutine(Util.lerp_audio_volume(bees_source, 0.0f, 1.0f, 5.0f));
+			if(!bees_source.isPlaying) {
+				bees_source.Play();
+			}
 
+			if(Settings.USE_SPLASH && !splash_shown) {
 				yield return new WaitForSeconds(4.0f);
-
 				splash_screen.transform.gameObject.SetActive(false);
 			}
-			else {
-				Assert.is_true(!splash_screen.transform.gameObject.activeSelf);
 
-				stop_bees_coroutine(this);
-				bees_coroutine = StartCoroutine(Util.lerp_audio_volume(bees_source, 0.0f, 1.0f, 5.0f));
-				if(!bees_source.isPlaying) {
-					bees_source.Play();
-				}
-			}
+			splash_shown = true;
 
-			if(Settings.LAN_MODE) {
+			// if(Settings.LAN_MODE) {
+			{
 				lan_screen.transform.gameObject.SetActive(true);
 
 				PlayerType start_player = Settings.LAN_SERVER_MACHINE ? PlayerType.PLAYER1 : PlayerType.PLAYER2;
@@ -837,7 +786,7 @@ public class GameManager : MonoBehaviour {
 
 				while(true) {
 #if !UNITY_EDITOR
-					if(Settings.LAN_FORCE_CONNECTION && !connected_to_another_player()) {
+					if(Settings.LAN_MODE && Settings.LAN_FORCE_CONNECTION && !connected_to_another_player()) {
 						reconnect = true;
 						break;
 					}
@@ -861,6 +810,8 @@ public class GameManager : MonoBehaviour {
 				}
 
 				if(reconnect) {
+					Assert.is_true(Settings.LAN_MODE);
+
 					stop_bees_coroutine(this);
 					bees_source.volume = 0.0f;
 					yield return Util.wait_for_frame;
@@ -869,167 +820,248 @@ public class GameManager : MonoBehaviour {
 					StartCoroutine(show_splash_screen());
 				}
 				else {
-					PlayerPrefs.SetInt(PREF_KEY_PLAY_COUNT, PlayerPrefs.GetInt(PREF_KEY_PLAY_COUNT) + 1);
-					PlayerPrefs.Save();
 					game_log.gameObject.SetActive(false);
 
-					if(Settings.USE_TRANSITIONS) {
+					if(Settings.LAN_MODE && Settings.USE_TRANSITIONS) {
 						stop_bees_coroutine(this);
 						bees_coroutine = StartCoroutine(Util.lerp_audio_volume(bees_source, bees_source.volume, 0.0f, 5.0f, true));
-						yield return Util.lerp_alpha(this, intro_renderer, 0.0f, 3.0f);
 					}
-
+					yield return Util.lerp_alpha(this, intro_renderer, 0.0f, 3.0f);
 					intro_movie.Stop();
 					intro_renderer.gameObject.SetActive(false);
 
-					StartCoroutine(start_game(start_player));
+					if(Settings.LAN_MODE) {
+						StartCoroutine(start_game(start_player));
+					}
 				}
-
-				menu_sfx_source.volume = 0.0f;
 
 #if !UNITY_EDITOR
 				QualitySettings.vSyncCount = VSYNC_COUNT;
 #endif
-			}
-			else {
-				main_screen.transform.gameObject.SetActive(true);
 
-				main_screen.cursor.gameObject.SetActive(false);
+				if(!Settings.LAN_MODE) {
+					main_screen.transform.gameObject.SetActive(true);
 
-				main_screen.player1.transform.gameObject.SetActive(true);
-				main_screen.player1.helmet.material.color = Util.black_no_alpha;
-				main_screen.player1.head.material.color = player1_text_color;
-				main_screen.player1.body.material.color = Util.black_no_alpha;
-				main_screen.player1.text.color = Util.black_no_alpha;
+					main_screen.cursor.gameObject.SetActive(false);
 
-				main_screen.player2.transform.gameObject.SetActive(true);
-				main_screen.player2.head.material.color = player2_text_color;
-				main_screen.player2.body.material.color = Util.black_no_alpha;
-				main_screen.player2.text.color = Util.black_no_alpha;
+					main_screen.player1.transform.gameObject.SetActive(true);
+					main_screen.player1.helmet.material.color = Util.black_no_alpha;
+					main_screen.player1.head.material.color = player1_text_color;
+					main_screen.player1.body.material.color = Util.black_no_alpha;
+					main_screen.player1.text.color = Util.black_no_alpha;
 
-				main_screen.info.transform.gameObject.SetActive(true);
-				main_screen.info.head.material.color = Util.white_no_alpha;
-				main_screen.info.text.color = Util.black_no_alpha;
-				main_screen.info.text.text = "MORE INFORMATION";
+					main_screen.player2.transform.gameObject.SetActive(true);
+					main_screen.player2.head.material.color = player2_text_color;
+					main_screen.player2.body.material.color = Util.black_no_alpha;
+					main_screen.player2.text.color = Util.black_no_alpha;
 
-				main_screen.info_page.enabled = false;
+					main_screen.info.transform.gameObject.SetActive(true);
+					main_screen.info.head.material.color = Util.white_no_alpha;
+					main_screen.info.text.color = Util.black_no_alpha;
+					main_screen.info.text.text = "ABOUT KILLBOX";
 
-				if(Settings.USE_TRANSITIONS) {
-					main_screen.player1.head.material.color = Util.new_color(player1_text_color, 0.0f);
-					main_screen.player2.head.material.color = Util.new_color(player2_text_color, 0.0f);
+					main_screen.info_page.enabled = true;
+					Util.set_renderer_alpha(main_screen.info_page, 0.0f);
 
-					yield return Util.lerp_color(this, main_screen.player1.head, main_screen.player1.head.material.color, player1_text_color);
-					yield return Util.lerp_color(this, main_screen.player2.head, main_screen.player2.head.material.color, player2_text_color);
-					yield return Util.lerp_alpha(this, main_screen.info.head, 1.0f);
-				}
+					if(Settings.USE_TRANSITIONS) {
+						main_screen.player1.head.material.color = Util.new_color(player1_text_color, 0.0f);
+						main_screen.player2.head.material.color = Util.new_color(player2_text_color, 0.0f);
 
-				Cursor.lockState = CursorLockMode.Locked;
-				main_screen.cursor.gameObject.SetActive(true);
-				Util.lerp_color(this, main_screen.cursor.GetComponent<Renderer>(), Util.white_no_alpha, Util.white);
-				Cursor.lockState = CursorLockMode.None;
-
-				bool mouse_down = Input.GetKey(KeyCode.Mouse0);
-
-				while(true) {
-					Ray cursor_ray = move_cursor_(main_screen.cursor);
-
-					bool mouse_was_down = mouse_down;
-					mouse_down = Input.GetKey(KeyCode.Mouse0);
-					bool clicked = mouse_down && !mouse_was_down;
-
-					menu_sfx_source.volume = 0.0f;
-
-					bool player1_hover = Util.raycast_collider(main_screen.player1.collider, cursor_ray);
-					bool player2_hover = Util.raycast_collider(main_screen.player2.collider, cursor_ray);
-					bool info_hover = Util.raycast_collider(main_screen.info.collider, cursor_ray);
-
-#if UNITY_EDITOR
-					if(Input.GetKey(KeyCode.Alpha1)) {
-						player1_hover = true;
-						clicked = true;
+						yield return Util.lerp_color(this, main_screen.player1.head, main_screen.player1.head.material.color, player1_text_color);
+						yield return Util.lerp_color(this, main_screen.player2.head, main_screen.player2.head.material.color, player2_text_color);
+						yield return Util.lerp_alpha(this, main_screen.info.head, 1.0f);
 					}
-					if(Input.GetKey(KeyCode.Alpha2)) {
-						player2_hover = true;
-						clicked = true;
-					}
-#endif
 
-					if(!main_screen.info_page.enabled) {
-						if(player1_hover) {
-							main_screen.player1.text.color = Color.white;
-							main_screen.player1.helmet.material.color = player1_text_color;
-							main_screen.player1.body.material.color = player1_text_color;
+					Cursor.lockState = CursorLockMode.Locked;
+					main_screen.cursor.gameObject.SetActive(true);
+					Util.lerp_color(this, main_screen.cursor.GetComponent<Renderer>(), Util.white_no_alpha, Util.white);
+					Cursor.lockState = CursorLockMode.None;
 
-							if(clicked) {
-								StartCoroutine(start_game_from_main_screen(PlayerType.PLAYER1));
-								break;
+					bool mouse_down = Input.GetKey(KeyCode.Mouse0);
+
+					object current_screen = main_screen;
+
+					object fade_screen = null;
+					float fade_time = 0.0f;
+
+					while(true) {
+						Ray cursor_ray = move_cursor_(main_screen.cursor);
+
+						bool mouse_was_down = mouse_down;
+						mouse_down = Input.GetKey(KeyCode.Mouse0);
+						bool clicked = mouse_down && !mouse_was_down;
+
+						menu_sfx_source.volume = 0.0f;
+
+						bool player1_hover = Util.raycast_collider(main_screen.player1.collider, cursor_ray);
+						bool player2_hover = Util.raycast_collider(main_screen.player2.collider, cursor_ray);
+						bool info_hover = Util.raycast_collider(main_screen.info.collider, cursor_ray);
+						bool hyperlink_hover = Util.raycast_collider(main_screen.hyperlink, cursor_ray);
+
+	#if UNITY_EDITOR
+						if(Input.GetKey(KeyCode.Alpha1)) {
+							player1_hover = true;
+							clicked = true;
+						}
+						if(Input.GetKey(KeyCode.Alpha2)) {
+							player2_hover = true;
+							clicked = true;
+						}
+	#endif
+
+						if(fade_screen != null) {
+							fade_time += Time.deltaTime;
+
+							bool end_fade = false;
+
+							if(fade_screen == main_screen) {
+								float fade_out_time = fade_time;
+								if(fade_out_time > 0.0f) {
+									float fade_out_alpha = 1.0f - fade_out_time;
+									if(fade_out_alpha < 0.0f) {
+										fade_out_alpha = 0.0f;
+									}
+
+									Util.set_renderer_alpha(main_screen.info_page, fade_out_alpha);
+
+									float fade_in_time = fade_out_time - 1.0f;
+									if(fade_in_time > 0.0f) {
+										float fade_in_alpha = fade_in_time;
+										if(fade_in_alpha > 1.0f) {
+											fade_in_alpha = 1.0f;
+
+											main_screen.info.text.text = "ABOUT KILLBOX";
+
+											end_fade = true;
+										}
+
+										Util.set_renderer_alpha(main_screen.player1.head, fade_in_alpha);
+										Util.set_renderer_alpha(main_screen.player2.head, fade_in_alpha);
+									}
+								}
+							}
+							else if(fade_screen == main_screen.info_page) {
+								float fade_out_time = fade_time;
+								if(fade_out_time > 0.0f) {
+									float fade_out_alpha = 1.0f - fade_out_time;
+									if(fade_out_alpha < 0.0f) {
+										fade_out_alpha = 0.0f;
+									}
+
+									Util.set_renderer_alpha(main_screen.player1.head, fade_out_alpha);
+									Util.set_renderer_alpha(main_screen.player2.head, fade_out_alpha);
+
+									float fade_in_time = fade_out_time - 1.0f;
+									if(fade_in_time > 0.0f) {
+										float fade_in_alpha = fade_in_time;
+										if(fade_in_alpha > 1.0f) {
+											fade_in_alpha = 1.0f;
+
+											main_screen.info.text.text = "BACK";
+
+											end_fade = true;
+										}
+
+										Util.set_renderer_alpha(main_screen.info_page, fade_in_alpha);
+									}
+								}
+							}
+							else {
+								Assert.invalid_path();
+							}
+
+							if(end_fade) {
+								current_screen = fade_screen;
+								fade_screen = null;
+								fade_time = 0.0f;
 							}
 						}
 						else {
-							main_screen.player1.text.color = Util.black_no_alpha;
-							main_screen.player1.helmet.material.color = Util.black_no_alpha;
-							main_screen.player1.body.material.color = Util.black_no_alpha;
-						}
+							if(current_screen == main_screen) {
+								if(player1_hover) {
+									main_screen.player1.text.color = Util.white;
+									main_screen.player1.helmet.material.color = player1_text_color;
+									main_screen.player1.body.material.color = player1_text_color;
 
-						if(player2_hover) {
-							player2_texture_flip_time += Time.deltaTime * player2_texture_flip_rate;
-							if(player2_texture_flip_time > 1.0f) {
-								player2_texture_id++;
-								if(player2_texture_id == player2_body_textures.Length) {
-									Util.shuffle_array<Texture2D>(player2_body_textures);
-									player2_texture_id = 0;
+									if(clicked) {
+										StartCoroutine(start_game_from_main_screen(PlayerType.PLAYER1));
+										break;
+									}
+								}
+								else {
+									main_screen.player1.text.color = Util.black_no_alpha;
+									main_screen.player1.helmet.material.color = Util.black_no_alpha;
+									main_screen.player1.body.material.color = Util.black_no_alpha;
 								}
 
-								player2_texture_flip_time = 0.0f;
-								main_screen.player2.body.material.mainTexture = player2_body_textures[player2_texture_id];
+								if(player2_hover) {
+									player2_texture_flip_time += Time.deltaTime * player2_texture_flip_rate;
+									if(player2_texture_flip_time > 1.0f) {
+										player2_texture_id++;
+										if(player2_texture_id == player2_body_textures.Length) {
+											Util.shuffle_array<Texture2D>(player2_body_textures);
+											player2_texture_id = 0;
+										}
+
+										player2_texture_flip_time = 0.0f;
+										main_screen.player2.body.material.mainTexture = player2_body_textures[player2_texture_id];
+									}
+
+									main_screen.player2.text.color = Color.white;
+									main_screen.player2.body.material.color = player2_text_color;
+
+									menu_sfx_source.volume = 1.0f;
+
+									if(clicked) {
+										main_screen.player2.body.material.mainTexture = Random.value > 0.5f ? player2_boy_texture : player2_girl_texture;
+										menu_sfx_source.volume = 0.0f;
+										StartCoroutine(start_game_from_main_screen(PlayerType.PLAYER2));
+										break;
+									}
+								}
+								else {
+									main_screen.player2.text.color = Util.black_no_alpha;
+									main_screen.player2.body.material.color = Util.black_no_alpha;
+								}
+
+								if(info_hover) {
+									main_screen.info.text.color = Util.white;
+
+									if(clicked) {
+										main_screen.info.text.color = Util.white_no_alpha;
+										fade_screen = main_screen.info_page;
+									}
+								}
+								else {
+									main_screen.info.text.color = Util.black_no_alpha;
+								}
 							}
+							else if(current_screen == main_screen.info_page) {
+								if(info_hover) {
+									main_screen.info.text.color = Util.white;
 
-							main_screen.player2.text.color = Color.white;
-							main_screen.player2.body.material.color = player2_text_color;
+									if(clicked) {
+										fade_screen = main_screen;
+										main_screen.info.text.color = Util.white_no_alpha;
+									}
+								}
+								else {
+									main_screen.info.text.color = Util.black_no_alpha;
+								}
 
-							menu_sfx_source.volume = 1.0f;
-
-							if(clicked) {
-								main_screen.player2.body.material.mainTexture = Random.value > 0.5f ? player2_boy_texture : player2_girl_texture;
-								menu_sfx_source.volume = 0.0f;
-								StartCoroutine(start_game_from_main_screen(PlayerType.PLAYER2));
-								break;
+								if(hyperlink_hover && clicked) {
+									Application.OpenURL("https://www.killbox.info/");
+								}
+							}
+							else {
+								Assert.invalid_path();
 							}
 						}
-						else {
-							main_screen.player2.text.color = Util.black_no_alpha;
-							main_screen.player2.body.material.color = Util.black_no_alpha;
-						}
 
-						if(info_hover) {
-							main_screen.info.text.color = Util.white;
-
-							if(clicked) {
-								main_screen.info_page.enabled = true;
-								main_screen.info_page.material.color = Util.white;
-								main_screen.info.text.text = "BACK";
-							}
-						}
-						else {
-							main_screen.info.text.color = Util.black_no_alpha;
-						}
+						yield return Util.wait_for_frame;
 					}
-					else {
-						if(info_hover) {
-							main_screen.info.text.color = Util.white;
 
-							if(clicked) {
-								main_screen.info_page.enabled = false;
-								main_screen.info_page.material.color = Util.white_no_alpha;
-								main_screen.info.text.text = "MORE INFORMATION";
-							}
-						}
-						else {
-							main_screen.info.text.color = Util.black_no_alpha;
-						}
-					}
-
-					yield return Util.wait_for_frame;
+					menu_sfx_source.volume = 0.0f;
 				}
 			}
 		}
@@ -1037,7 +1069,7 @@ public class GameManager : MonoBehaviour {
 			Assert.is_true(!main_screen.transform.gameObject.activeSelf);
 			Assert.is_true(!lan_screen.transform.gameObject.activeSelf);
 
-			StartCoroutine(start_game(persistent_player_type));
+			StartCoroutine(start_game(last_player_type));
 		}
 
 		yield return null;
@@ -1073,6 +1105,9 @@ public class GameManager : MonoBehaviour {
 			}
 		}
 
+		Settings.LAN_FORCE_CONNECTION = true;
+		Settings.FORCE_OFFLINE_MODE = false;
+
 		Settings.USE_TRANSITIONS = true;
 
 		QualitySettings.vSyncCount = VSYNC_COUNT;
@@ -1086,17 +1121,9 @@ public class GameManager : MonoBehaviour {
 
 		splash_screen = new SplashScreen();
 		splash_screen.transform = transform.Find("Camera/Splash");
-		splash_screen.transform.gameObject.SetActive(false);
-		splash_screen.logo = splash_screen.transform.Find("Logo").GetComponent<Renderer>();
-		splash_screen.name = splash_screen.transform.Find("Name").GetComponent<TextMesh>();
-		splash_screen.credits = new Renderer[2];
-		for(int i = 0; i < splash_screen.credits.Length; i++) {
-			Transform child = splash_screen.transform.Find("Credits" + i);
-			Assert.is_true(child != null);
-
-			Renderer render = splash_screen.credits[i] = child.GetComponent<Renderer>();
-			render.enabled = false;
-		}
+		splash_screen.go = splash_screen.transform.gameObject;
+		splash_screen.go.SetActive(false);
+		splash_screen.image = splash_screen.transform.Find("Image").GetComponent<Renderer>();
 
 		main_screen = new MainScreen();
 		main_screen.transform = transform.Find("Camera/Main");
@@ -1105,6 +1132,7 @@ public class GameManager : MonoBehaviour {
 		main_screen.player2 = PlayerButton.new_inst(main_screen.transform, "Player2Button");
 		main_screen.info_page = main_screen.transform.Find("InfoPage").GetComponent<Renderer>();
 		main_screen.info = PlayerButton.new_inst(main_screen.transform, "InfoButton");
+		main_screen.hyperlink = main_screen.info_page.GetComponent<Collider>();
 
 		lan_screen = new LanScreen();
 		lan_screen.transform = transform.Find("Camera/LAN");
@@ -1312,7 +1340,7 @@ public class GameManager : MonoBehaviour {
 			}
 		}
 		else {
-			if(created_player) {
+			if(Settings.INSTALLATION_BUILD && created_player) {
 				pause_screen.time_since_last_response += Time.deltaTime;
 				if(pause_screen.time_since_last_response >= AUTO_PAUSE_TIME) {
 					set_pause(this, true);

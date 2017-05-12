@@ -33,7 +33,8 @@ public class GameManager : MonoBehaviour {
 	public class SplashScreen {
 		public GameObject go;
 		public Transform transform;
-		public Renderer image;
+		public Renderer biome;
+		public Renderer killbox;
 	}
 
 	public class PlayerButton {
@@ -179,7 +180,7 @@ public class GameManager : MonoBehaviour {
 	[System.NonSerialized] public Environment env;
 
 	[System.NonSerialized] new public Audio audio;
-	[System.NonSerialized] public AudioSource menu_sfx_source;
+	[System.NonSerialized] public AudioSource[] menu_player_sources;
 
 	[System.NonSerialized] public Transform player1_prefab = null;
 	[System.NonSerialized] public Transform player2_prefab = null;
@@ -731,17 +732,39 @@ public class GameManager : MonoBehaviour {
 				loading_log.gameObject.SetActive(false);
 			}
 
-			if(Settings.USE_SPLASH && !splash_shown) {
+			bool show_splash = Settings.USE_SPLASH && !splash_shown;
+			splash_shown = true;
+
+			if(show_splash) {
 				splash_screen.transform.gameObject.SetActive(true);
+				splash_screen.biome.enabled = false;
+				splash_screen.killbox.enabled = false;
 
-				splash_screen.image.material.color = new Color(1.0f, 1.0f, 1.0f, 0.0f);
+				{
+					splash_screen.biome.enabled = true;
+					splash_screen.biome.material.color = Util.white_no_alpha;
 
-				yield return new WaitForSeconds(0.5f);
-				yield return Util.lerp_alpha(this, splash_screen.image, 1.0f, 2.0f);
+					yield return new WaitForSeconds(0.5f);
+					yield return Util.lerp_alpha(this, splash_screen.biome, 1.0f, 2.0f);
 
-				yield return new WaitForSeconds(1.5f);
+					yield return new WaitForSeconds(1.5f);
 
-				Util.lerp_alpha(this, splash_screen.image, 0.0f, 3.5f);
+					// Util.lerp_alpha(this, splash_screen.biome, 0.0f, 3.5f);
+					yield return Util.lerp_alpha(this, splash_screen.biome, 0.0f, 2.0f);
+					splash_screen.biome.enabled = false;
+				}
+
+				{
+					splash_screen.killbox.enabled = true;
+					splash_screen.killbox.material.color = Util.white_no_alpha;
+
+					yield return new WaitForSeconds(0.5f);
+					yield return Util.lerp_alpha(this, splash_screen.killbox, 1.0f, 2.0f);
+
+					yield return new WaitForSeconds(1.5f);
+
+					Util.lerp_alpha(this, splash_screen.killbox, 0.0f, 3.5f);
+				}
 			}
 
 			stop_bees_coroutine(this);
@@ -750,94 +773,92 @@ public class GameManager : MonoBehaviour {
 				bees_source.Play();
 			}
 
-			if(Settings.USE_SPLASH && !splash_shown) {
+			if(show_splash) {
 				yield return new WaitForSeconds(4.0f);
 				splash_screen.transform.gameObject.SetActive(false);
 			}
 
-			splash_shown = true;
-
 			// if(Settings.LAN_MODE) {
 			{
-				lan_screen.transform.gameObject.SetActive(true);
+				if(Settings.LAN_MODE || !show_splash) {
+					lan_screen.transform.gameObject.SetActive(true);
 
-				PlayerType start_player = Settings.LAN_SERVER_MACHINE ? PlayerType.PLAYER1 : PlayerType.PLAYER2;
+					PlayerType start_player = Settings.LAN_SERVER_MACHINE ? PlayerType.PLAYER1 : PlayerType.PLAYER2;
 
-				QualitySettings.vSyncCount = 0;
+					QualitySettings.vSyncCount = 0;
 
-				Renderer intro_renderer = lan_screen.intro_renderer;
-				intro_renderer.gameObject.SetActive(true);
-				intro_renderer.material.color = Util.white;
+					Renderer intro_renderer = lan_screen.intro_renderer;
+					intro_renderer.gameObject.SetActive(true);
+					intro_renderer.material.color = Util.white;
 
-				MovieTexture intro_movie = (MovieTexture)intro_renderer.material.mainTexture;
-				intro_movie.loop = true;
-				intro_movie.Stop();
-				intro_movie.Play();
-
-				while(Input.anyKey) {
-					yield return Util.wait_for_frame;
-				}
-
-#if !UNITY_EDITOR
-				yield return Util.wait_for_2s;
-#endif
-
-				bool reconnect = false;
-
-				while(true) {
-#if !UNITY_EDITOR
-					if(Settings.LAN_MODE && Settings.LAN_FORCE_CONNECTION && !connected_to_another_player()) {
-						reconnect = true;
-						break;
-					}
-#endif
-
-					//TODO: Do we want to remove certain keys - escape/etc.??
-					if(Input.anyKey) {
-#if UNITY_EDITOR
-						if(Input.GetKey(KeyCode.Alpha1)) {
-							start_player = PlayerType.PLAYER1;
-						}
-						else if(Input.GetKey(KeyCode.Alpha2)){
-							start_player = PlayerType.PLAYER2;
-						}
-#endif
-
-						break;
-					}
-
-					yield return Util.wait_for_frame;
-				}
-
-				if(reconnect) {
-					Assert.is_true(Settings.LAN_MODE);
-
-					stop_bees_coroutine(this);
-					bees_source.volume = 0.0f;
-					yield return Util.wait_for_frame;
-					bees_source.Stop();
-
-					StartCoroutine(show_splash_screen());
-				}
-				else {
-					game_log.gameObject.SetActive(false);
-
-					if(Settings.LAN_MODE && Settings.USE_TRANSITIONS) {
-						stop_bees_coroutine(this);
-						bees_coroutine = StartCoroutine(Util.lerp_audio_volume(bees_source, bees_source.volume, 0.0f, 5.0f, true));
-					}
-					yield return Util.lerp_alpha(this, intro_renderer, 0.0f, 3.0f);
+					MovieTexture intro_movie = (MovieTexture)intro_renderer.material.mainTexture;
+					intro_movie.loop = true;
 					intro_movie.Stop();
-					intro_renderer.gameObject.SetActive(false);
+					intro_movie.Play();
 
-					if(Settings.LAN_MODE) {
-						StartCoroutine(start_game(start_player));
+					yield return Util.wait_for_2s;
+
+					while(Input.anyKey) {
+						yield return Util.wait_for_frame;
 					}
-				}
+
+					bool reconnect = false;
+
+					while(true) {
+#if !UNITY_EDITOR
+						if(Settings.LAN_MODE && Settings.LAN_FORCE_CONNECTION && !connected_to_another_player()) {
+							reconnect = true;
+							break;
+						}
+#endif
+
+						//TODO: Do we want to remove certain keys - escape/etc.??
+						if(Input.anyKey) {
+#if UNITY_EDITOR
+							if(Input.GetKey(KeyCode.Alpha1)) {
+								start_player = PlayerType.PLAYER1;
+							}
+							else if(Input.GetKey(KeyCode.Alpha2)){
+								start_player = PlayerType.PLAYER2;
+							}
+#endif
+
+							break;
+						}
+
+						yield return Util.wait_for_frame;
+					}
+
+					if(reconnect) {
+						Assert.is_true(Settings.LAN_MODE);
+
+						stop_bees_coroutine(this);
+						bees_source.volume = 0.0f;
+						yield return Util.wait_for_frame;
+						bees_source.Stop();
+
+						StartCoroutine(show_splash_screen());
+					}
+					else {
+						game_log.gameObject.SetActive(false);
+
+						if(Settings.LAN_MODE && Settings.USE_TRANSITIONS) {
+							stop_bees_coroutine(this);
+							bees_coroutine = StartCoroutine(Util.lerp_audio_volume(bees_source, bees_source.volume, 0.0f, 5.0f, true));
+						}
+						yield return Util.lerp_alpha(this, intro_renderer, 0.0f, 3.0f);
+						intro_movie.Stop();
+						intro_renderer.gameObject.SetActive(false);
+
+						if(Settings.LAN_MODE) {
+							StartCoroutine(start_game(start_player));
+						}
+					}
 
 #if !UNITY_EDITOR
-				QualitySettings.vSyncCount = VSYNC_COUNT;
+					QualitySettings.vSyncCount = VSYNC_COUNT;
 #endif
+				}
 
 				if(!Settings.LAN_MODE) {
 					main_screen.transform.gameObject.SetActive(true);
@@ -855,8 +876,10 @@ public class GameManager : MonoBehaviour {
 					main_screen.player2.body.material.color = Util.black_no_alpha;
 					main_screen.player2.text.color = Util.black_no_alpha;
 
+					Color info_color = new Color(0.302f, 0.302f, 0.302f, 1.0f);
+
 					main_screen.info.transform.gameObject.SetActive(true);
-					main_screen.info.head.material.color = Util.white_no_alpha;
+					main_screen.info.head.material.color = Util.new_color(info_color, 0.0f);
 					main_screen.info.text.color = Util.black_no_alpha;
 					main_screen.info.text.text = "ABOUT KILLBOX";
 
@@ -891,14 +914,16 @@ public class GameManager : MonoBehaviour {
 						mouse_down = Input.GetKey(KeyCode.Mouse0);
 						bool clicked = mouse_down && !mouse_was_down;
 
-						menu_sfx_source.volume = 0.0f;
+						for(int i = 0; i < menu_player_sources.Length; i++) {
+							menu_player_sources[i].volume = 0.0f;
+						}
 
 						bool player1_hover = Util.raycast_collider(main_screen.player1.collider, cursor_ray);
 						bool player2_hover = Util.raycast_collider(main_screen.player2.collider, cursor_ray);
 						bool info_hover = Util.raycast_collider(main_screen.info.collider, cursor_ray);
 						bool hyperlink_hover = Util.raycast_collider(main_screen.hyperlink, cursor_ray);
 
-	#if UNITY_EDITOR
+// #if UNITY_EDITOR
 						if(Input.GetKey(KeyCode.Alpha1)) {
 							player1_hover = true;
 							clicked = true;
@@ -907,7 +932,7 @@ public class GameManager : MonoBehaviour {
 							player2_hover = true;
 							clicked = true;
 						}
-	#endif
+// #endif
 
 						if(fade_screen != null) {
 							fade_time += Time.deltaTime;
@@ -983,7 +1008,10 @@ public class GameManager : MonoBehaviour {
 									main_screen.player1.helmet.material.color = player1_text_color;
 									main_screen.player1.body.material.color = player1_text_color;
 
+									menu_player_sources[0].volume = 1.0f;
+
 									if(clicked) {
+										menu_player_sources[0].volume = 0.0f;
 										StartCoroutine(start_game_from_main_screen(PlayerType.PLAYER1));
 										break;
 									}
@@ -1010,11 +1038,11 @@ public class GameManager : MonoBehaviour {
 									main_screen.player2.text.color = Color.white;
 									main_screen.player2.body.material.color = player2_text_color;
 
-									menu_sfx_source.volume = 1.0f;
+									menu_player_sources[1].volume = 1.0f;
 
 									if(clicked) {
 										main_screen.player2.body.material.mainTexture = Random.value > 0.5f ? player2_boy_texture : player2_girl_texture;
-										menu_sfx_source.volume = 0.0f;
+										menu_player_sources[1].volume = 0.0f;
 										StartCoroutine(start_game_from_main_screen(PlayerType.PLAYER2));
 										break;
 									}
@@ -1058,10 +1086,14 @@ public class GameManager : MonoBehaviour {
 							}
 						}
 
+						main_screen.info.head.material.color = info_hover ? Util.white : info_color;
+
 						yield return Util.wait_for_frame;
 					}
 
-					menu_sfx_source.volume = 0.0f;
+					for(int i = 0; i < menu_player_sources.Length; i++) {
+						menu_player_sources[i].volume = 0.0f;
+					}
 				}
 			}
 		}
@@ -1123,7 +1155,9 @@ public class GameManager : MonoBehaviour {
 		splash_screen.transform = transform.Find("Camera/Splash");
 		splash_screen.go = splash_screen.transform.gameObject;
 		splash_screen.go.SetActive(false);
-		splash_screen.image = splash_screen.transform.Find("Image").GetComponent<Renderer>();
+		splash_screen.biome = splash_screen.transform.Find("Biome").GetComponent<Renderer>();
+		splash_screen.killbox = splash_screen.transform.Find("Killbox").GetComponent<Renderer>();
+		splash_screen.killbox.enabled = false;
 
 		main_screen = new MainScreen();
 		main_screen.transform = transform.Find("Camera/Main");
@@ -1185,12 +1219,16 @@ public class GameManager : MonoBehaviour {
 
 		env = Environment.new_inst(this, GameObject.Find("Environment").transform);
 
-		menu_sfx_source = Util.new_audio_source(transform, "MenuSfxSource");
-		menu_sfx_source.clip = (AudioClip)Resources.Load("menu_hover");
-		menu_sfx_source.loop = true;
-		menu_sfx_source.volume = 0.0f;
-		menu_sfx_source.pitch = 1.75f;
-		menu_sfx_source.Play();
+		menu_player_sources = new AudioSource[2];
+		for(int i = 0; i < menu_player_sources.Length; i++) {
+			int player_id = i + 1;
+			AudioSource source = menu_player_sources[i] = Util.new_audio_source(transform, "MenuPlayer" + player_id + "Source");
+			source.clip = (AudioClip)Resources.Load("menu_player" + player_id + "_hover");
+			source.loop = true;
+			source.volume = 0.0f;
+			source.Play();
+		}
+		menu_player_sources[1].pitch = 1.75f;
 
 		Util.shuffle_array<Texture2D>(player2_body_textures);
 	}
@@ -1253,6 +1291,7 @@ public class GameManager : MonoBehaviour {
 		else {
 			if(Input.GetKeyDown(KeyCode.Escape)) {
 				if(player_type != PlayerType.NONE && created_player && !showing_stats) {
+					Debug.Log("created_player");
 					set_pause(this, !pause_screen.active);
 				}
 				else {
